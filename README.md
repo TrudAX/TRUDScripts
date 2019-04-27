@@ -8,3 +8,6 @@ Read description at https://denistrunin.com/financial-reporting-local-onebox/
 ## Trace parcer on a Onebox VM
 8.1
 https://sinedax.blogspot.com/2018/12/trace-parser-doesnt-work-dynamics-365.html
+
+## Integration checklist
+https://denistrunin.com/integration-checklist/
