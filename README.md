@@ -11,3 +11,6 @@ https://sinedax.blogspot.com/2018/12/trace-parser-doesnt-work-dynamics-365.html
 
 ## Integration checklist
 https://denistrunin.com/integration-checklist/
+
+## Comprehensive list of types for Metadata search 
+https://elandax.blogspot.com/2019/04/comprehensive-list-of-types-for.html
