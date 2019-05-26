@@ -1,8 +1,44 @@
+**Technical audit scripts**
 
+- [Getting information about the system](#getting-information-about-the-system)
+  - [Database size](#database-size)
+  - [System statistics](#system-statistics)
+  - [Table statistics](#table-statistics)
+  - [sp_Blitz](#sp_blitz)
+- [Review database status](#review-database-status)
+  - [Index defragmentation](#index-defragmentation)
+  - [Missing indexes](#missing-indexes)
+  - [Missing indexes 2](#missing-indexes-2)
+  - [Unused indexes](#unused-indexes)
+  - [Disk I / o](#disk-i--o)
+  - [Wait statistics](#wait-statistics)
+- [Database monitoring](#database-monitoring)
+  - [Database locks](#database-locks)
+  - [Helper AX jobs](#helper-ax-jobs)
+    - [Enabling tracing](#enabling-tracing)
+    - [Delete similar traces](#delete-similar-traces)
+    - [SysdatabaseLog size](#sysdatabaselog-size)
+  - [Cursors for the session](#cursors-for-the-session)
+  - [Show SQL query for the AX user](#show-sql-query-for-the-ax-user)
+  - [Show current trance flags](#show-current-trance-flags)
+  - [Clean SQL server cache](#clean-sql-server-cache)
+  - [Clean AX cache](#clean-ax-cache)
+  - [Check the entire table cache](#check-the-entire-table-cache)
+  - [Get Top SQL](#get-top-sql)
+  - [Longest transactions](#longest-transactions)
+  - [CPUID](#cpuid)
+- [Database changes](#database-changes)
+  - [Create a plan guide](#create-a-plan-guide)
+  - [Delete a plan from the cache](#delete-a-plan-from-the-cache)
+  - [Find disabled tables](#find-disabled-tables)
+  - [Index maintenance](#index-maintenance)
+  - [Delete from a large table](#delete-from-a-large-table)
+  - [Blocking alert](#blocking-alert)
+- [Performance hints](#performance-hints)
+  - [Blocking in AX](#blocking-in-ax)
+  - [Auto sorting for a view-based forms](#auto-sorting-for-a-view-based-forms)
 
 # Getting information about the system
-
-Technical audit scripts
 
 ## Database size
 
@@ -119,6 +155,10 @@ where b.tableid = a.table_ and b.FIELDID = 0
 group by a.TABLE_, b.name, a.LOGTYPE
 ORDER BY RecordCount DESC
 ```
+
+## sp_Blitz
+
+https://github.com/BrentOzarULTD/SQL-Server-First-Responder-Kit
 
 # Review database status
 
@@ -333,10 +373,6 @@ GROUP BY W1.RowNum, W1.wait_type, W1.WaitS, W1.ResourceS, W1.SignalS, W1.WaitCou
 HAVING SUM (W2.Percentage) - W1.Percentage < 95; -- percentage threshold
 GO
 ```
-
-## sp_Blitz
-
-https://github.com/BrentOzarULTD/SQL-Server-First-Responder-Kit
 
 # Database monitoring
 
@@ -649,8 +685,8 @@ FROM   sys.dm_tran_database_transactions a
 
 ## CPUID
 
-2. Download the <http://www.roylongbottom.org.uk/win64.zip>
-3. Run the program dhry164int32.exe example 10 times
+1. Download the <http://www.roylongbottom.org.uk/win64.zip>
+2. Run the program dhry164int32.exe example 10 times
 
 dhry264int64  
 12621 E5-2637 v2   8467 E5-2640 v2 (2GHz),  10082 E5-2640(2.5GHz)
