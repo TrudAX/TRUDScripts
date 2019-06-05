@@ -1,6 +1,6 @@
 **Technical audit scripts**
 
-- [Getting information about the system](#getting-information-about-the-system)
+- [Get information about the system](#get-information-about-the-system)
   - [Database size](#database-size)
   - [System statistics](#system-statistics)
   - [Table statistics](#table-statistics)
@@ -21,8 +21,8 @@
   - [Cursors for the session](#cursors-for-the-session)
   - [Show SQL query for the AX user](#show-sql-query-for-the-ax-user)
   - [Show current trance flags](#show-current-trance-flags)
-  - [Clean SQL server cache](#clean-sql-server-cache)
-  - [Clean AX cache](#clean-ax-cache)
+  - [Clear SQL server cache](#clear-sql-server-cache)
+  - [Clear AX cache](#clear-ax-cache)
   - [Check the entire table cache](#check-the-entire-table-cache)
   - [Get Top SQL](#get-top-sql)
   - [Longest transactions](#longest-transactions)
@@ -38,7 +38,7 @@
   - [Blocking in AX](#blocking-in-ax)
   - [Auto sorting for a view-based forms](#auto-sorting-for-a-view-based-forms)
 
-# Getting information about the system
+# Get information about the system
 
 ## Database size
 
@@ -154,6 +154,12 @@ b.name from SYSDATABASELOG a, SQLDICTIONARY b
 where b.tableid = a.table_ and b.FIELDID = 0
 group by a.TABLE_, b.name, a.LOGTYPE
 ORDER BY RecordCount DESC
+
+--Records count by hour
+select count(*) as 'Records count', CONVERT(date, dateadd(HOUR, 3, CREATEDATETIME)) as 'Дата', DATEPART(HOUR, dateadd(HOUR, 3, CREATEDATETIME)) as 'Hour' from MYTABLE
+where dateadd(HOUR, 3, CREATEDATETIME) >= '2018-08-01'
+group by CONVERT(date, dateadd(HOUR, 3, CREATEDATETIME)),
+DATEPART(HOUR, dateadd(HOUR, 3, CREATEDATETIME))
 ```
 
 ## sp_Blitz
@@ -555,7 +561,7 @@ DBCC TRACESTATUS()
 GO
 ```
 
-## Clean SQL server cache
+## Clear SQL server cache
 
 ```sql
 CHECKPOINT;
@@ -568,7 +574,7 @@ GO
 update statistics WMSPICKINGROUTE with fullscan
 ```
 
-## Clean AX cache
+## Clear AX cache
 
 ```sql
 update SYSSQMSETTINGS SET GLOBALGUID = '{00000000-0000-0000-0000-000000000000}'
