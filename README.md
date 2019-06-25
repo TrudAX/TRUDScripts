@@ -12,5 +12,9 @@ https://sinedax.blogspot.com/2018/12/trace-parser-doesnt-work-dynamics-365.html
 ## Integration checklist
 https://denistrunin.com/integration-checklist/
 
+## Dynamics AX performance [audit](https://github.com/TrudAX/TRUDScripts/blob/master/Performance/AX%20Technical%20Audit.md)
+
+https://denistrunin.com/performance-audit/
+
 ## Comprehensive list of types for Metadata search 
 https://elandax.blogspot.com/2019/04/comprehensive-list-of-types-for.html
