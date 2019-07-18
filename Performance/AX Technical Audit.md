@@ -187,7 +187,8 @@ FROM sys.dm_db_index_physical_stats(
 ## Missing indexes
 
 ```sql
-SELECT    object_name(object_id) as tabname, d.*, s.*
+SELECT    object_name(object_id) as tabname, database_id, equality_columns,	inequality_columns,	avg_user_impact, included_columns,
+		unique_compiles, user_seeks, user_scans, last_user_seek, last_user_scan
 FROM    sys.dm_db_missing_index_details d
 
 INNER JOIN sys.dm_db_missing_index_groups g
