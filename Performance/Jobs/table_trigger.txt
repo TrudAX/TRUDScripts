@@ -1,0 +1,15 @@
+IF OBJECT_ID ('aaa_trud.reminder1', 'TR') IS NOT NULL
+
+   DROP TRIGGER aaa_trud.reminder1;
+
+GO
+
+CREATE TRIGGER reminder1
+
+ON aaa_trud
+
+AFTER DELETE 
+
+AS RAISERROR ('Notify DELETE', 16, 10);
+
+GO

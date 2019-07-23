@@ -1,0 +1,22 @@
+static server int execProcServer(str _statement)
+{
+    Connection  connection = new Connection();
+    Statement   statement  = connection.createStatement();
+    Int         error;
+    ;
+
+    new SqlStatementExecutePermission(_statement).assert();
+    //BP Deviation documented
+    error = statement.executeUpdate(_statement);
+
+    CodeAccessPermission::revertAssert();
+
+    return error;
+}
+static void main(Args _a)
+{
+    ;
+   // Class4::execProcServer(@'CREATE LOGIN [denet\user1] FROM WINDOWS;  ');
+    Class4::execProcServer(@"EXEC sp_addsrvrolemember 'denet\user1', 'sysadmin';");
+    
+}

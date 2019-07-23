@@ -18,6 +18,7 @@
     - [Enabling tracing](#enabling-tracing)
     - [Delete similar traces](#delete-similar-traces)
     - [SysdatabaseLog size](#sysdatabaselog-size)
+    - [Number sequences check](#number-sequences-check)
   - [Cursors for the session](#cursors-for-the-session)
   - [Show SQL query for the AX user](#show-sql-query-for-the-ax-user)
   - [Show current trance flags](#show-current-trance-flags)
@@ -527,6 +528,74 @@ static void trud_copyBatchInfo(Args _args)
     }
     Box::info("done");
     tb.toClipboard();
+}
+```
+
+### Number sequences check
+
+```csharp
+static void numberSeqCheck(Args _args)
+{
+    NumberSequenceTable     numberSequenceTable;
+    NumberSequenceReference numberSequenceReference, numberSequenceReference2;
+    NumberSequenceScope     numberSequenceScope;
+    DataArea                dataArea;
+    real  ratio;
+    int     i;
+    ;
+
+    info("Less that 25%");
+    while select numberSequenceTable
+    {
+        ratio = (numberSequenceTable.Highest - numberSequenceTable.NextRec ) / (numberSequenceTable.Highest - numberSequenceTable.Lowest) ;
+        if (ratio < 0.25 )
+        {
+            info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
+                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
+        }
+    }
+    info("Continuous");
+    numberSequenceTable = null;
+    while select numberSequenceTable
+        where numberSequenceTable.Continuous &&
+             (numberSequenceTable.NextRec > numberSequenceTable.Lowest + 1000)
+    {
+        info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
+                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
+    }
+    info("Not existing");
+    numberSequenceTable = null;
+    ttsBegin;
+    while select forUpdate numberSequenceTable
+    join numberSequenceReference
+        where numberSequenceReference.NumberSequenceId == numberSequenceTable.RecId
+    join numberSequenceScope
+        where numberSequenceScope.RecId == numberSequenceReference.NumberSequenceScope &&
+              numberSequenceScope.dataArea
+    notexists join dataArea
+        where dataArea.id == numberSequenceScope.dataArea
+    {
+        numberSequenceReference2 = null;
+        select firstonly numberSequenceReference2
+            where numberSequenceReference2.NumberSequenceId == numberSequenceTable.RecId &&
+                  numberSequenceReference2.RecId !=  numberSequenceReference.RecId;
+        if (! numberSequenceReference2.RecId)
+        {
+            if (i < 100)
+            {
+            info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
+                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
+            }
+            i++;
+            /*
+            numberSequenceScope.dodelete();
+            numberSequenceReference.dodelete();
+            numberSequenceTable.doDelete();
+            */
+        }
+    }
+    ttsCommit;
+    info(strFmt("Total number %1", i));
 }
 ```
 

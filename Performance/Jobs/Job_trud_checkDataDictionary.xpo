@@ -1,0 +1,236 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: JOB
+
+; Microsoft Dynamics AX Job: trud_checkDataDictionary unloaded
+; --------------------------------------------------------------------------------
+  JOBVERSION 1
+  
+  SOURCE #trud_checkDataDictionary
+    #static void trud_checkDataDictionary(Args _args)
+    #{
+    #    Dictionary      dictionary  = new Dictionary();
+    #    DictTable       dictTableMacro   = dictionary.tableObject(dictionary.tableCnt2Id(1));
+    #    Set             tableSet = new Set(Types::Integer),
+    #                    fieldSet = new Set(Types::container);
+    #    boolean         forAllTables, forAllFields;
+    #    FieldId         lastDataId = 1000000; //?????? ???? ?? ?????? ??????
+    #
+    #    boolean checkField(DictTable dictTable, DictField dictField, boolean _silent = false)
+    #    {
+    #        DialogButton    boxRet;
+    #        SQLDictionary   sqlDictionary,
+    #                        sqlDictionaryCorr,
+    #                        sqlDictionaryUpd;
+    #        DictField       df;
+    #        FieldId         currentFieldId;
+    #        ;
+    #
+    #        if (! dictField.isSystem() && dictField.isSql() && isConfigurationkeyEnabled(dictField.configurationKeyId()) && ! fieldSet.in([dictField.tableid(), dictField.id()]))
+    #        {
+    #            fieldSet.add([dictField.tableid(), dictField.id()]);
+    #
+    #            select firstonly RecID from sqlDictionary
+    #                where sqlDictionary.tabId   == dictTable.id()   &&
+    #                      sqlDictionary.fieldId == dictField.id() &&
+    #                      sqlDictionary.name    == dictField.name();
+    #
+    #            if (! sqlDictionary.RecId)
+    #            {
+    #                select firstonly fieldId from sqlDictionary
+    #                    where sqlDictionary.tabId   == dictTable.id()  &&
+    #                          sqlDictionary.name == dictField.name();
+    #
+    #                if (sqlDictionary.fieldId)
+    #                {
+    #                    if (! forAllFields && ! _silent)
+    #                    {
+    #                        boxRet = Box::yesAllNoAllCancel(strFmt("In SQLDictionary in table %1 field %2 has code %3, but in system %4. Correct SQLDictionary?",
+    #                            dictTable.name(), dictField.name(), sqlDictionary.fieldId, dictField.id()), DialogButton::Yes);
+    #
+    #                        if (boxRet == DialogButton::YesToAll)
+    #                        {
+    #                            forAllFields = true;
+    #                        }
+    #                    }
+    #
+    #                    if (_silent || forAllFields || boxRet == DialogButton::Yes)
+    #                    {
+    #                        ttsbegin;
+    #                        select forupdate sqlDictionaryCorr
+    #                            where sqlDictionaryCorr.tabId   == dictTable.id() &&
+    #                                  sqlDictionaryCorr.fieldId == dictField.id();
+    #
+    #                        if (sqlDictionaryCorr.RecId)
+    #                        {
+    #                            df = new DictField(dictTable.id(), fieldname2id(dictTable.id(), sqlDictionaryCorr.name));
+    #
+    #                            lastDataId ++;
+    #                            currentFieldId = lastDataId;
+    #                            update_recordset sqlDictionaryUpd
+    #                            setting fieldId = currentFieldId
+    #                                where sqlDictionaryUpd.tabId    == dictTable.id() &&
+    #                                      sqlDictionaryUpd.fieldId  == sqlDictionary.fieldId;
+    #
+    #                            if (df)
+    #                            {
+    #                                if (! checkField(dictTable, df, true))
+    #                                {
+    #                                    return false;
+    #                                }
+    #                            }
+    #                            else
+    #                            {
+    #                                sqlDictionaryCorr.delete();
+    #                            }
+    #                        }
+    #                        else
+    #                        {
+    #                            currentFieldId = sqlDictionary.fieldId;
+    #                        }
+    #
+    #                        update_recordset sqlDictionaryUpd
+    #                        setting fieldId = dictField.id()
+    #                            where sqlDictionaryUpd.tabId    == dictTable.id() &&
+    #                                  sqlDictionaryUpd.fieldId  == currentFieldId;
+    #                        ttscommit;
+    #                    }
+    #                    else if (boxRet == DialogButton::Cancel)
+    #                    {
+    #                        return false;
+    #                    }
+    #                }
+    #            }
+    #        }
+    #        return true;
+    #    }
+    #
+    #    boolean checkTable(DictTable dictTable, boolean _silent = false)
+    #    {
+    #        DictField       dictFieldMacro;
+    #        SQLDictionary   sqlDictionary,
+    #                        sqlDictionaryCorr,
+    #                        sqlDictionaryUpd;
+    #        DialogButton    boxRet;
+    #        DictTable       dt;
+    #        boolean         tst;
+    #        TableId         currentTableId;
+    #        ;
+    #
+    #        tst = dictTable.isMap();
+    #        tst = dictTable.isTmp();
+    #        tst = dictTable.isView();
+    #        tst = tableSet.in(dictTable.id());
+    #
+    #        if (! dictTable.isMap() && ! dictTable.isTmp() /*&& ! dictTable.isView()*/ && ! tableSet.in(dictTable.id()))
+    #        {
+    #            tableSet.add(dictTable.id());
+    #
+    #            select firstonly RecID from sqlDictionary
+    #                where sqlDictionary.tabId   == dictTable.id() &&
+    #                      sqlDictionary.name    == dictTable.name();
+    #
+    #            if (! sqlDictionary.RecId)
+    #            {
+    #                select firstonly tabId from sqlDictionary
+    #                    where sqlDictionary.fieldId   == 0 &&
+    #                          sqlDictionary.name    == dictTable.name();
+    #                if (sqlDictionary.tabId)
+    #                {
+    #                    if (! forAllTables && ! _silent)
+    #                    {
+    #                        boxRet = Box::yesAllNoAllCancel(strFmt("In SQLDictionary table %1 has code %2, but in system %3. Correct SQLDictionary?",
+    #                            dictTable.name(), sqlDictionary.tabId, dictTable.id()), DialogButton::Yes);
+    #
+    #                        if (boxRet == DialogButton::YesToAll)
+    #                        {
+    #                            forAllTables = true;
+    #                        }
+    #                    }
+    #
+    #                    if (_silent || forAllTables || boxRet == DialogButton::Yes)
+    #                    {
+    #                        ttsbegin;
+    #                        select firstonly forupdate sqlDictionaryCorr
+    #                            where sqlDictionaryCorr.tabId   == dictTable.id();
+    #
+    #                        if (sqlDictionaryCorr.RecId)
+    #                        {
+    #                            dt = new DictTable(tablename2id(sqlDictionaryCorr.name));
+    #
+    #                            lastDataId ++;
+    #                            currentTableId = lastDataId;
+    #                            update_recordset sqlDictionaryUpd
+    #                            setting tabId = currentTableId
+    #                                where sqlDictionaryUpd.tabId == sqlDictionary.tabId;
+    #
+    #                            if (dt)
+    #                            {
+    #                                if (! checkTable(dt, true))
+    #                                {
+    #                                    return false;
+    #                                }
+    #                            }
+    #                            else
+    #                            {
+    #                                delete_from sqlDictionaryCorr
+    #                                    where sqlDictionaryCorr.tabId   == dictTable.id();
+    #                            }
+    #                        }
+    #                        else
+    #                        {
+    #                            currentTableId = sqlDictionary.tabId;
+    #                        }
+    #
+    #                        update_recordset sqlDictionaryUpd
+    #                        setting tabId = dictTable.id()
+    #                            where sqlDictionaryUpd.tabId == currentTableId;
+    #
+    #                        ttscommit;
+    #                    }
+    #                    else if (boxRet == DialogButton::Cancel)
+    #                    {
+    #                        return false;
+    #                    }
+    #                }
+    #            }
+    #            dictFieldMacro = dictTable.fieldObject(dictTable.fieldCnt2Id(1));
+    #
+    #            while (dictFieldMacro)
+    #            {
+    #                if (checkField(dictTable, dictFieldMacro))
+    #                {
+    #                    dictFieldMacro = dictTable.fieldObject(dictTable.fieldNext(dictFieldMacro.id()));
+    #                }
+    #                else
+    #                {
+    #                    return false;
+    #                }
+    #            }
+    #        }
+    #        return true;
+    #    }
+    #    ;
+    #
+    #    //dictTableMacro = new DictTable(tablename2id('InventTable'));
+    #    while (dictTableMacro)
+    #    {
+    #        if (checkTable(dictTableMacro))
+    #        {
+    #            //break;
+    #            dictTableMacro   = dictionary.tableObject(dictionary.tableNext(dictTableMacro.id()));
+    #        }
+    #        else
+    #        {
+    #            return;// false;
+    #        }
+    #    }
+    #}
+  ENDSOURCE
+  PROPERTIES
+    Origin              #{B748F153-C147-406B-BF18-663A52B4ED5D}
+  ENDPROPERTIES
+  
+
+***Element: END
