@@ -87,17 +87,23 @@ SELECT [STATUS]
       ,[BATCHJOBID]
       ,DATEADD(minute, @m, [STARTDATETIME]) as [STARTDATETIME]
       ,DATEADD(minute, @m, [ENDDATETIME]) as [ENDDATETIME]
+	  ,DATEDIFF(mi, STARTDATETIME, enddatetime) as [DurationMi]
       ,[COMPANY]
       ,[ALERTSPROCESSED]
       ,[BATCHCREATEDBY]
       ,[CANCELEDBY]
   FROM [dbo].[BATCHJOBHISTORY]
-where DATEDIFF(mi, STARTDATETIME, enddatetime) > 60 and STARTDATETIME > CONVERT(datetime, '2019-04-10', 120)
+where DATEDIFF(mi, STARTDATETIME, enddatetime) > 30 and STARTDATETIME > CONVERT(datetime, '2019-08-01', 120)
+--order by STARTDATETIME desc
+order by CAPTION desc
 
 --Active users by hour
+DECLARE  @mOffset int
+set @mOffset = DATEDIFF(mi,SYSUTCDATETIME(), SYSDATETIME())
+
 SET DATEFORMAT YMD
 DECLARE @hrs TABLE (HH INT NOT NULL)
-DECLARE @DateFrom date = '2019-02-26', @DateTo date = CONVERT(datetime, '2019-04-10', 120)
+DECLARE @DateFrom date = '2019-08-08', @DateTo date = CONVERT(datetime, '2019-08-08', 120)
 
 INSERT INTO @hrs
 SELECT TOP 24 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) FROM sys.objects
@@ -110,13 +116,13 @@ FROM (
         ,HH
         ,count(*) AS UserCnt
     FROM (
-        SELECT DISTINCT USERID, CAST(DATEADD(hour, 3, CREATEDDATETIME) AS DATE) AS DATE
+        SELECT DISTINCT USERID, CAST(DATEADD(mi, @mOffset, CREATEDDATETIME) AS DATE) AS DATE
             ,HH
         FROM SYSUSERLOG
         CROSS JOIN @hrs
-        WHERE CAST(DATEADD(hour, 3, CREATEDDATETIME) AS DATE) = CAST(DATEADD(hour, 3, LOGOUTDATETIME) AS DATE)
-            AND DATEPART(hour, DATEADD(hour, 3, CREATEDDATETIME)) <= HH
-            AND DATEPART(hour, DATEADD(hour, 3, LOGOUTDATETIME)) >= HH
+        WHERE CAST(DATEADD(mi, @mOffset, CREATEDDATETIME) AS DATE) = CAST(DATEADD(mi, @mOffset, LOGOUTDATETIME) AS DATE)
+            AND DATEPART(hour, DATEADD(mi, @mOffset, CREATEDDATETIME)) <= HH
+            AND DATEPART(hour, DATEADD(mi, @mOffset, LOGOUTDATETIME)) >= HH
             AND CLIENTTYPE = 1
         ) T
     WHERE DATE BETWEEN @DateFrom AND @DateTo
