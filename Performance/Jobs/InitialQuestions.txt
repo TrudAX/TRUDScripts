@@ -1,5 +1,6 @@
 Servers list and their roles
 Admin access to all servers
 How to update application code(where to develop, how to transfer to prod)
+App with cross references
 Contact persons(functional and technical), how to contact
 How to test operations(copy of production DB)
