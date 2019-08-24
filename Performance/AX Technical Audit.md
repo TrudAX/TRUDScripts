@@ -3,12 +3,12 @@
 - [Get information about the system](#get-information-about-the-system)
   - [Database size](#database-size)
   - [System statistics](#system-statistics)
+  - [SQL Agent jobs](#sql-agent-jobs)
   - [Table statistics](#table-statistics)
   - [sp_Blitz](#sp_blitz)
 - [Review database status](#review-database-status)
   - [Index defragmentation](#index-defragmentation)
   - [Missing indexes](#missing-indexes)
-  - [Missing indexes 2](#missing-indexes-2)
   - [Unused indexes](#unused-indexes)
   - [Disk I / o](#disk-i--o)
   - [Wait statistics](#wait-statistics)
@@ -133,6 +133,41 @@ GROUP BY HH
 ORDER BY HH
 ```
 
+## SQL Agent jobs
+
+~~~sql
+SELECT [sJOB].[name] AS [JobName]
+	,CASE [sJOBH].[run_status] WHEN 0 THEN 'Failed' WHEN 1 THEN 'Succeeded' WHEN 2 THEN 'Retry' WHEN 3 THEN 'Canceled' WHEN 4 THEN 'Running' -- In Progress
+		END AS [LastRunStatus]
+	,STUFF(STUFF(RIGHT('000000' + CAST([sJOBH].[run_duration] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS [LastRunDuration (HH:MM:SS)]
+	,CASE WHEN [sJOBH].[run_date] IS NULL
+			OR [sJOBH].[run_time] IS NULL THEN NULL ELSE CAST(CAST([sJOBH].[run_date] AS CHAR(8)) + ' ' + STUFF(STUFF(RIGHT('000000' + CAST([sJOBH].[run_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS DATETIME) END AS [LastRunDateTime]
+	,[sJOBH].[message] AS [LastRunStatusMessage]
+	,CASE [freq_type] WHEN 4 THEN 'Occurs every ' + CAST([freq_interval] AS VARCHAR(3)) + ' day(s)' WHEN 8 THEN 'Occurs every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' week(s) on ' + CASE WHEN [freq_interval] & 1 = 1 THEN 'Sunday' ELSE '' END + CASE WHEN [freq_interval] & 2 = 2 THEN ', Monday' ELSE '' END + CASE WHEN [freq_interval] & 4 = 4 THEN ', Tuesday' ELSE '' END + CASE WHEN [freq_interval] & 8 = 8 THEN ', Wednesday' ELSE '' END + CASE WHEN [freq_interval] & 16 = 16 THEN ', Thursday' ELSE '' END + CASE WHEN [freq_interval] & 32 = 32 THEN ', Friday' ELSE '' END + CASE WHEN [freq_interval] & 64 = 64 THEN ', Saturday' ELSE '' END WHEN 16 THEN 'Occurs on Day ' + CAST([freq_interval] AS VARCHAR(3)) + ' of every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' month(s)' WHEN 32 THEN 'Occurs on ' + CASE [freq_relative_interval] WHEN 1 THEN 'First' WHEN 2 THEN 'Second' WHEN 4 THEN 'Third' WHEN 8 THEN 'Fourth' WHEN 16 THEN 'Last' END + ' ' + CASE [freq_interval] WHEN 1 THEN 'Sunday' WHEN 2 THEN 'Monday' WHEN 3 THEN 'Tuesday' WHEN 4 THEN 'Wednesday' WHEN 5 THEN 'Thursday' WHEN 6 THEN 'Friday' WHEN 7 THEN 'Saturday' WHEN 8 THEN 'Day' WHEN 9 THEN 'Weekday' WHEN 10 THEN 
+							'Weekend day' END + ' of every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' month(s)' END AS [Recurrence]
+	,CASE [freq_subday_type] WHEN 1 THEN 'Occurs once at ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 2 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Second(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 4 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Minute(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 8 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Hour(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') END [Frequency]
+FROM [msdb].[dbo].[sysjobs] AS [sJOB]
+LEFT JOIN (
+	SELECT [job_id]
+		,[run_date]
+		,[run_time]
+		,[run_status]
+		,[run_duration]
+		,[message]
+		,ROW_NUMBER() OVER (
+			PARTITION BY [job_id] ORDER BY [run_date] DESC
+				,[run_time] DESC
+			) AS RowNumber
+	FROM [msdb].[dbo].[sysjobhistory]
+	WHERE [step_id] = 0
+	) AS [sJOBH] ON [sJOB].[job_id] = [sJOBH].[job_id]
+	AND [sJOBH].[RowNumber] = 1
+LEFT JOIN [msdb].[dbo].[sysjobschedules] AS [sJOBSCH] ON [sJOB].[job_id] = [sJOBSCH].[job_id]
+LEFT JOIN [msdb].[dbo].[sysschedules] AS [sSCH] ON [sJOBSCH].[schedule_id] = [sSCH].[schedule_id]
+WHERE [sJOB].[enabled] = 1
+ORDER BY [JobName]
+~~~
+
 ## Table statistics
 
 ```sql
@@ -205,104 +240,6 @@ INNER JOIN sys.dm_db_missing_index_group_stats s
 WHERE    database_id = db_id()
 ORDER BY  avg_total_user_cost * avg_user_impact *(user_seeks + user_scans)DESC
 ```
-
-## Missing indexes 2
-
-~~~sql
-SET NOCOUNT ON
-
-DECLARE @dbid INT
-
-IF (object_id('tempdb..##IndexAdvantage') IS NOT NULL)
-    DROP TABLE ##IndexAdvantage
-
-CREATE TABLE ##IndexAdvantage (
-    [Index Advantage] FLOAT
-    ,[Database] VARCHAR(164)
-    ,[Transact SQL code to create index] VARCHAR(3512)
-    ,[Compilations] INT
-    ,[Number of searches] INT
-    ,[Number of scans] INT
-    ,[Average cost ] INT
-    ,[Average win percentage] INT
-    );
-
-DECLARE DBases CURSOR
-FOR
-SELECT database_id
-FROM sys.master_files -- Get a list of database IDS
-WHERE STATE = 0
-    AND -- ONLINE
-    has_dbaccess(db_name(database_id)) = 1 -- Only look at databases to which we have access
-GROUP BY database_id
-
-OPEN DBases
-
-FETCH NEXT
-FROM DBases
-INTO @dbid
-
-WHILE @@FETCH_STATUS = 0
-BEGIN -- Run for each database
-    INSERT INTO ##IndexAdvantage
-    SELECT [Index Advantage] = user_seeks * avg_total_user_cost * (avg_user_impact * 0.01)
-        ,[Database] = DB_NAME(mid.database_id)
-        ,[Transact SQL code to create index] = 'CREATE INDEX [IX_' + OBJECT_NAME(mid.object_id, @dbid) + '_' + CAST(mid.index_handle AS NVARCHAR) + '] ON ' + mid.statement + ' (' + ISNULL(mid.equality_columns, '') + (
-            CASE
-                WHEN mid.equality_columns IS NOT NULL
-                    AND mid.inequality_columns IS NOT NULL
-                    THEN ', '
-                ELSE ''
-                END
-            ) + (
-            CASE
-                WHEN mid.inequality_columns IS NOT NULL
-                    THEN + mid.inequality_columns
-                ELSE ''
-                END
-            ) + ')' + (
-            CASE
-                WHEN mid.included_columns IS NOT NULL
-                    THEN ' INCLUDE (' + mid.included_columns + ')'
-                ELSE ''
-                END
-            ) + ';'
-        ,[Number of compilations] = migs.unique_compiles
-        ,[Number of search operations] = migs.user_seeks
-        ,[Number of scan operations] = migs.user_scans
-        ,[Average cost ] = CAST(migs.avg_total_user_cost AS INT)
-        ,[Average win rate] = CAST(migs.avg_user_impact AS INT)
-    FROM sys.dm_db_missing_index_groups mig
-    INNER JOIN sys.dm_db_missing_index_group_stats migs ON migs.group_handle = mig.index_group_handle
-    INNER JOIN sys.dm_db_missing_index_details mid ON mig.index_handle = mid.index_handle
-        AND mid.database_id = @dbid
-
-```
-FETCH NEXT
-FROM DBases
-INTO @dbid
-```
-
-END ----------------------------------------------------------------------------------------
-
-CLOSE DBases
-
-DEALLOCATE DBases
-GO
-
-SELECT *
-FROM ##IndexAdvantage
-ORDER BY 1 DESC
-
--- The "advantage of the index" above 5000 in industrial systems means that consideration should be given to the creation of these indices.
--- If the value exceeds 10000, it usually means that the index can provide a significant performance improvement for read operations.
--- Delete the temporary table
-IF (object_id('tempdb..##IndexAdvantage') IS NOT NULL)
-    DROP TABLE ##IndexAdvantage
-
-IF (object_id('tempdb..##IndexAdvantage2') IS NOT NULL)
-    DROP TABLE ##IndexAdvantage2
-~~~
 
 ## Unused indexes
 
