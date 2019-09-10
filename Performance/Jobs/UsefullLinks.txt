@@ -1,0 +1,2 @@
+Cleanup routines in Dynamics 365 for Finance and Operations
+https://blogs.msdn.microsoft.com/axsa/2018/09/05/cleanup-routines-in-dynamics-365-for-finance-and-operations/
