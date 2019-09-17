@@ -1,0 +1,26 @@
+SELECT * INTO [InventSumBackup20190911]  FROM INVENTSUM   where CLOSED = 0
+
+BEGIN TRANSACTION
+
+select top 1 * from InventSum a WITH (TABLOCKX, HOLDLOCK)
+
+select * INTO #InventSumNonZero  FROM INVENTSUM  where CLOSED = 0
+
+truncate table InventSum
+
+INSERT INTO InventSum select * from #InventSumNonZero 
+
+ALTER INDEX ALL ON InventSum REBUILD 
+
+COMMIT TRANSACTION
+
+UPDATE STATISTICS InventSum WITH FULLSCAN
+
+
+/*
+SELECT * INTO [ECL_TEMP].dbo.[InventSumBackup20190911]  FROM INVENTSUM
+--time on test ~16 min
+DELETE FROM InventSum WITH (TABLOCK) where CLOSED = 1
+--time on test ~ 1min
+UPDATE STATISTICS InventSum WITH FULLSCAN
+*/
