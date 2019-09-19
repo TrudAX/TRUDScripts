@@ -1,0 +1,17 @@
+by keeping original
+
+WITH CTE AS
+(
+SELECT *,ROW_NUMBER() OVER (PARTITION BY col1,col2,col3 ORDER BY col1,col2,col3) AS RN
+FROM MyTable
+)
+DELETE FROM CTE WHERE RN<>1
+
+without keeping original
+
+WITH CTE AS
+(SELECT *,R=RANK() OVER (ORDER BY col1,col2,col3)
+FROM MyTable)
+ 
+DELETE CTE
+WHERE R IN (SELECT R FROM CTE GROUP BY R HAVING COUNT(*)>1)
