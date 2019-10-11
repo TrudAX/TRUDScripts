@@ -1,0 +1,18 @@
+static void displayEnumValues(Args _args)
+{
+    DictEnum de = new DictEnum(enumnum(ECL_BMLogOperation));
+    int      i;
+    str      resStr;
+    ;
+    resStr = "case" + '\n';
+    for(i = 1; i <= de.values(); i++)
+    {
+        resStr += strFmt("WHEN [OPERATION] = %1 THEN N'%2'", i - 1,
+            de.index2Label(i - 1)) + '\n';
+        //info(strFmt('%1', de.index2Label(i - 1)));
+    }
+    resStr += "END AS OperationType";
+
+    info(resStr);
+
+}
