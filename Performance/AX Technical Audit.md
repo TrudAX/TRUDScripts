@@ -610,6 +610,7 @@ DBCC FREEPROCCACHE
 GO
 
 update statistics WMSPICKINGROUTE with fullscan
+ALTER INDEX ALL ON InventSum REBUILD 
 ```
 
 ## Clear AX cache
@@ -871,6 +872,19 @@ DROP TABLE #temp_hash;
 
 END
 DROP TABLE #recordsToDelete
+
+--Another option
+declare @rowCount int = -1;
+while(@rowCount <> 0) begin
+	WITH Comments_ToBeDeleted AS (
+	SELECT TOP 50000 *
+	FROM SMMTRANSLOG
+	ORDER BY LOGDATETIME
+	)
+	DELETE FROM Comments_ToBeDeleted
+	WHERE LOGDATETIME <(GETDATE() - 200)
+	set @rowCount = @@rowCount;
+end
 ```
 
 ## Blocking alert

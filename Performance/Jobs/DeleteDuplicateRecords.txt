@@ -1,4 +1,4 @@
-by keeping original
+--by keeping original
 
 WITH CTE AS
 (
@@ -7,7 +7,7 @@ FROM MyTable
 )
 DELETE FROM CTE WHERE RN<>1
 
-without keeping original
+--without keeping original
 
 WITH CTE AS
 (SELECT *,R=RANK() OVER (ORDER BY col1,col2,col3)
@@ -15,3 +15,13 @@ FROM MyTable)
  
 DELETE CTE
 WHERE R IN (SELECT R FROM CTE GROUP BY R HAVING COUNT(*)>1)
+
+--FAST delete
+
+WITH Comments_ToBeDeleted AS (
+SELECT TOP 1000 *
+FROM dbo.Comments
+ORDER BY CreationDate
+)
+DELETE FROM Comments_ToBeDeleted
+WHERE CreationDate < '2010-01-01';
