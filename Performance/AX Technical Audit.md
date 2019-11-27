@@ -67,10 +67,9 @@ GO
 ## System statistics
 
 - Version of AX and SQL
-
 - How much memory is left on SQL Server
-
 - Batch jobs and their time of execution
+- Pending WF status
 
 ```sql
 select name, is_read_committed_snapshot_on  from sys.databases
@@ -743,7 +742,7 @@ dhry164int32
 Crystal disk mark
 8 RAID 10 Inner RAID
 
- ![1557246894814](images\1557246894814.png)
+ ![1557246894814](images/CrystalDiskMark.png)
 
 # Database changes
 
