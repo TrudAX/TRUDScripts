@@ -741,7 +741,7 @@ dhry164int32
 
 Crystal disk mark
 
-[How to Use CrystalDiskMark 7 to Test Your SQL Server’s Storage]: https://www.brentozar.com/archive/2019/11/how-to-use-crystaldiskmark-7-to-test-your-sql-servers-storage/
+[How to Use CrystalDiskMark 7 to Test Your SQL Server’s Storage](https://www.brentozar.com/archive/2019/11/how-to-use-crystaldiskmark-7-to-test-your-sql-servers-storage/)
 
 8 RAID 10 Inner RAID
 
