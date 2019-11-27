@@ -740,6 +740,9 @@ dhry164int32
 27605 E5-2637 v2,     18581 E5-2640 v2 (2GHz),  21130 E5-2640(2.5GHz)
 
 Crystal disk mark
+
+[How to Use CrystalDiskMark 7 to Test Your SQL Server’s Storage]: https://www.brentozar.com/archive/2019/11/how-to-use-crystaldiskmark-7-to-test-your-sql-servers-storage/
+
 8 RAID 10 Inner RAID
 
  ![1557246894814](Images/CrystalDiskMark.png)
