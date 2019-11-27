@@ -742,7 +742,7 @@ dhry164int32
 Crystal disk mark
 8 RAID 10 Inner RAID
 
- ![1557246894814](images/CrystalDiskMark.png)
+ ![1557246894814](Images/CrystalDiskMark.png)
 
 # Database changes
 
