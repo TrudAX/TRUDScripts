@@ -70,6 +70,7 @@ GO
 - How much memory is left on SQL Server
 - Batch jobs and their time of execution
 - Pending WF status
+- Number of Financial dimension sets
 
 ```sql
 select name, is_read_committed_snapshot_on  from sys.databases
@@ -668,6 +669,7 @@ SELECT TOP 50
 DB_NAME(CONVERT(int, qpa.value)) as [DataBase],
 qt.[TEXT],
 qs.execution_count,
+qs.last_execution_time,
 qs.total_logical_reads, qs.last_logical_reads,
 qs.total_logical_writes, qs.last_logical_writes,
 qs.last_physical_reads, qs.total_physical_reads,
@@ -675,7 +677,6 @@ qs.total_worker_time/1000000 total_worker_time_in_S,
 qs.last_worker_time/1000 last_worker_time_in_mS,
 qs.total_elapsed_time/1000000 total_elapsed_time_in_S,
 qs.last_elapsed_time/1000 last_elapsed_time_in_mS,
-qs.last_execution_time,
 DATEDIFF(MI,creation_time,GETDATE()) AS [Age of the Plan(Minutes)],
 CASE WHEN cast(qp.query_plan  as nvarchar(max)) LIKE N'%<MissingIndexGroup Impact="99%' THEN '!Has 99' ELSE '' END AS [Has 99%] ,
 
