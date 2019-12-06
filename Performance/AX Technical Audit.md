@@ -244,7 +244,7 @@ ORDER BY  avg_total_user_cost * avg_user_impact *(user_seeks + user_scans)DESC
 ## Unused indexes
 
 ```sql
-select object_name(us.[object_id]), ix.name as index_name, ix.type_desc, user_seeks, user_scans, user_lookups, user_updates
+select object_name(us.[object_id]) as Table_Name, ix.name as Index_name, ix.type_desc, user_seeks, user_scans, user_lookups, user_updates
 from sys.dm_db_index_usage_stats us
 inner join sys.indexes ix on ix.[object_id] = us.[object_id] and ix.index_id = us.index_id
 where us.database_id = db_id() and ix.type_desc <> 'HEAP' and
