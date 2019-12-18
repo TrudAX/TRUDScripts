@@ -1,5 +1,5 @@
 List of servers and their roles
-Admin access to all servers
+Admin access to all servers(Windows, AX, SQL)
 How to update application code(DEV app, how to transfer to PROD)
 Application with cross-references
 Contact persons(functional and technical), how to contact

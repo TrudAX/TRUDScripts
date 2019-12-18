@@ -1,2 +1,5 @@
 Cleanup routines in Dynamics 365 for Finance and Operations
 https://blogs.msdn.microsoft.com/axsa/2018/09/05/cleanup-routines-in-dynamics-365-for-finance-and-operations/
+
+How to analyze Storage Subsystem Performance in SQL Server
+https://www.sqlshack.com/how-to-analyze-storage-subsystem-performance-in-sql-server/
