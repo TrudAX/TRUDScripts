@@ -691,7 +691,7 @@ ORDER BY qs.total_logical_reads DESC -- logical reads
 --ORDER BY qs.total_worker_time DESC -- CPU time
 --ORDER BY qs.total_physical_reads desc
 
--- DBCC FREEPROCCACHE to clear the data
+-- DBCC FREEPROCCACHE to reset the counter 
 ```
 
 ## Longest transactions
