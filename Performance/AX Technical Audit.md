@@ -229,16 +229,16 @@ FROM sys.dm_db_index_physical_stats(
 ## Missing indexes
 
 ```sql
-SELECT    object_name(object_id) as tabname, database_id, equality_columns,	inequality_columns,	avg_user_impact, included_columns,
-		unique_compiles, user_seeks, user_scans, last_user_seek, last_user_scan
+SELECT    object_name(d.object_id) as tabname, database_id, equality_columns,	inequality_columns,	avg_user_impact, included_columns,
+		unique_compiles, user_seeks, user_scans, last_user_seek, last_user_scan,p.rows AS [Table Rows]
 FROM    sys.dm_db_missing_index_details d
-
 INNER JOIN sys.dm_db_missing_index_groups g
     ON    d.index_handle = g.index_handle
 INNER JOIN sys.dm_db_missing_index_group_stats s
     ON    g.index_group_handle = s.group_handle
+CROSS APPLY (SELECT TOP 1 rows from  sys.partitions WITH (NOLOCK) WHERE sys.partitions.[object_id] = d.[object_id]) AS p 
 WHERE    database_id = db_id()
-ORDER BY  avg_total_user_cost * avg_user_impact *(user_seeks + user_scans)DESC
+ORDER BY  avg_total_user_cost * avg_user_impact *(user_seeks + user_scans) DESC
 ```
 
 ## Unused indexes
