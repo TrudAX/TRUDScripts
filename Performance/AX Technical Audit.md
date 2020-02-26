@@ -840,55 +840,58 @@ https://ola.hallengren.com/
 ## Delete from a large table
 
 ```sql
-begin try
-DROP TABLE #temp_hash
-end try
-begin catch
-end catch
+IF OBJECT_ID('tempdb..#recordsToDelete') IS NOT NULL DROP TABLE #recordsToDelete
+IF OBJECT_ID('tempdb..#temp_hash') IS NOT NULL
+    DROP TABLE #temp_hash
+
+CREATE TABLE #temp_hash (RECID   BIGINT)
+
 declare @step int
+declare @isLastStep int = 0;
 
-select top 10000000 RECID into #recordsToDelete
-FROM [dbo].LARGETABLE AS hashtbl            --TABLE HERE
-WHERE hashtbl.CREATEDDATETIME <(GETDATE() -30)
-
-CREATE NONCLUSTERED INDEX [##_RECID] ON #recordsToDelete
-(RECID ASC) WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-
-set @step= 0
-
-while (@step < 100000)
+WHILE (@isLastStep = 0)
 BEGIN
+	select top 1000000 RECID into #recordsToDelete
+	FROM [dbo].ZINFOLOGHISTORY AS hashtbl            --TABLE HERE
+	WHERE hashtbl.CREATEDDATETIME <(GETDATE() -30);
 
-   SET @step = @step + 1
+	IF (@@ROWCOUNT < 1000000) SET @isLastStep = 1
+	CREATE NONCLUSTERED INDEX [##_RECID] ON #recordsToDelete (RECID ASC)
 
-   select top 1000 RECID into #temp_hash from #recordsToDelete
-CREATE NONCLUSTERED INDEX [##_RECID_Index] ON #temp_hash
-(RECID ASC) WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+	set @step= 0
+	WHILE (@step < 100) 
+	BEGIN
+		SET @step = @step + 1
+		TRUNCATE TABLE #temp_hash
+		INSERT INTO #temp_hash(RECID) SELECT TOP 10000 RECID FROM  #recordsToDelete;
+		IF (@@ROWCOUNT = 0) break;
 
-if (SELECT count(RECID) FROM #temp_hash) = 0 break;
+		--------------------------------------------------------------
+		delete FROM [dbo].ZINFOLOGHISTORY from [dbo].ZINFOLOGHISTORY  AS hs  --TABLE HERE
+		INNER JOIN #temp_hash AS JN ON hs.RECID = JN.RECID
+		----------------------------
 
-delete FROM [dbo].LARGETABLE from [dbo].LARGETABLE  AS hs  --TABLE HERE
-
-inner JOIN #temp_hash AS JN  ON hs.RECID = JN.RECID
-
-delete from #recordsToDelete from #recordsToDelete as dt inner join #temp_hash as dl
-on dl.RECID =dt.RECID
+		delete from #recordsToDelete from #recordsToDelete as dt inner join #temp_hash as dl
+		on dl.RECID =dt.RECID
+	END
+	DROP TABLE #recordsToDelete
+END
 DROP TABLE #temp_hash;
 
-END
-DROP TABLE #recordsToDelete
-
---Another option
+--Another option (about 30sec per 100k lines)
 declare @rowCount int = -1;
-while(@rowCount <> 0) begin
+declare @curStep int = 0
+
+while(@rowCount <> 0 AND @curStep < 10000) begin
 	WITH Comments_ToBeDeleted AS (
-	SELECT TOP 50000 *
-	FROM SMMTRANSLOG
-	ORDER BY LOGDATETIME
+	SELECT TOP 10000 *
+	FROM BatchJobHistory
+	--ORDER BY CREATEDDATETIME
 	)
 	DELETE FROM Comments_ToBeDeleted
-	WHERE LOGDATETIME <(GETDATE() - 200)
+	WHERE CREATEDDATETIME <(GETDATE() - 30)
 	set @rowCount = @@rowCount;
+	set @curStep = @curStep + 1;
 end
 ```
 
