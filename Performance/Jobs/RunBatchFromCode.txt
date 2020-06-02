@@ -1,0 +1,9 @@
+static void denis_runbatch(Args _args)
+{
+    ;
+    ttsbegin;
+    BatchRUn::runJobStatic(5648791756);
+
+    ttsabort;
+
+}
