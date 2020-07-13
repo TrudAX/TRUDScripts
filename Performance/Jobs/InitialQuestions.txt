@@ -1,10 +1,12 @@
 List of servers and their roles(CPU type, memory, Physical layout)
 Admin access to all servers(Windows, AX, SQL)
-How to update application code(access to the DEV app, who can transfer to PROD)
-Application with cross-references
-Contact persons(functional and technical), how to contact
+Contact person(functional and technical), how to contact
 How to test operations(copy of production DB)
 List of problem operations (not more than 5-7, see “Performance Problems Template”)
+How many developers are working on the project, how support is organized
+How to update application code(access to the DEV app, who can transfer to PROD)
+Application with cross-references
+What is the main expectation from the project
 
 D365FO
 Admin access to all servers(D365FO, LCS, Azure DevOps )
