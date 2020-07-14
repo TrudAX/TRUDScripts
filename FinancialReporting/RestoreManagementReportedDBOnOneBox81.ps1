@@ -6,7 +6,7 @@ Get-MRDefaultValues
 
 Set-MRDefaultValues -SettingName AXDatabaseName -SettingValue AxDB
 Set-MRDefaultValues -SettingName AosUserName -SettingValue AOSUser
-Set-MRDefaultValues -SettingName AosUserName -SettingValue AOSWebSite@123
+Set-MRDefaultValues -SettingName AosUserPassword -SettingValue AOSWebSite@123
 Set-MRDefaultValues -SettingName AosWebsiteName -SettingValue AOSService
 Set-MRDefaultValues -SettingName MRSqlUserName -SettingValue AOSUser
 Set-MRDefaultValues -SettingName MRSqlUserPassword -SettingValue AOSWebSite@123
