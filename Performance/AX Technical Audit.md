@@ -14,28 +14,28 @@
   - [Wait statistics](#wait-statistics)
 - [Database monitoring](#database-monitoring)
   - [Database locks](#database-locks)
-  - [Helper AX jobs](#helper-ax-jobs)
-    - [Enabling tracing](#enabling-tracing)
-    - [Delete similar traces](#delete-similar-traces)
-    - [SysdatabaseLog size](#sysdatabaselog-size)
-    - [Number sequences check](#number-sequences-check)
   - [Cursors for the session](#cursors-for-the-session)
   - [Show SQL query for the AX user](#show-sql-query-for-the-ax-user)
   - [Show current trance flags](#show-current-trance-flags)
   - [Clear SQL server cache](#clear-sql-server-cache)
   - [Clear AX cache](#clear-ax-cache)
-  - [Check the entire table cache](#check-the-entire-table-cache)
-  - [Get Top SQL](#get-top-sql)
   - [Longest transactions](#longest-transactions)
-  - [CPUID](#cpuid)
+  - [Get Top SQL](#get-top-sql)
 - [Database changes](#database-changes)
   - [Create a plan guide](#create-a-plan-guide)
   - [Delete a plan from the cache](#delete-a-plan-from-the-cache)
   - [Find disabled tables](#find-disabled-tables)
   - [Index maintenance](#index-maintenance)
+- [Helper AX jobs](#helper-ax-jobs)
+  - [Enabling tracing](#enabling-tracing)
+  - [Delete similar traces](#delete-similar-traces)
+  - [SysdatabaseLog size](#sysdatabaselog-size)
+  - [Number sequences check](#number-sequences-check)
+  - [Check the entire table cache](#check-the-entire-table-cache)
+- [Performance hints](#performance-hints)
+  - [CPUID](#cpuid)
   - [Delete from a large table](#delete-from-a-large-table)
   - [Blocking alert](#blocking-alert)
-- [Performance hints](#performance-hints)
   - [Blocking in AX](#blocking-in-ax)
   - [Auto sorting for a view-based forms](#auto-sorting-for-a-view-based-forms)
 
@@ -87,7 +87,7 @@ SELECT [STATUS]
       ,[BATCHJOBID]
       ,DATEADD(minute, @m, [STARTDATETIME]) as [STARTDATETIME]
       ,DATEADD(minute, @m, [ENDDATETIME]) as [ENDDATETIME]
-	  ,DATEDIFF(mi, STARTDATETIME, enddatetime) as [DurationMi]
+      ,DATEDIFF(mi, STARTDATETIME, enddatetime) as [DurationMi]
       ,[COMPANY]
       ,[ALERTSPROCESSED]
       ,[BATCHCREATEDBY]
@@ -135,38 +135,38 @@ ORDER BY HH
 
 ## SQL Agent jobs
 
-~~~sql
+```sql
 SELECT [sJOB].[name] AS [JobName]
-	,CASE [sJOBH].[run_status] WHEN 0 THEN 'Failed' WHEN 1 THEN 'Succeeded' WHEN 2 THEN 'Retry' WHEN 3 THEN 'Canceled' WHEN 4 THEN 'Running' -- In Progress
-		END AS [LastRunStatus]
-	,STUFF(STUFF(RIGHT('000000' + CAST([sJOBH].[run_duration] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS [LastRunDuration (HH:MM:SS)]
-	,CASE WHEN [sJOBH].[run_date] IS NULL
-			OR [sJOBH].[run_time] IS NULL THEN NULL ELSE CAST(CAST([sJOBH].[run_date] AS CHAR(8)) + ' ' + STUFF(STUFF(RIGHT('000000' + CAST([sJOBH].[run_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS DATETIME) END AS [LastRunDateTime]
-	,[sJOBH].[message] AS [LastRunStatusMessage]
-	,CASE [freq_type] WHEN 4 THEN 'Occurs every ' + CAST([freq_interval] AS VARCHAR(3)) + ' day(s)' WHEN 8 THEN 'Occurs every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' week(s) on ' + CASE WHEN [freq_interval] & 1 = 1 THEN 'Sunday' ELSE '' END + CASE WHEN [freq_interval] & 2 = 2 THEN ', Monday' ELSE '' END + CASE WHEN [freq_interval] & 4 = 4 THEN ', Tuesday' ELSE '' END + CASE WHEN [freq_interval] & 8 = 8 THEN ', Wednesday' ELSE '' END + CASE WHEN [freq_interval] & 16 = 16 THEN ', Thursday' ELSE '' END + CASE WHEN [freq_interval] & 32 = 32 THEN ', Friday' ELSE '' END + CASE WHEN [freq_interval] & 64 = 64 THEN ', Saturday' ELSE '' END WHEN 16 THEN 'Occurs on Day ' + CAST([freq_interval] AS VARCHAR(3)) + ' of every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' month(s)' WHEN 32 THEN 'Occurs on ' + CASE [freq_relative_interval] WHEN 1 THEN 'First' WHEN 2 THEN 'Second' WHEN 4 THEN 'Third' WHEN 8 THEN 'Fourth' WHEN 16 THEN 'Last' END + ' ' + CASE [freq_interval] WHEN 1 THEN 'Sunday' WHEN 2 THEN 'Monday' WHEN 3 THEN 'Tuesday' WHEN 4 THEN 'Wednesday' WHEN 5 THEN 'Thursday' WHEN 6 THEN 'Friday' WHEN 7 THEN 'Saturday' WHEN 8 THEN 'Day' WHEN 9 THEN 'Weekday' WHEN 10 THEN 
-							'Weekend day' END + ' of every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' month(s)' END AS [Recurrence]
-	,CASE [freq_subday_type] WHEN 1 THEN 'Occurs once at ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 2 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Second(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 4 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Minute(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 8 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Hour(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') END [Frequency]
+    ,CASE [sJOBH].[run_status] WHEN 0 THEN 'Failed' WHEN 1 THEN 'Succeeded' WHEN 2 THEN 'Retry' WHEN 3 THEN 'Canceled' WHEN 4 THEN 'Running' -- In Progress
+        END AS [LastRunStatus]
+    ,STUFF(STUFF(RIGHT('000000' + CAST([sJOBH].[run_duration] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS [LastRunDuration (HH:MM:SS)]
+    ,CASE WHEN [sJOBH].[run_date] IS NULL
+        OR [sJOBH].[run_time] IS NULL THEN NULL ELSE CAST(CAST([sJOBH].[run_date] AS CHAR(8)) + ' ' + STUFF(STUFF(RIGHT('000000' + CAST([sJOBH].[run_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS DATETIME) END AS [LastRunDateTime]
+    ,[sJOBH].[message] AS [LastRunStatusMessage]
+    ,CASE [freq_type] WHEN 4 THEN 'Occurs every ' + CAST([freq_interval] AS VARCHAR(3)) + ' day(s)' WHEN 8 THEN 'Occurs every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' week(s) on ' + CASE WHEN [freq_interval] & 1 = 1 THEN 'Sunday' ELSE '' END + CASE WHEN [freq_interval] & 2 = 2 THEN ', Monday' ELSE '' END + CASE WHEN [freq_interval] & 4 = 4 THEN ', Tuesday' ELSE '' END + CASE WHEN [freq_interval] & 8 = 8 THEN ', Wednesday' ELSE '' END + CASE WHEN [freq_interval] & 16 = 16 THEN ', Thursday' ELSE '' END + CASE WHEN [freq_interval] & 32 = 32 THEN ', Friday' ELSE '' END + CASE WHEN [freq_interval] & 64 = 64 THEN ', Saturday' ELSE '' END WHEN 16 THEN 'Occurs on Day ' + CAST([freq_interval] AS VARCHAR(3)) + ' of every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' month(s)' WHEN 32 THEN 'Occurs on ' + CASE [freq_relative_interval] WHEN 1 THEN 'First' WHEN 2 THEN 'Second' WHEN 4 THEN 'Third' WHEN 8 THEN 'Fourth' WHEN 16 THEN 'Last' END + ' ' + CASE [freq_interval] WHEN 1 THEN 'Sunday' WHEN 2 THEN 'Monday' WHEN 3 THEN 'Tuesday' WHEN 4 THEN 'Wednesday' WHEN 5 THEN 'Thursday' WHEN 6 THEN 'Friday' WHEN 7 THEN 'Saturday' WHEN 8 THEN 'Day' WHEN 9 THEN 'Weekday' WHEN 10 THEN
+    'Weekend day' END + ' of every ' + CAST([freq_recurrence_factor] AS VARCHAR(3)) + ' month(s)' END AS [Recurrence]
+    ,CASE [freq_subday_type] WHEN 1 THEN 'Occurs once at ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 2 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Second(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 4 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Minute(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') WHEN 8 THEN 'Occurs every ' + CAST([freq_subday_interval] AS VARCHAR(3)) + ' Hour(s) between ' + STUFF(STUFF(RIGHT('000000' + CAST([active_start_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') + ' & ' + STUFF(STUFF(RIGHT('000000' + CAST([active_end_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') END [Frequency]
 FROM [msdb].[dbo].[sysjobs] AS [sJOB]
 LEFT JOIN (
-	SELECT [job_id]
-		,[run_date]
-		,[run_time]
-		,[run_status]
-		,[run_duration]
-		,[message]
-		,ROW_NUMBER() OVER (
-			PARTITION BY [job_id] ORDER BY [run_date] DESC
-				,[run_time] DESC
-			) AS RowNumber
-	FROM [msdb].[dbo].[sysjobhistory]
-	WHERE [step_id] = 0
-	) AS [sJOBH] ON [sJOB].[job_id] = [sJOBH].[job_id]
-	AND [sJOBH].[RowNumber] = 1
+    SELECT [job_id]
+        ,[run_date]
+        ,[run_time]
+        ,[run_status]
+        ,[run_duration]
+        ,[message]
+        ,ROW_NUMBER() OVER (
+            PARTITION BY [job_id] ORDER BY [run_date] DESC
+            ,[run_time] DESC
+            ) AS RowNumber
+    FROM [msdb].[dbo].[sysjobhistory]
+    WHERE [step_id] = 0
+    ) AS [sJOBH] ON [sJOB].[job_id] = [sJOBH].[job_id]
+    AND [sJOBH].[RowNumber] = 1
 LEFT JOIN [msdb].[dbo].[sysjobschedules] AS [sJOBSCH] ON [sJOB].[job_id] = [sJOBSCH].[job_id]
 LEFT JOIN [msdb].[dbo].[sysschedules] AS [sSCH] ON [sJOBSCH].[schedule_id] = [sSCH].[schedule_id]
 WHERE [sJOB].[enabled] = 1
 ORDER BY [JobName]
-~~~
+```
 
 ## Table statistics
 
@@ -183,7 +183,7 @@ group by CreatedDate
 order by number desc
 
 select USERID from SYSUSERLOG
-where LOGOUTDATETIME > CONVERT(datetime, '2019-04-10', 120)
+where LOGOUTDATETIME > CONVERT(datetime, '2020-04-10', 120)
 group by USERID
 
 select COUNT(*) as RecordCount , TABLE_ ,
@@ -198,8 +198,8 @@ group by a.TABLE_, b.name, a.LOGTYPE
 ORDER BY RecordCount DESC
 
 --Records count by hour
-select count(*) as 'Records count', CONVERT(date, dateadd(HOUR, 3, CREATEDATETIME)) as 'Дата', DATEPART(HOUR, dateadd(HOUR, 3, CREATEDATETIME)) as 'Hour' from MYTABLE
-where dateadd(HOUR, 3, CREATEDATETIME) >= '2018-08-01'
+select count(*) as 'Records count', CONVERT(date, dateadd(HOUR, 3, CREATEDATETIME)) as 'Date', DATEPART(HOUR, dateadd(HOUR, 3, CREATEDATETIME)) as 'Hour' from MYTABLE
+where dateadd(HOUR, 3, CREATEDATETIME) >= '2020-08-01'
 group by CONVERT(date, dateadd(HOUR, 3, CREATEDATETIME)),
 DATEPART(HOUR, dateadd(HOUR, 3, CREATEDATETIME))
 ```
@@ -229,14 +229,14 @@ FROM sys.dm_db_index_physical_stats(
 ## Missing indexes
 
 ```sql
-SELECT    object_name(d.object_id) as tabname, database_id, equality_columns,	inequality_columns,	avg_user_impact, included_columns,
-		unique_compiles, user_seeks, user_scans, last_user_seek, last_user_scan,p.rows AS [Table Rows]
+SELECT    object_name(d.object_id) as tabname, database_id, equality_columns, inequality_columns, avg_user_impact, included_columns,
+  unique_compiles, user_seeks, user_scans, last_user_seek, last_user_scan,p.rows AS [Table Rows]
 FROM    sys.dm_db_missing_index_details d
 INNER JOIN sys.dm_db_missing_index_groups g
     ON    d.index_handle = g.index_handle
 INNER JOIN sys.dm_db_missing_index_group_stats s
     ON    g.index_group_handle = s.group_handle
-CROSS APPLY (SELECT TOP 1 rows from  sys.partitions WITH (NOLOCK) WHERE sys.partitions.[object_id] = d.[object_id]) AS p 
+CROSS APPLY (SELECT TOP 1 rows from  sys.partitions WITH (NOLOCK) WHERE sys.partitions.[object_id] = d.[object_id]) AS p
 WHERE    database_id = db_id()
 ORDER BY  avg_total_user_cost * avg_user_impact *(user_seeks + user_scans) DESC
 ```
@@ -287,7 +287,7 @@ GO
 ## Wait statistics
 
 ```sql
-WITH [Waits] 
+WITH [Waits]
 AS (SELECT wait_type, wait_time_ms/ 1000.0 AS [WaitS],
           (wait_time_ms - signal_wait_time_ms) / 1000.0 AS [ResourceS],
            signal_wait_time_ms / 1000.0 AS [SignalS],
@@ -297,51 +297,51 @@ AS (SELECT wait_type, wait_time_ms/ 1000.0 AS [WaitS],
     FROM sys.dm_os_wait_stats WITH (NOLOCK)
     WHERE [wait_type] NOT IN (
         N'BROKER_EVENTHANDLER', N'BROKER_RECEIVE_WAITFOR', N'BROKER_TASK_STOP',
-		N'BROKER_TO_FLUSH', N'BROKER_TRANSMITTER', N'CHECKPOINT_QUEUE',
+        N'BROKER_TO_FLUSH', N'BROKER_TRANSMITTER', N'CHECKPOINT_QUEUE',
         N'CHKPT', N'CLR_AUTO_EVENT', N'CLR_MANUAL_EVENT', N'CLR_SEMAPHORE',
         N'DBMIRROR_DBM_EVENT', N'DBMIRROR_EVENTS_QUEUE', N'DBMIRROR_WORKER_QUEUE',
-		N'DBMIRRORING_CMD', N'DIRTY_PAGE_POLL', N'DISPATCHER_QUEUE_SEMAPHORE',
+        N'DBMIRRORING_CMD', N'DIRTY_PAGE_POLL', N'DISPATCHER_QUEUE_SEMAPHORE',
         N'EXECSYNC', N'FSAGENT', N'FT_IFTS_SCHEDULER_IDLE_WAIT', N'FT_IFTSHC_MUTEX',
-        N'HADR_CLUSAPI_CALL', N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', N'HADR_LOGCAPTURE_WAIT', 
-		N'HADR_NOTIFICATION_DEQUEUE', N'HADR_TIMER_TASK', N'HADR_WORK_QUEUE',
-        N'KSOURCE_WAKEUP', N'LAZYWRITER_SLEEP', N'LOGMGR_QUEUE', 
-		N'MEMORY_ALLOCATION_EXT', N'ONDEMAND_TASK_QUEUE',
-		N'PARALLEL_REDO_DRAIN_WORKER', N'PARALLEL_REDO_LOG_CACHE', N'PARALLEL_REDO_TRAN_LIST',
-		N'PARALLEL_REDO_WORKER_SYNC', N'PARALLEL_REDO_WORKER_WAIT_WORK',
-		N'PREEMPTIVE_HADR_LEASE_MECHANISM', N'PREEMPTIVE_SP_SERVER_DIAGNOSTICS',
-		N'PREEMPTIVE_OS_LIBRARYOPS', N'PREEMPTIVE_OS_COMOPS', N'PREEMPTIVE_OS_CRYPTOPS',
-		N'PREEMPTIVE_OS_PIPEOPS', N'PREEMPTIVE_OS_AUTHENTICATIONOPS',
-		N'PREEMPTIVE_OS_GENERICOPS', N'PREEMPTIVE_OS_VERIFYTRUST',
-		N'PREEMPTIVE_OS_FILEOPS', N'PREEMPTIVE_OS_DEVICEOPS', N'PREEMPTIVE_OS_QUERYREGISTRY',
-		N'PREEMPTIVE_OS_WRITEFILE',
-		N'PREEMPTIVE_XE_CALLBACKEXECUTE', N'PREEMPTIVE_XE_DISPATCHER',
-		N'PREEMPTIVE_XE_GETTARGETSTATE', N'PREEMPTIVE_XE_SESSIONCOMMIT',
-		N'PREEMPTIVE_XE_TARGETINIT', N'PREEMPTIVE_XE_TARGETFINALIZE',
+        N'HADR_CLUSAPI_CALL', N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', N'HADR_LOGCAPTURE_WAIT',
+        N'HADR_NOTIFICATION_DEQUEUE', N'HADR_TIMER_TASK', N'HADR_WORK_QUEUE',
+        N'KSOURCE_WAKEUP', N'LAZYWRITER_SLEEP', N'LOGMGR_QUEUE',
+        N'MEMORY_ALLOCATION_EXT', N'ONDEMAND_TASK_QUEUE',
+        N'PARALLEL_REDO_DRAIN_WORKER', N'PARALLEL_REDO_LOG_CACHE', N'PARALLEL_REDO_TRAN_LIST',
+        N'PARALLEL_REDO_WORKER_SYNC', N'PARALLEL_REDO_WORKER_WAIT_WORK',
+        N'PREEMPTIVE_HADR_LEASE_MECHANISM', N'PREEMPTIVE_SP_SERVER_DIAGNOSTICS',
+        N'PREEMPTIVE_OS_LIBRARYOPS', N'PREEMPTIVE_OS_COMOPS', N'PREEMPTIVE_OS_CRYPTOPS',
+        N'PREEMPTIVE_OS_PIPEOPS', N'PREEMPTIVE_OS_AUTHENTICATIONOPS',
+        N'PREEMPTIVE_OS_GENERICOPS', N'PREEMPTIVE_OS_VERIFYTRUST',
+        N'PREEMPTIVE_OS_FILEOPS', N'PREEMPTIVE_OS_DEVICEOPS', N'PREEMPTIVE_OS_QUERYREGISTRY',
+        N'PREEMPTIVE_OS_WRITEFILE',
+        N'PREEMPTIVE_XE_CALLBACKEXECUTE', N'PREEMPTIVE_XE_DISPATCHER',
+        N'PREEMPTIVE_XE_GETTARGETSTATE', N'PREEMPTIVE_XE_SESSIONCOMMIT',
+        N'PREEMPTIVE_XE_TARGETINIT', N'PREEMPTIVE_XE_TARGETFINALIZE',
         N'PWAIT_ALL_COMPONENTS_INITIALIZED', N'PWAIT_DIRECTLOGCONSUMER_GETNEXT',
-		N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP',
-		N'QDS_ASYNC_QUEUE',
+        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP',
+        N'QDS_ASYNC_QUEUE',
         N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP', N'REQUEST_FOR_DEADLOCK_SEARCH',
-		N'RESOURCE_QUEUE', N'SERVER_IDLE_CHECK', N'SLEEP_BPOOL_FLUSH', N'SLEEP_DBSTARTUP',
-		N'SLEEP_DCOMSTARTUP', N'SLEEP_MASTERDBREADY', N'SLEEP_MASTERMDREADY',
+        N'RESOURCE_QUEUE', N'SERVER_IDLE_CHECK', N'SLEEP_BPOOL_FLUSH', N'SLEEP_DBSTARTUP',
+        N'SLEEP_DCOMSTARTUP', N'SLEEP_MASTERDBREADY', N'SLEEP_MASTERMDREADY',
         N'SLEEP_MASTERUPGRADED', N'SLEEP_MSDBSTARTUP', N'SLEEP_SYSTEMTASK', N'SLEEP_TASK',
         N'SLEEP_TEMPDBSTARTUP', N'SNI_HTTP_ACCEPT', N'SP_SERVER_DIAGNOSTICS_SLEEP',
-		N'SQLTRACE_BUFFER_FLUSH', N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', N'SQLTRACE_WAIT_ENTRIES',
-		N'WAIT_FOR_RESULTS', N'WAITFOR', N'WAITFOR_TASKSHUTDOWN', N'WAIT_XTP_HOST_WAIT',
-		N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', N'WAIT_XTP_CKPT_CLOSE', N'WAIT_XTP_RECOVERY',
-		N'XE_BUFFERMGR_ALLPROCESSED_EVENT', N'XE_DISPATCHER_JOIN',
+        N'SQLTRACE_BUFFER_FLUSH', N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', N'SQLTRACE_WAIT_ENTRIES',
+        N'WAIT_FOR_RESULTS', N'WAITFOR', N'WAITFOR_TASKSHUTDOWN', N'WAIT_XTP_HOST_WAIT',
+        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', N'WAIT_XTP_CKPT_CLOSE', N'WAIT_XTP_RECOVERY',
+        N'XE_BUFFERMGR_ALLPROCESSED_EVENT', N'XE_DISPATCHER_JOIN',
         N'XE_DISPATCHER_WAIT', N'XE_LIVE_TARGET_TVF', N'XE_TIMER_EVENT')
     AND waiting_tasks_count > 0)
 SELECT
     MAX (W1.wait_type) AS [WaitType],
-	CAST (MAX (W1.Percentage) AS DECIMAL (5,2)) AS [Wait Percentage],
-	CAST ((MAX (W1.WaitS) / MAX (W1.WaitCount)) AS DECIMAL (16,4)) AS [AvgWait_Sec],
+    CAST (MAX (W1.Percentage) AS DECIMAL (5,2)) AS [Wait Percentage],
+    CAST ((MAX (W1.WaitS) / MAX (W1.WaitCount)) AS DECIMAL (16,4)) AS [AvgWait_Sec],
     CAST ((MAX (W1.ResourceS) / MAX (W1.WaitCount)) AS DECIMAL (16,4)) AS [AvgRes_Sec],
-    CAST ((MAX (W1.SignalS) / MAX (W1.WaitCount)) AS DECIMAL (16,4)) AS [AvgSig_Sec], 
+    CAST ((MAX (W1.SignalS) / MAX (W1.WaitCount)) AS DECIMAL (16,4)) AS [AvgSig_Sec],
     CAST (MAX (W1.WaitS) AS DECIMAL (16,2)) AS [Wait_Sec],
     CAST (MAX (W1.ResourceS) AS DECIMAL (16,2)) AS [Resource_Sec],
     CAST (MAX (W1.SignalS) AS DECIMAL (16,2)) AS [Signal_Sec],
     MAX (W1.WaitCount) AS [Wait Count],
-	CAST (N'https://www.sqlskills.com/help/waits/' + W1.wait_type AS XML) AS [Help/Info URL]
+    CAST (N'https://www.sqlskills.com/help/waits/' + W1.wait_type AS XML) AS [Help/Info URL]
 FROM Waits AS W1
 INNER JOIN Waits AS W2
 ON W2.RowNum <= W1.RowNum
@@ -372,174 +372,6 @@ select qs.spid,
       cross apply sys.dm_exec_sql_text(qs.sql_handle) as qt
       where blocked!=0 or waittype != 0x0000
 order by qs.dbid
-```
-
-## Helper AX jobs
-
-### Enabling tracing
-
-```csharp
-static void TRUD_SetSQLMonitorFlag(Args _args)
-{
-    #LOCALMACRO.FLAG_TraceInfoQueryTable         (1 << 11) #ENDMACRO
-    #LOCALMACRO.FLAG_SQLTrace                    (1 << 8) #ENDMACRO
-    #LOCALMACRO.FLAG_TraceInfoDeadLockTable      (1 << 15) #ENDMACRO
-
-    UserInfo        userInfo;
-    ;
-    //To remove use ^
-    while select userInfo
-        where userInfo.id == 'denis'
-
-    {
-        userInfo.debugInfo      = userInfo.debugInfo | #FLAG_SQLTrace;
-        userInfo.traceInfo      = userInfo.traceInfo | #FLAG_TraceInfoQueryTable;
-        userInfo.traceInfo      = userInfo.traceInfo | #FLAG_TraceInfoDeadLockTable;
-        userInfo.querytimeLimit = 2000;
-        userInfo.skipTTSCheck(true);
-        userInfo.update();
-    }
-}
-```
-
-### Delete similar traces
-
-```csharp
-//delete similar traces
-static void dev1_deletesystrace(Args _args)
-{
-    SysTraceTableSQL        sysTraceTableSQL;
-    SysTraceTableSQL        sysTraceTableSQLOrig;
-    int                     rows;
-    ;
-    select sysTraceTableSQLOrig
-        where sysTraceTableSQLOrig.RecId == 134324;
-
-    while select sysTraceTableSQL
-        where sysTraceTableSQL.Category     == SQLTraceCategory::QueryTime &&
-              sysTraceTableSQL.createdDate  == sysTraceTableSQLOrig.createdDate &&
-              sysTraceTableSQL.RecId        != sysTraceTableSQLOrig.RecId
-    {
-        if (
-            sysTraceTableSQL.Statement == sysTraceTableSQLOrig.Statement &&
-            sysTraceTableSQL.callStack == sysTraceTableSQLOrig.callStack
-          )
-        {
-            rows++;
-            sysTraceTableSQL.skipTTSCheck(true);
-            //sysTraceTableSQL.delete();
-        }
-
-    }
-    info(strFmt("%1", rows));
-}
-```
-
-### SysdatabaseLog size
-
-```csharp
-static void dev1_sysdatabaseLog(Args _args)
-{
-    SysDatabaseLog  sysdatabaseLog;
-    TextBuffer      tb = new TextBuffer();
-    ;
-    tb.appendText(strFmt("%1\t%2\t%3\n",
-    "Table",    "LogType",    "Record Count"));
-    while select count(recid) from sysdatabaseLog
-        group by LogType, table
-    {
-    tb.appendText(strFmt("%1\t%2\t%3\n", tableid2name(sysdatabaseLog.table), sysdatabaseLog.LogType, sysdatabaseLog.RecId));
-    }
-    tb.toClipboard();
-}
-
-static void trud_copyBatchInfo(Args _args)
-{
-    Batch  batch;
-    TextBuffer      tb = new TextBuffer();
-    ;
-    tb.appendText(strFmt("%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\n",
-    "Batch job ID" ,   "Status"  ,  "Job description" ,   "Actual start date/time" ,  
-     "End date/time" ,   "Company" ,   "Partition Key" ,   "User ID"));
-    while select batch
-        where batch.EndDate > 30\12\2018
-    {
-        tb.appendText(strFmt(strFmt("%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\n",
-            batch.RecId, batch.Status, batch.ClassDescription(), strFmt("%1 %2", batch.StartDate, time2str(batch.startTime, 1, 1)),
-            strFmt("%1 %2", batch.EndDate, time2str(batch.endtime,1,1)), batch.Company, batch.TableId, batch.CreatedBy)
-             ));
-    }
-    Box::info("done");
-    tb.toClipboard();
-}
-```
-
-### Number sequences check
-
-```csharp
-static void numberSeqCheck(Args _args)
-{
-    NumberSequenceTable     numberSequenceTable;
-    NumberSequenceReference numberSequenceReference, numberSequenceReference2;
-    NumberSequenceScope     numberSequenceScope;
-    DataArea                dataArea;
-    real  ratio;
-    int     i;
-    ;
-
-    info("Less that 25%");
-    while select numberSequenceTable
-    {
-        ratio = (numberSequenceTable.Highest - numberSequenceTable.NextRec ) / (numberSequenceTable.Highest - numberSequenceTable.Lowest) ;
-        if (ratio < 0.25 )
-        {
-            info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
-                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
-        }
-    }
-    info("Continuous");
-    numberSequenceTable = null;
-    while select numberSequenceTable
-        where numberSequenceTable.Continuous &&
-             (numberSequenceTable.NextRec > numberSequenceTable.Lowest + 1000)
-    {
-        info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
-                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
-    }
-    info("Not existing");
-    numberSequenceTable = null;
-    ttsBegin;
-    while select forUpdate numberSequenceTable
-    join numberSequenceReference
-        where numberSequenceReference.NumberSequenceId == numberSequenceTable.RecId
-    join numberSequenceScope
-        where numberSequenceScope.RecId == numberSequenceReference.NumberSequenceScope &&
-              numberSequenceScope.dataArea
-    notexists join dataArea
-        where dataArea.id == numberSequenceScope.dataArea
-    {
-        numberSequenceReference2 = null;
-        select firstonly numberSequenceReference2
-            where numberSequenceReference2.NumberSequenceId == numberSequenceTable.RecId &&
-                  numberSequenceReference2.RecId !=  numberSequenceReference.RecId;
-        if (! numberSequenceReference2.RecId)
-        {
-            if (i < 100)
-            {
-            info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
-                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
-            }
-            i++;
-            /*
-            numberSequenceScope.dodelete();
-            numberSequenceReference.dodelete();
-            numberSequenceTable.doDelete();
-            */
-        }
-    }
-    ttsCommit;
-    info(strFmt("Total number %1", i));
-}
 ```
 
 ## Cursors for the session
@@ -610,7 +442,7 @@ DBCC FREEPROCCACHE
 GO
 
 update statistics WMSPICKINGROUTE with fullscan
-ALTER INDEX ALL ON InventSum REBUILD 
+ALTER INDEX ALL ON InventSum REBUILD
 ```
 
 ## Clear AX cache
@@ -621,78 +453,6 @@ update SYSSQMSETTINGS SET GLOBALGUID = '{00000000-0000-0000-0000-000000000000}'
 ```
 
 (restart AOS after that)
-
-## Check the entire table cache
-
-```csharp
-#AOT
-static void trud_checkCache(Args _args) {
-    TreeNode              treeNodeTable;
-    TreeNodeIterator      treeNodeIteratorTable;
-    DictTable             dictTable;
-    Common                anyRecord;
-    SysOperationProgress  operationProgress = new SysOperationProgress ();
-    ;
-    treeNodeTable         = infolog.findNode(#TablesPath);
-    treeNodeIteratorTable = treeNodeTable.aotiterator();
-    treeNodeTable         = treeNodeIteratorTable.next();
-
-    operationProgress.setCaption("Check...");
-    operationProgress.setTotal(7000);  //approximately
-
-    while (treeNodeTable)
-    {
-        //if (treeNodeTable.treeNo == TreeNodeType::  UtilElementType::Table)
-        {
-            dictTable = new DictTable(treeNodeTable.applObjectId());
-            if (dictTable && dictTable.cacheLookup() == RecordCacheLevel::EntireTable)
-            {
-                anyRecord = null;
-                anyRecord = dictTable.makeRecord();
-                select crossCompany count(RecId) from anyRecord;
-                if (anyRecord.RecId > 1000)
-                {
-                    info(strFmt("%1, %2", dictTable.name(), anyRecord.RecId));
-                }
-            }
-        }
-        operationProgress.incCount();
-        treeNodeTable = treeNodeIteratorTable.next();
-    }
-}
-```
-
-## Get Top SQL
-
-```sql
-SELECT TOP 50
-DB_NAME(CONVERT(int, qpa.value)) as [DataBase],
-qt.[TEXT],
-qs.execution_count,
-qs.last_elapsed_time/1000 last_elapsed_time_in_mS,
-qs.total_logical_reads, qs.last_logical_reads,
-qs.total_logical_writes, qs.last_logical_writes,
-qs.last_physical_reads, qs.total_physical_reads,
-qs.total_worker_time/1000000 total_worker_time_in_S,
-qs.last_worker_time/1000 last_worker_time_in_mS,
-qs.total_elapsed_time/1000000 total_elapsed_time_in_S,
-qs.last_execution_time,
-DATEDIFF(MI,creation_time,GETDATE()) AS [Age of the Plan(Minutes)],
-CASE WHEN cast(qp.query_plan  as nvarchar(max)) LIKE N'%<MissingIndexGroup Impact="99%' THEN '!Has 99' ELSE '' END AS [Has 99%] ,
-
-qp.query_plan
-FROM sys.dm_exec_query_stats qs
-CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt
-CROSS APPLY sys.dm_exec_query_plan(qs.plan_handle) qp
-CROSS APPLY sys.dm_exec_plan_attributes(qs.plan_handle) qpa
-where attribute = 'dbid'
-ORDER BY qs.total_logical_reads DESC -- logical reads
--- ORDER BY qs.total_logical_writes DESC -- logical writes
---ORDER BY qs.total_worker_time DESC -- CPU time
---ORDER BY qs.total_physical_reads desc
-
--- DBCC FREEPROCCACHE to reset the counter 
-```
 
 ## Longest transactions
 
@@ -731,24 +491,37 @@ FROM   sys.dm_tran_database_transactions a
          order by [Database Name], [Record count]
 ```
 
-## CPUID
+## Get Top SQL
 
-1. Download the <http://www.roylongbottom.org.uk/win64.zip>
-2. Run the program dhry164int32.exe example 10 times
+```sql
+SELECT TOP 50
+DB_NAME(CONVERT(int, qpa.value)) as [DataBase],
+qt.[TEXT],
+qs.execution_count,
+qs.last_elapsed_time/1000 last_elapsed_time_in_mS,
+qs.total_logical_reads, qs.last_logical_reads,
+qs.total_logical_writes, qs.last_logical_writes,
+qs.last_physical_reads, qs.total_physical_reads,
+qs.total_worker_time/1000000 total_worker_time_in_S,
+qs.last_worker_time/1000 last_worker_time_in_mS,
+qs.total_elapsed_time/1000000 total_elapsed_time_in_S,
+qs.last_execution_time,
+DATEDIFF(MI,creation_time,GETDATE()) AS [Age of the Plan(Minutes)],
+CASE WHEN cast(qp.query_plan  as nvarchar(max)) LIKE N'%<MissingIndexGroup Impact="99%' THEN '!Has 99' ELSE '' END AS [Has 99%] ,
 
-dhry264int64  
-12621 E5-2637 v2   8467 E5-2640 v2 (2GHz),  10082 E5-2640(2.5GHz)
+qp.query_plan
+FROM sys.dm_exec_query_stats qs
+CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt
+CROSS APPLY sys.dm_exec_query_plan(qs.plan_handle) qp
+CROSS APPLY sys.dm_exec_plan_attributes(qs.plan_handle) qpa
+where attribute = 'dbid'
+ORDER BY qs.total_logical_reads DESC -- logical reads
+-- ORDER BY qs.total_logical_writes DESC -- logical writes
+--ORDER BY qs.total_worker_time DESC -- CPU time
+--ORDER BY qs.total_physical_reads desc
 
-dhry164int32
-27605 E5-2637 v2,     18581 E5-2640 v2 (2GHz),  21130 E5-2640(2.5GHz)
-
-Crystal disk mark
-
-[How to Use CrystalDiskMark 7 to Test Your SQL Server’s Storage](https://www.brentozar.com/archive/2019/11/how-to-use-crystaldiskmark-7-to-test-your-sql-servers-storage/)
-
-8 RAID 10 Inner RAID
-
- ![1557246894814](Images/CrystalDiskMark.png)
+-- DBCC FREEPROCCACHE to reset the counter
+```
 
 # Database changes
 
@@ -837,6 +610,235 @@ CREATE TABLE tempdb."DBO".t1162_5E2D5DA7EC324CC6BF0BA2281C0D58B8  (KEY_ INT NOT 
 
 https://ola.hallengren.com/
 
+# Helper AX jobs
+
+## Enabling tracing
+
+```csharp
+static void TRUD_SetSQLMonitorFlag(Args _args)
+{
+    #LOCALMACRO.FLAG_TraceInfoQueryTable         (1 << 11) #ENDMACRO
+    #LOCALMACRO.FLAG_SQLTrace                    (1 << 8) #ENDMACRO
+    #LOCALMACRO.FLAG_TraceInfoDeadLockTable      (1 << 15) #ENDMACRO
+
+    UserInfo        userInfo;
+    ;
+    //To remove use ^
+    while select userInfo
+        where userInfo.id == 'denis'
+
+    {
+        userInfo.debugInfo      = userInfo.debugInfo | #FLAG_SQLTrace;
+        userInfo.traceInfo      = userInfo.traceInfo | #FLAG_TraceInfoQueryTable;
+        userInfo.traceInfo      = userInfo.traceInfo | #FLAG_TraceInfoDeadLockTable;
+        userInfo.querytimeLimit = 2000;
+        userInfo.skipTTSCheck(true);
+        userInfo.update();
+    }
+}
+```
+
+## Delete similar traces
+
+```csharp
+//delete similar traces
+static void dev1_deletesystrace(Args _args)
+{
+    SysTraceTableSQL        sysTraceTableSQL;
+    SysTraceTableSQL        sysTraceTableSQLOrig;
+    int                     rows;
+    ;
+    select sysTraceTableSQLOrig
+        where sysTraceTableSQLOrig.RecId == 134324;
+
+    while select sysTraceTableSQL
+        where sysTraceTableSQL.Category     == SQLTraceCategory::QueryTime &&
+              sysTraceTableSQL.createdDate  == sysTraceTableSQLOrig.createdDate &&
+              sysTraceTableSQL.RecId        != sysTraceTableSQLOrig.RecId
+    {
+        if (
+            sysTraceTableSQL.Statement == sysTraceTableSQLOrig.Statement &&
+            sysTraceTableSQL.callStack == sysTraceTableSQLOrig.callStack
+          )
+        {
+            rows++;
+            sysTraceTableSQL.skipTTSCheck(true);
+            //sysTraceTableSQL.delete();
+        }
+
+    }
+    info(strFmt("%1", rows));
+}
+```
+
+## SysdatabaseLog size
+
+```csharp
+static void dev1_sysdatabaseLog(Args _args)
+{
+    SysDatabaseLog  sysdatabaseLog;
+    TextBuffer      tb = new TextBuffer();
+    ;
+    tb.appendText(strFmt("%1\t%2\t%3\n",
+    "Table",    "LogType",    "Record Count"));
+    while select count(recid) from sysdatabaseLog
+        group by LogType, table
+    {
+    tb.appendText(strFmt("%1\t%2\t%3\n", tableid2name(sysdatabaseLog.table), sysdatabaseLog.LogType, sysdatabaseLog.RecId));
+    }
+    tb.toClipboard();
+}
+
+static void trud_copyBatchInfo(Args _args)
+{
+    Batch  batch;
+    TextBuffer      tb = new TextBuffer();
+    ;
+    tb.appendText(strFmt("%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\n",
+    "Batch job ID" ,   "Status"  ,  "Job description" ,   "Actual start date/time" ,  
+     "End date/time" ,   "Company" ,   "Partition Key" ,   "User ID"));
+    while select batch
+        where batch.EndDate > 30\12\2018
+    {
+        tb.appendText(strFmt(strFmt("%1\t%2\t%3\t%4\t%5\t%6\t%7\t%8\n",
+            batch.RecId, batch.Status, batch.ClassDescription(), strFmt("%1 %2", batch.StartDate, time2str(batch.startTime, 1, 1)),
+            strFmt("%1 %2", batch.EndDate, time2str(batch.endtime,1,1)), batch.Company, batch.TableId, batch.CreatedBy)
+             ));
+    }
+    Box::info("done");
+    tb.toClipboard();
+}
+```
+
+## Number sequences check
+
+```csharp
+static void numberSeqCheck(Args _args)
+{
+    NumberSequenceTable     numberSequenceTable;
+    NumberSequenceReference numberSequenceReference, numberSequenceReference2;
+    NumberSequenceScope     numberSequenceScope;
+    DataArea                dataArea;
+    real  ratio;
+    int     i;
+    ;
+
+    info("Less that 25%");
+    while select numberSequenceTable
+    {
+        ratio = (numberSequenceTable.Highest - numberSequenceTable.NextRec ) / (numberSequenceTable.Highest - numberSequenceTable.Lowest) ;
+        if (ratio < 0.25 )
+        {
+            info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
+                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
+        }
+    }
+    info("Continuous");
+    numberSequenceTable = null;
+    while select numberSequenceTable
+        where numberSequenceTable.Continuous &&
+             (numberSequenceTable.NextRec > numberSequenceTable.Lowest + 1000)
+    {
+        info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
+                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
+    }
+    info("Not existing");
+    numberSequenceTable = null;
+    ttsBegin;
+    while select forUpdate numberSequenceTable
+    join numberSequenceReference
+        where numberSequenceReference.NumberSequenceId == numberSequenceTable.RecId
+    join numberSequenceScope
+        where numberSequenceScope.RecId == numberSequenceReference.NumberSequenceScope &&
+              numberSequenceScope.dataArea
+    notexists join dataArea
+        where dataArea.id == numberSequenceScope.dataArea
+    {
+        numberSequenceReference2 = null;
+        select firstonly numberSequenceReference2
+            where numberSequenceReference2.NumberSequenceId == numberSequenceTable.RecId &&
+                  numberSequenceReference2.RecId !=  numberSequenceReference.RecId;
+        if (! numberSequenceReference2.RecId)
+        {
+            if (i < 100)
+            {
+            info(strFmt("Code %1, txt %2, Lowest %3, Highest %4, NextRec %5", numberSequenceTable.NumberSequence, numberSequenceTable.Txt,
+                           numberSequenceTable.Lowest,  numberSequenceTable.Highest, numberSequenceTable.NextRec));
+            }
+            i++;
+            /*
+            numberSequenceScope.dodelete();
+            numberSequenceReference.dodelete();
+            numberSequenceTable.doDelete();
+            */
+        }
+    }
+    ttsCommit;
+    info(strFmt("Total number %1", i));
+}
+```
+
+## Check the entire table cache
+
+```csharp
+#AOT
+static void trud_checkCache(Args _args) {
+    TreeNode              treeNodeTable;
+    TreeNodeIterator      treeNodeIteratorTable;
+    DictTable             dictTable;
+    Common                anyRecord;
+    SysOperationProgress  operationProgress = new SysOperationProgress ();
+    ;
+    treeNodeTable         = infolog.findNode(#TablesPath);
+    treeNodeIteratorTable = treeNodeTable.aotiterator();
+    treeNodeTable         = treeNodeIteratorTable.next();
+
+    operationProgress.setCaption("Check...");
+    operationProgress.setTotal(7000);  //approximately
+
+    while (treeNodeTable)
+    {
+        //if (treeNodeTable.treeNo == TreeNodeType::  UtilElementType::Table)
+        {
+            dictTable = new DictTable(treeNodeTable.applObjectId());
+            if (dictTable && dictTable.cacheLookup() == RecordCacheLevel::EntireTable)
+            {
+                anyRecord = null;
+                anyRecord = dictTable.makeRecord();
+                select crossCompany count(RecId) from anyRecord;
+                if (anyRecord.RecId > 1000)
+                {
+                    info(strFmt("%1, %2", dictTable.name(), anyRecord.RecId));
+                }
+            }
+        }
+        operationProgress.incCount();
+        treeNodeTable = treeNodeIteratorTable.next();
+    }
+}
+```
+
+# Performance hints
+
+## CPUID
+
+1. Download the <http://www.roylongbottom.org.uk/win64.zip>
+2. Run the program dhry164int32.exe example 10 times
+
+dhry264int64  
+12621 E5-2637 v2   8467 E5-2640 v2 (2GHz),  10082 E5-2640(2.5GHz)
+
+dhry164int32
+27605 E5-2637 v2,     18581 E5-2640 v2 (2GHz),  21130 E5-2640(2.5GHz)
+
+Crystal disk mark
+
+[How to Use CrystalDiskMark 7 to Test Your SQL Server’s Storage](https://www.brentozar.com/archive/2019/11/how-to-use-crystaldiskmark-7-to-test-your-sql-servers-storage/)
+
+8 RAID 10 Inner RAID
+
+ ![1557246894814](Images/CrystalDiskMark.png)
+
 ## Delete from a large table
 
 ```sql
@@ -851,30 +853,30 @@ declare @isLastStep int = 0;
 
 WHILE (@isLastStep = 0)
 BEGIN
-	select top 1000000 RECID into #recordsToDelete
-	FROM [dbo].ZINFOLOGHISTORY AS hashtbl            --TABLE HERE
-	WHERE hashtbl.CREATEDDATETIME <(GETDATE() -30);
+    select top 1000000 RECID into #recordsToDelete
+    FROM [dbo].ZINFOLOGHISTORY AS hashtbl            --TABLE HERE
+    WHERE hashtbl.CREATEDDATETIME <(GETDATE() -30);
 
-	IF (@@ROWCOUNT < 1000000) SET @isLastStep = 1
-	CREATE NONCLUSTERED INDEX [##_RECID] ON #recordsToDelete (RECID ASC)
+    IF (@@ROWCOUNT < 1000000) SET @isLastStep = 1
+    CREATE NONCLUSTERED INDEX [##_RECID] ON #recordsToDelete (RECID ASC)
 
-	set @step= 0
-	WHILE (@step < 100) 
-	BEGIN
-		SET @step = @step + 1
-		TRUNCATE TABLE #temp_hash
-		INSERT INTO #temp_hash(RECID) SELECT TOP 10000 RECID FROM  #recordsToDelete;
-		IF (@@ROWCOUNT = 0) break;
+    set @step= 0
+    WHILE (@step < 100)
+    BEGIN
+        SET @step = @step + 1
+        TRUNCATE TABLE #temp_hash
+        INSERT INTO #temp_hash(RECID) SELECT TOP 10000 RECID FROM  #recordsToDelete;
+        IF (@@ROWCOUNT = 0) break;
 
-		--------------------------------------------------------------
-		delete FROM [dbo].ZINFOLOGHISTORY from [dbo].ZINFOLOGHISTORY  AS hs  --TABLE HERE
-		INNER JOIN #temp_hash AS JN ON hs.RECID = JN.RECID
-		----------------------------
+        --------------------------------------------------------------
+        delete FROM [dbo].ZINFOLOGHISTORY from [dbo].ZINFOLOGHISTORY  AS hs  --TABLE HERE
+        INNER JOIN #temp_hash AS JN ON hs.RECID = JN.RECID
+        ----------------------------
 
-		delete from #recordsToDelete from #recordsToDelete as dt inner join #temp_hash as dl
-		on dl.RECID =dt.RECID
-	END
-	DROP TABLE #recordsToDelete
+        delete from #recordsToDelete from #recordsToDelete as dt inner join #temp_hash as dl
+        on dl.RECID =dt.RECID
+    END
+    DROP TABLE #recordsToDelete
 END
 DROP TABLE #temp_hash;
 
@@ -883,15 +885,15 @@ declare @rowCount int = -1;
 declare @curStep int = 0
 
 while(@rowCount <> 0 AND @curStep < 10000) begin
-	WITH Comments_ToBeDeleted AS (
-	SELECT TOP 10000 *
-	FROM BatchJobHistory
-	--ORDER BY CREATEDDATETIME
-	)
-	DELETE FROM Comments_ToBeDeleted
-	WHERE CREATEDDATETIME <(GETDATE() - 30)
-	set @rowCount = @@rowCount;
-	set @curStep = @curStep + 1;
+    WITH Comments_ToBeDeleted AS (
+    SELECT TOP 10000 *
+    FROM BatchJobHistory
+    --ORDER BY CREATEDDATETIME
+    )
+    DELETE FROM Comments_ToBeDeleted
+    WHERE CREATEDDATETIME <(GETDATE() - 30)
+    set @rowCount = @@rowCount;
+    set @curStep = @curStep + 1;
 end
 ```
 
@@ -963,8 +965,6 @@ IF @NumOfLocks > @ThresholdNumOfLocks AND @LocksTime > @ThresholdTimeMS
         --RAISERROR (911421,10,1,@msg) WITH LOG;
     END
 ```
-
-# Performance hints
 
 http://poorsql.com/
 
