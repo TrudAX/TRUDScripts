@@ -198,10 +198,20 @@ group by a.TABLE_, b.name, a.LOGTYPE
 ORDER BY RecordCount DESC
 
 --Records count by hour
-select count(*) as 'Records count', CONVERT(date, dateadd(HOUR, 3, CREATEDATETIME)) as 'Date', DATEPART(HOUR, dateadd(HOUR, 3, CREATEDATETIME)) as 'Hour' from MYTABLE
-where dateadd(HOUR, 3, CREATEDATETIME) >= '2020-08-01'
-group by CONVERT(date, dateadd(HOUR, 3, CREATEDATETIME)),
-DATEPART(HOUR, dateadd(HOUR, 3, CREATEDATETIME))
+DECLARE  @mOffset int
+set @mOffset = DATEDIFF(mi,SYSUTCDATETIME(), SYSDATETIME())
+
+select count(*) as 'Records count', 
+CONVERT(date, DATEADD(mi, @mOffset, CREATEDDATETIME)) as 'Date', DATEPART(HOUR, DATEADD(mi, @mOffset, CREATEDDATETIME)) as 'Hour' from SalesTable
+where DATEADD(mi, @mOffset, CREATEDDATETIME) >= '2020-09-15'
+group by CONVERT(date, DATEADD(mi, @mOffset, CREATEDDATETIME)),
+DATEPART(HOUR, DATEADD(mi, @mOffset, CREATEDDATETIME))
+ORDER BY 
+CONVERT(date, DATEADD(mi, @mOffset, CREATEDDATETIME)),
+DATEPART(HOUR, DATEADD(mi, @mOffset, CREATEDDATETIME))
+
+--Is margin alert enabled(can affect SO performance)
+select DATAAREAID from SALESPARAMETERS where MCREnableMarginAlert <> 0
 ```
 
 ## sp_Blitz
