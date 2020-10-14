@@ -212,6 +212,8 @@ DATEPART(HOUR, DATEADD(mi, @mOffset, CREATEDDATETIME))
 
 --Is margin alert enabled(can affect SO performance)
 select DATAAREAID from SALESPARAMETERS where MCREnableMarginAlert <> 0
+--Mixed statuses for WMS locations check
+select * from WHSLocationProfile where AllowMixedStatus = 0 or ALLOWMIXEDBATCHES = 0 or ALLOWMIXEDITEMS = 0
 ```
 
 ## sp_Blitz
