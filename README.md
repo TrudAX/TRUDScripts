@@ -9,6 +9,10 @@ Read description at https://denistrunin.com/financial-reporting-local-onebox/
 
 https://denistrunin.com/integration-checklist/
 
+## How to integrate with Dynamics 365 for Finance and Operations
+
+https://devblog.sertanyaman.com/2020/08/21/how-to-integrate-with-d365-for-finance-and-operations/
+
 ## Dynamics AX performance [audit](https://github.com/TrudAX/TRUDScripts/blob/master/Performance/AX%20Technical%20Audit.md)
 
 https://denistrunin.com/performance-audit/
