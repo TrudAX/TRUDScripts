@@ -25,6 +25,8 @@ https://denistrunin.com/performance-audit/
 https://sinedax.blogspot.com/2018/12/trace-parser-doesnt-work-dynamics-365.html
 File size limitation to 1Gb (K:\AosService\WebRoot\Services\TraceParserService\TraceParserService.config)
 
+[How to get bigger trace files for trace parser of MSDyn365FO](https://msdyn365fo.wordpress.com/2020/07/22/how-to-get-bigger-trace-files-for-trace-parser-of-msdyn365fo/)
+
 ## Comprehensive list of types for Metadata search 
 https://elandax.blogspot.com/2019/04/comprehensive-list-of-types-for.html
 
