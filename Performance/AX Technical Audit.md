@@ -214,6 +214,8 @@ DATEPART(HOUR, DATEADD(mi, @mOffset, CREATEDDATETIME))
 select DATAAREAID from SALESPARAMETERS where MCREnableMarginAlert <> 0
 --Mixed statuses for WMS locations check
 select * from WHSLocationProfile where AllowMixedStatus = 0 or ALLOWMIXEDBATCHES = 0 or ALLOWMIXEDITEMS = 0
+--Check the number of client sessions
+select * from SYSCLIENTSESSIONS
 ```
 
 ## sp_Blitz
