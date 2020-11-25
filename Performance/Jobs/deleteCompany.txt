@@ -1,0 +1,91 @@
+static void dev_deleteCompany(Args _args)
+{
+    Dictionary      dictionary  = new Dictionary();
+    DictTable       dictTableMacro   = dictionary.tableObject(dictionary.tableCnt2Id(1));
+    Set             tableSet = new Set(Types::Integer),
+                    fieldSet = new Set(Types::container);
+    boolean         forAllTables, forAllFields;
+
+    str             sSQL;
+    str             sSQLGlobal;
+
+    TextBuffer      tb = new TextBuffer();
+
+    str      companyKeepList = "('vc1', 'vc8', 'dat')";
+
+    int             i;
+    SysOperationProgress  progress = new SysOperationProgress();
+
+    boolean checkTable(DictTable dictTable, boolean _silent = false)
+    {
+        DictTable       dt;
+        boolean         tst;
+        TableId         currentTableId;
+
+        ;
+
+        tst = dictTable.isMap();
+        tst = dictTable.isTmp();
+        tst = dictTable.isView();
+        tst = tableSet.in(dictTable.id());
+
+        if (! dictTable.isMap() && ! dictTable.isTmp() && ! dictTable.isView() &&
+             dictTable.dataPrCompany() &&
+             dictTable.name(DbBackend::Sql)
+             )
+
+        {
+            if (substr(dictTable.name(), 1, 3) == 'FHL')
+            {
+                sSQL = strFmt("DELETE FROM %1 WHERE DataAreaId  not in %2; ",
+                                dictTable.name(DbBackend::Sql),
+                                companyKeepList);
+
+            }
+            else
+            {
+                sSQL = strfmt("SELECT * INTO [%1BackupPLU]  FROM [%1] where DataAreaId in %2; \n TRUNCATE TABLE [%1];\n INSERT INTO [%1] select * from [%1BackupPLU]\n DROP TABLE [%1BackupPLU]",
+                         dictTable.name(DbBackend::Sql),
+                         companyKeepList);
+            }
+            sSQLGlobal += sSQL + '\n';
+        }
+        return true;
+    }
+    ;
+    progress.setCaption("Deleting from company");
+    progress.setTotal(7400);
+
+
+
+        //dictTableMacro = new DictTable(tablename2id('InventTable'));
+    while (dictTableMacro)
+    {
+        progress.setText(strFmt("%1", dictTableMacro.name()));
+        checkTable(dictTableMacro);
+
+        dictTableMacro   = dictionary.tableObject(dictionary.tableNext(dictTableMacro.id()));
+
+        progress.incCount();
+
+
+    }
+
+    sSQL = strFmt("DELETE FROM COMPANYDOMAINLIST WHERE COMPANYID<>'dat' and COMPANYID not in %1; ", companyKeepList);
+    sSQLGlobal += sSQL + '\n';
+
+    sSQL = strFmt("DELETE FROM VIRTUALDATAAREALIST WHERE ID<>'dat' and ID not in %1; ", companyKeepList);
+    sSQLGlobal += sSQL + '\n';
+    
+    sSQL = strFmt("UPDATE USERINFO SET COMPANY = 'PLU' WHERE COMPANY NOT IN %1; ", companyKeepList);
+    sSQLGlobal += sSQL + '\n';
+
+    sSQL = strFmt("DELETE FROM DATAAREA WHERE DATAAREA.ID<>'dat' and DATAAREA.ID not in %1; ", companyKeepList);
+    sSQLGlobal += sSQL + '\n';
+    
+    BOX::info('Press OK to copy SQL text to clipboard. Stop AOS before running SQL command');
+
+    tb.setText(sSQLGlobal);
+    tb.toClipboard();
+
+}
