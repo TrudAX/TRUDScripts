@@ -1,0 +1,986 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: DBT
+
+; Microsoft Dynamics AX Table : BatchJobHistory unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #BatchJobHistory
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #BatchJobHistory
+      Label               #@SYS103557
+      FormRef             #BatchJobHistory
+      TitleField1         #Caption
+      TitleField2         #Status
+      Systemtable         #Yes
+      SecurityKey         #BasicTables
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      SaveDataPerPartition #No
+      TableGroup          #Transaction
+      PrimaryIndex        #RecId
+      ClusterIndex        #RecId
+      CreatedDateTime     #Yes
+      DeveloperDocumentation  #@SYS125381
+      Origin              #{2C0F08DF-0000-1000-DA73-AA40E756ADEF}
+      LegacyId            #2271
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #AlertsProcessed
+        ENUM
+        PROPERTIES
+          Name                #AlertsProcessed
+          Visible             #No
+          Table               #BatchJobHistory
+          Origin              #{B1928BDD-F79A-42D9-9ACE-BC1F991E77A7}
+          LegacyId            #11
+          EnumType            #BatchAlertsProcessed
+        ENDPROPERTIES
+        
+      FIELD #BatchCreatedBy
+        STRING
+        PROPERTIES
+          Name                #BatchCreatedBy
+          Table               #BatchJobHistory
+          Origin              #{EDFF209B-1521-44EA-8C2B-67995F6324BA}
+          LegacyId            #12
+          ExtendedDataType    #UserId
+          StringSize          #8
+        ENDPROPERTIES
+        
+      FIELD #BatchJobId
+        INT64
+        PROPERTIES
+          Name                #BatchJobId
+          Label               #@SYS114515
+          HelpText            #@SYS114516
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #BatchJobHistory
+          Origin              #{52A9E073-F519-44F9-B99D-E5281AC9E97B}
+          LegacyId            #6
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+      FIELD #CanceledBy
+        STRING
+        PROPERTIES
+          Name                #CanceledBy
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #BatchJobHistory
+          Origin              #{1C80BF9D-DB03-4EE5-BFB4-A10C2F54558F}
+          LegacyId            #13
+          ExtendedDataType    #BatchCanceledBy
+          StringSize          #8
+        ENDPROPERTIES
+        
+      FIELD #Caption
+        STRING
+        PROPERTIES
+          Name                #Caption
+          Label               #@SYS114518
+          HelpText            #@SYS107273
+          Table               #BatchJobHistory
+          Origin              #{EA6089CF-05E4-4A83-A2FD-3B8735BBE22A}
+          LegacyId            #5
+          ExtendedDataType    #BatchCaption
+          StringSize          #100
+        ENDPROPERTIES
+        
+      FIELD #Company
+        STRING
+        PROPERTIES
+          Name                #Company
+          Table               #BatchJobHistory
+          Origin              #{0EBF353B-AD74-40D8-A4E4-C516AC80C516}
+          LegacyId            #10
+          ExtendedDataType    #SelectableDataArea
+          StringSize          #4
+        ENDPROPERTIES
+        
+      FIELD #DataPartition
+        STRING
+        PROPERTIES
+          Name                #DataPartition
+          Table               #BatchJobHistory
+          Origin              #{2A0D0000-08DF-1000-57A7-4F32EF3F8374}
+          ExtendedDataType    #PartitionKey
+          StringSize          #8
+        ENDPROPERTIES
+        
+      FIELD #EndDateTime
+        DATETIME
+        PROPERTIES
+          Name                #EndDateTime
+          HelpText            #@SYS27794
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #BatchJobHistory
+          Origin              #{5443C9A8-E575-4B6C-B0F4-AEF92B13BCD6}
+          LegacyId            #8
+          ExtendedDataType    #EndDateTime
+        ENDPROPERTIES
+        
+      FIELD #Finishing
+        INT
+        PROPERTIES
+          Name                #Finishing
+          Visible             #No
+          Table               #BatchJobHistory
+          Origin              #{62F96D2B-3058-4D02-A4C1-651FE1B687FC}
+          LegacyId            #4
+          ExtendedDataType    #Integer
+        ENDPROPERTIES
+        
+      FIELD #OrigStartDateTime
+        DATETIME
+        PROPERTIES
+          Name                #OrigStartDateTime
+          Label               #@SYS107314
+          HelpText            #@SYS107315
+          Table               #BatchJobHistory
+          Origin              #{8F1739BA-640C-4FD6-A5A1-79982841F2A1}
+          LegacyId            #9
+          ExtendedDataType    #StartDateTime
+        ENDPROPERTIES
+        
+      FIELD #StartDateTime
+        DATETIME
+        PROPERTIES
+          Name                #StartDateTime
+          Label               #@SYS114519
+          HelpText            #@SYS114520
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #BatchJobHistory
+          Origin              #{51A80752-9D9A-49E1-9B11-391DA98FEA27}
+          LegacyId            #7
+          ExtendedDataType    #StartDateTime
+        ENDPROPERTIES
+        
+      FIELD #Status
+        ENUM
+        PROPERTIES
+          Name                #Status
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #BatchJobHistory
+          Origin              #{2CB9BFA0-0BCA-494D-B4A6-A6A748A36DC2}
+          LegacyId            #1
+          EnumType            #BatchStatus
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Status
+          #BatchJobId
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #JobHistoryGroup
+        PROPERTIES
+          Name                #JobHistoryGroup
+          Label               #@SYS103559
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Status
+          #Caption
+          #BatchJobId
+          #Company
+          #DataPartition
+          #BatchCreatedBy
+          #OrigStartDateTime
+          #StartDateTime
+          #EndDateTime
+          #CanceledBy
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #BatchJob
+      PROPERTIES
+        Name                #BatchJob
+        Origin              #{2B080001-08DF-1000-4261-7463684A6F62}
+        LegacyId            #1
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #BatchJobId
+        #Finishing
+      ENDINDEXFIELDS
+      
+      #FinishingIdx
+      PROPERTIES
+        Name                #FinishingIdx
+        Origin              #{C7772E80-66C0-43BF-825C-7CF37BF2460F}
+        LegacyId            #6
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #Finishing
+        #BatchJobId
+      ENDINDEXFIELDS
+      
+      #AlertsProcessedIdx
+      PROPERTIES
+        Name                #AlertsProcessedIdx
+        Origin              #{99C6DF35-9CEF-453F-871C-01781AEA923E}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #AlertsProcessed
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+      REFERENCE #BatchJobRelation
+        PROPERTIES
+          Name                #BatchJobRelation
+          Table               #BatchJob
+          EntityRelationshipRole  #@SYS125382
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          UseDefaultRoleNames #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #BatchJobId
+            RelatedField        #RecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #DataArea
+        PROPERTIES
+          Name                #DataArea
+          Table               #DataArea
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          RelatedTableRole    #DataArea
+          Role                #BatchJobHistory
+          EDTRelation         #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #Company
+            RelatedField        #id
+            SourceEDT           #SelectableDataArea
+          ENDPROPERTIES
+          
+          REFERENCETYPE EXTERNFIXED
+          PROPERTIES
+            Table               #DataArea
+            RelatedField        #isVirtual
+            SourceEDT           #SelectableDataArea
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #DataAreaRelation
+        PROPERTIES
+          Name                #DataAreaRelation
+          Table               #DataArea
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          UseDefaultRoleNames #Yes
+          RelatedTableRole    #DataAreaRelation
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #Company
+            RelatedField        #id
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #PartitionRelation
+        PROPERTIES
+          Name                #PartitionRelation
+          Table               #Partitions
+          RelatedTableCardinality   #ExactlyOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          UseDefaultRoleNames #Yes
+          RelatedTableRole    #PartitionRelation
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #DataPartition
+            RelatedField        #PartitionKey
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #UserInfo
+        PROPERTIES
+          Name                #UserInfo
+          Table               #UserInfo
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          RelatedTableRole    #UserInfo
+          Role                #BatchJobHistory
+          EDTRelation         #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE PKFK
+          PROPERTIES
+            Field               #BatchCreatedBy
+            RelatedField        #id
+            SourceEDT           #UserId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #UserInfo1
+        PROPERTIES
+          Name                #UserInfo1
+          Table               #UserInfo
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          RelatedTableRole    #UserInfo_1
+          Role                #BatchJobHistory
+          EDTRelation         #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE PKFK
+          PROPERTIES
+            Field               #CanceledBy
+            RelatedField        #id
+            SourceEDT           #BatchCanceledBy
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+    ENDREFERENCES
+    
+    DELETEACTIONS
+      #BatchHistory
+      PROPERTIES
+        Table               #BatchHistory
+        DeleteAction        #Cascade
+      ENDPROPERTIES
+      
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #aosValidateDelete
+        #public boolean aosValidateDelete()
+        #{
+        #    return super();
+        #}
+      ENDSOURCE
+      SOURCE #aosValidateInsert
+        #public boolean aosValidateInsert()
+        #{
+        #    boolean ret;
+        #
+        #    ret = super();
+        #
+        #    if(!Session::isServer())
+        #        return false;
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #aosValidateUpdate
+        #public boolean aosValidateUpdate()
+        #{
+        #    //There is no history update
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #DEVduration
+        #display Seconds DEVduration()
+        #{
+        #    Seconds     duration;
+        #    ;
+        #    if (this.StartDateTime && this.EndDateTime)
+        #    {
+        #        duration = int642int(DateTimeUtil::getDifference(this.EndDateTime, this.StartDateTime));
+        #    }
+        #
+        #    return duration;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #showLog
+        #static server InfologData showLog(recId _batchJobHistoryId)
+        #{
+        #    BatchHistory batchHistory;
+        #    BatchJobHistory batchJobHistory;
+        #    InfologData data;
+        #    ;
+        #    while select RecId, Info, Caption from batchHistory where batchHistory.BatchJobHistoryId == _batchJobHistoryId
+        #        exists join batchJobHistory where batchJobHistory.RecId == _batchJobHistoryId &&
+        #            (batchJobHistory.CreatedBy == curuserid() || Batch::isBatchOperator())
+        #    {
+        #        data += batchHistory.Caption;
+        #        data += batchHistory.RecId;
+        #        data += [batchHistory.Info];
+        #    }
+        #    return data;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+***Element: FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #BatchJobHistory
+  PROPERTIES
+    Name                #BatchJobHistory
+    Origin              #{3E924D76-6F1A-40BC-BA89-802C266C0216}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #final class FormRun extends ObjectRun
+      #{
+      #    QueryBuildRange     criteriaStatus;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #doReselect
+      #void doReselect()
+      #{
+      #    BatchJobHistory    batchTmp;
+      #    ;
+      #
+      #    select firstonly batchTmp
+      #        where batchTmp.RecId == batchJobHistory.RecId;
+      #
+      #    batchJobHistory_ds.executeQuery();
+      #
+      #    if (batchTmp)
+      #        batchJobHistory_ds.findRecord(batchTmp);
+      #}
+    ENDSOURCE
+    SOURCE #showLog
+      #public void showLog()
+      #{
+      #    int i, countItems;
+      #    InfologData data;
+      #    ;
+      #    if (batchJobHistory && batchJobHistory.RecId)
+      #    {
+      #        setprefix(strfmt("@SYS113156", batchJobHistory.Caption, int642str(batchJobHistory.RecId)));
+      #        data = BatchJobHistory::showLog(batchJobHistory.RecId);
+      #        countItems = conlen(data);
+      #        for(i=1;i<=countItems;i+=3)
+      #        {
+      #            setprefix(strfmt("@SYS107863", conpeek(data, i), int642str(conpeek(data, i+1))));
+      #            infolog.import(conpeek(data, i+2));
+      #        }
+      #    }
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #BatchJobHistory
+          Table               #BatchJobHistory
+          AllowEdit           #No
+          AllowCreate         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #init
+          #public void init()
+          #{
+          #    QueryBuildDataSource qbds;
+          #    QueryBuildRange qbr;
+          #    str strQuery;
+          #    ;
+          #    #Admin
+          #    super();
+          #
+          #    qbds = this.query().dataSourceNo(1);
+          #    //strQuery = strfmt('((%1 == "%2")', fieldstr(BatchJobHistory, BatchCreatedBy), curuserid()) ;
+          #    strQuery = strfmt('(%1 == "%2")', fieldstr(BatchJobHistory, DataPartition), getcurrentpartition()) ;
+          #    qbr = qbds.addRange(fieldnum(BatchJobHistory, Company));
+          #    qbr.value(strQuery);
+          #    qbr.status(RangeStatus::Hidden);
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SYS105730
+      TitleDatasource     #BatchJobHistory
+      SetCompany          #No
+      HideIfEmpty         #No
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL ACTIONPANE
+        PROPERTIES
+          Name                #ActionPane
+          ElementPosition     #1073741823
+          Style               #Strip
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL ACTIONPANETAB
+        PROPERTIES
+          Name                #ActionPaneTab
+          ElementPosition     #1073741823
+          HierarchyParent     #ActionPane
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1073741823
+          HierarchyParent     #ActionPaneTab
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #Overview
+          DataSource          #BatchJobHistory
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #JobHistoryGroup
+          ElementPosition     #1073741823
+          HierarchyParent     #General
+          DataSource          #BatchJobHistory
+          DataGroup           #JobHistoryGroup
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TAB
+        PROPERTIES
+          Name                #Tab
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612734
+          Tabs                #3
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #General
+          ElementPosition     #1610612734
+          HierarchyParent     #Tab
+          Caption             #@SYS2952
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Overview
+          ElementPosition     #1073741823
+          HierarchyParent     #Tab
+          Caption             #@SYS9039
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #LogButton
+          AutoDeclaration     #Yes
+          HelpText            #@SYS55353
+          ElementPosition     #1717986916
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS2515
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #
+            #    super();
+            #
+            #    element.showLog();
+            #
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #BatchJobHistory_Status
+          ElementPosition     #1610612734
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #Status
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INT64EDIT
+        PROPERTIES
+          Name                #BatchJobHistory_BatchJobId
+          ElementPosition     #1073741823
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #BatchJobId
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #DEVduration
+          ElementPosition     #2139095038
+          HierarchyParent     #Grid
+          Label               #Duration(s)
+          DataSource          #BatchJobHistory
+          DataMethod          #DEVduration
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #BatchDetails
+          ElementPosition     #858993458
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS105736
+          MenuItemName        #BatchHistory
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #delete
+          ElementPosition     #1288490187
+          HierarchyParent     #ButtonGroup
+          MenuItemType        #Action
+          MenuItemName        #BatchHistoryDelete
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #BatchJobHistory_BatchCreatedBy
+          ElementPosition     #2130706430
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #BatchCreatedBy
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #BatchJobHistory_Caption
+          ElementPosition     #1879048190
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #Caption
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #BatchJobHistory_Company
+          ElementPosition     #2113929214
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #Company
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #BatchJobHistory_DataPartition
+          AllowEdit           #No
+          ElementPosition     #2122317822
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #DataPartition
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #JobHistoryGroup_DataPartition
+          AllowEdit           #No
+          ElementPosition     #1073741820
+          HierarchyParent     #JobHistoryGroup
+          DataSource          #BatchJobHistory
+          DataField           #DataPartition
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL UTCDATETIMEEDIT
+        PROPERTIES
+          Name                #BatchJobHistory_EndDateTime
+          ElementPosition     #2080374782
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #EndDateTime
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL UTCDATETIMEEDIT
+        PROPERTIES
+          Name                #BatchJobHistory_StartDateTime
+          ElementPosition     #2013265918
+          HierarchyParent     #Grid
+          DataSource          #BatchJobHistory
+          DataField           #StartDateTime
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : PerfAudit_BatchJobHistory unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #PerfAudit_BatchJobHistory
+  SHARED
+  PROPERTIES
+    Name                #PerfAudit_BatchJobHistory
+    Origin              #{A45FB51C-DE47-426B-8C99-96506B4A275A}
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #Tables
+      PROPERTIES
+        Name                #Tables
+        ProjectGroupType    #Tables
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 44
+        UTILOBJECTID 2271
+        NODETYPE 204
+        NAME #BatchJobHistory
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Forms
+      PROPERTIES
+        Name                #Forms
+        ProjectGroupType    #Forms
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 11
+        UTILOBJECTID 0
+        NODETYPE 201
+        NAME #BatchJobHistory
+      ENDNODE
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END
