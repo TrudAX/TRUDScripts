@@ -1,0 +1,4055 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: DBT
+
+; Microsoft Dynamics AX Table : DEV_CleanupTaskSettings unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEV_CleanupTaskSettings
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #DEV_CleanupTaskSettings
+      Label               #Cleanup settings
+      TitleField1         #CleanupTaskName
+      TitleField2         #Description
+      CacheLookup         #NotInTTS
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      TableGroup          #Group
+      PrimaryIndex        #CleanupTaskNameIdx
+      ClusterIndex        #CleanupTaskNameIdx
+      ModifiedDateTime    #Yes
+      ModifiedBy          #Yes
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+      Origin              #{9B96BFFB-B137-42D8-BF81-5BABB6CA701D}
+      LegacyId            #50037
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #ClassName
+        STRING
+        PROPERTIES
+          Name                #ClassName
+          Label               #Class name
+          HelpText            #Class name that performs a cleanup
+          Mandatory           #Yes
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{5AD53E0C-2478-44B2-B4DA-6724F2B5DE34}
+          ExtendedDataType    #NotesLine
+          StringSize          #254
+        ENDPROPERTIES
+        
+      FIELD #CleanupDays
+        INT
+        PROPERTIES
+          Name                #CleanupDays
+          Label               #Cleanup days
+          HelpText            #Number of days from the current date to keep the data
+          Mandatory           #Yes
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{29E54325-50E7-4E83-9DA5-421CCEF9E3F7}
+          LegacyId            #50001
+          ExtendedDataType    #Days
+        ENDPROPERTIES
+        
+      FIELD #CleanupTaskName
+        STRING
+        PROPERTIES
+          Name                #CleanupTaskName
+          Mandatory           #Yes
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{34B8F60B-6134-4D8F-BD99-691EDE32FDC1}
+          LegacyId            #50002
+          ExtendedDataType    #DEV_CleanUpTaskName
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #Description
+        STRING
+        PROPERTIES
+          Name                #Description
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{E387CBDB-5E21-41AD-9480-F18AC4DBBB9C}
+          LegacyId            #50003
+          ExtendedDataType    #Description
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #Enabled
+        ENUM
+        PROPERTIES
+          Name                #Enabled
+          HelpText            #Run the task
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{74E0C09F-78BA-4A7C-BC22-804422213BB3}
+          LegacyId            #50004
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #LastBeginTime
+        DATETIME
+        PROPERTIES
+          Name                #LastBeginTime
+          Label               #Last start date/time
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{1BB4B7F3-FDEF-430A-924C-82020CD80F12}
+          LegacyId            #50005
+          ExtendedDataType    #TransDateTime
+        ENDPROPERTIES
+        
+      FIELD #LastEndTime
+        DATETIME
+        PROPERTIES
+          Name                #LastEndTime
+          Label               #Last end date/time
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{4EFB302B-5849-4B85-B445-16E4A347F19F}
+          LegacyId            #50006
+          ExtendedDataType    #TransDateTime
+        ENDPROPERTIES
+        
+      FIELD #LastSelectRows
+        INT
+        PROPERTIES
+          Name                #LastSelectRows
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{62B7F6EE-2104-4D38-BDC7-5BDA61E3FB5B}
+          LegacyId            #50011
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #LastUpdatedRecords
+        INT
+        PROPERTIES
+          Name                #LastUpdatedRecords
+          Label               #Deleted records
+          HelpText            #Last deleted records
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{FB1CFB21-5FB4-44F2-B283-AE189C0FEF6B}
+          LegacyId            #50007
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #StepDeleteRecords
+        INT
+        PROPERTIES
+          Name                #StepDeleteRecords
+          Label               #Delete records per step
+          HelpText            #Number of records to delete per step(often 1-10k)
+          Mandatory           #Yes
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{98A74B57-BFEF-4538-B444-B6F14109B257}
+          LegacyId            #50008
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #StepLoopMaxCount
+        INT
+        PROPERTIES
+          Name                #StepLoopMaxCount
+          Label               #Max steps (0 - unlimited)
+          HelpText            #Max loop count for delete (0 - unlimited)
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{E9F9EBF7-8091-42D6-A6D8-9745C7E85645}
+          LegacyId            #50010
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #StepSelectRecords
+        INT
+        PROPERTIES
+          Name                #StepSelectRecords
+          Label               #Select records per step
+          HelpText            #Number of records to select per step(often 1m)
+          Mandatory           #Yes
+          Table               #DEV_CleanupTaskSettings
+          Origin              #{605D71F0-5E9F-4A88-B5F4-EAE065204194}
+          LegacyId            #50009
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #CleanupTaskName
+          #Description
+          #CleanupDays
+          #StepSelectRecords
+          #StepDeleteRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #AutoLookup
+        PROPERTIES
+          Name                #AutoLookup
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #CleanupTaskName
+          #Description
+          #CleanupDays
+          #StepSelectRecords
+          #StepDeleteRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #AdvancedSettings
+        PROPERTIES
+          Name                #AdvancedSettings
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #StepSelectRecords
+          #StepDeleteRecords
+          #StepLoopMaxCount
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #Overview
+        PROPERTIES
+          Name                #Overview
+          Label               #Overview
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Enabled
+          #CleanupTaskName
+          #Description
+          #CleanupDays
+          #LastBeginTime
+          #LastEndTime
+          #durationMin
+          #LastUpdatedRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #StatusHistory
+        PROPERTIES
+          Name                #StatusHistory
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #LastBeginTime
+          #LastEndTime
+          #LastUpdatedRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #CleanupTaskNameIdx
+      PROPERTIES
+        Name                #CleanupTaskNameIdx
+        AllowDuplicates     #No
+        Origin              #{58458166-5953-49C5-A184-11BAD01EF03D}
+        LegacyId            #50001
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #CleanupTaskName
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #durationMin
+        #display RealBase durationMin()
+        #{
+        #    RealBase res;
+        #    ;
+        #    if (this.LastEndTime && this.LastBeginTime)
+        #    {
+        #        res = any2real(DateTimeUtil::getDifference(this.LastEndTime, this.LastBeginTime) / 60);
+        #    }
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #getCleanupDateTime
+        #TransDateTime getCleanupDateTime()
+        #{
+        #    utcDateTime purgedate;
+        #    ;
+        #    purgedate = DateTimeUtil::addDays(DateTimeUtil::getSystemDateTime(), - this.CleanupDays);
+        #
+        #    return purgedate;
+        #}
+      ENDSOURCE
+      SOURCE #find
+        #public static DEV_CleanupTaskSettings find(DEV_CleanUpTaskName _cleanupTaskName,
+        #                                           boolean             _forUpdate = false)
+        #{
+        #    DEV_CleanupTaskSettings DEV_CleanupTaskSettings;
+        #
+        #    if (_cleanupTaskName)
+        #    {
+        #        DEV_CleanupTaskSettings.selectForUpdate(_forUpdate);
+        #
+        #        select firstonly DEV_CleanupTaskSettings
+        #            where DEV_CleanupTaskSettings.CleanupTaskName == _cleanupTaskName;
+        #    }
+        #
+        #    return DEV_CleanupTaskSettings;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+***Element: UTS
+
+; Microsoft Dynamics AX String: DEV_CleanUpTaskName unloaded
+; --------------------------------------------------------------------------------
+  USERTYPEVERSION 6
+  
+  USERTYPE #DEV_CleanUpTaskName
+  STRING
+    PROPERTIES
+      Name                #DEV_CleanUpTaskName
+      Label               #CleanUp Task
+      HelpText            #CleanUp Task Name
+      Origin              #{73452DFC-EE57-40D5-A1C9-7D19F1193F80}
+      LegacyId            #50003
+      Extends             #Name
+      StringSize          #60
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+    ENDTYPEELEMENTS
+    
+    TYPEREFERENCES
+      TYPEREFERENCETYPE DATASET
+      PROPERTIES
+        Table               #DEV_CleanupTaskSettings
+        RelatedField        #CleanupTaskName
+      ENDPROPERTIES
+      
+    ENDTYPEREFERENCES
+    
+    TYPELOOKUPS
+    ENDTYPELOOKUPS
+    
+  ENDUSERTYPE
+  
+
+***Element: DBE
+
+; Microsoft Dynamics AX Enumtype : DEV_CleanupRunMode unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #DEV_CleanupRunMode
+    PROPERTIES
+      Name                #DEV_CleanupRunMode
+      Label               #Cleanup run mode
+      Help                #Cleanup run mode to execute
+      UseEnumValue        #Yes
+      Origin              #{8DD29CBE-64A2-464E-B29D-42003D20D9F9}
+      LegacyId            #30103
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #Run
+      PROPERTIES
+        Name                #Run
+        Label               #Run
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #Init
+      PROPERTIES
+        Name                #Init
+        Label               #Init
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #Estimate
+      PROPERTIES
+        Name                #Estimate
+        Label               #Estimate
+        EnumValue           #2
+      ENDPROPERTIES
+      
+      #DisplaySQL
+      PROPERTIES
+        Name                #DisplaySQL
+        Label               #DisplaySQL
+        EnumValue           #3
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_PurchParmTable unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_PurchParmTable
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_PurchParmTable
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{48E626DC-2421-43CD-BA7B-B0D4C4060FFE}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_PurchParmTable extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #
+        #    sqlTableName = tableStr(PurchParmTable);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #    sEstimatedSQL += strFmt('where (([%1] = %2) OR ([%1] = %3) OR ( ' +
+        #                    '([%1] = %4) AND EXISTS (SELECT t.PurchId FROM %5 t where t.PurchId = MainTable.PurchId and t.Partition = MainTable.Partition and t.DataAreaId = MainTable.DataAreaId and t.%6 = %7) )) ',
+        #                            fieldstr(PurchParmTable, ParmJobStatus),
+        #                            any2int(ParmJobStatus::Executed),
+        #                            any2int(ParmJobStatus::ContainErrors),
+        #                            any2int(ParmJobStatus::Waiting),        //4
+        #                            tableStr(PurchTable),
+        #                            fieldstr(PurchTable, PurchStatus),     //6
+        #                            any2int(PurchStatus::Invoiced)
+        #                            );
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #
+        #    sEstimatedSQL += strFmt('AND %1 < %2 ', fieldstr(PurchParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    sEstimatedSQL += strFmt(' AND NOT EXISTS(SELECT t.ParmId FROM %1 t where t.ParmId = MainTable.ParmId and t.Partition = MainTable.Partition and t.DataAreaId = MainTable.DataAreaId and t.%2 >= %3) ',
+        #                sqlTableName, fieldstr(PurchParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RECID, ParmId, TableRefId, DataAreaId, Partition');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #
+        #        //    --------------------------------------------------------------
+        #        //PurchParmUpdate
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmUpdate), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(PurchParmUpdate, ParmId), 'ParmId'],
+        #                                               'MainTable.LATESELECTION = 0');
+        #
+        #        //PurchParmSubTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmSubTable), sqlBuider.tmpDeleteBuffer(),
+        #                                             [fieldstr(PurchParmSubTable, ParmId),     'ParmId',
+        #                                              fieldstr(PurchParmSubTable, TableRefId), 'TableRefId']);
+        #
+        #        //PurchParmLine - select
+        #        sSQL += strFmt('select MainTable.RECID, MainTable.DataAreaId, MainTable.Partition into #tmpPurchParmLine \n');
+        #        sSQL += sqlBuider.buildTmpExistsJoinCompany(tableStr(PurchParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                             [fieldstr(PurchParmLine, ParmId),     'ParmId',
+        #                                              fieldstr(PurchParmLine, TableRefId), 'TableRefId']);
+        #
+        #        //PurchParmSubLine
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmSubLine), '#tmpPurchParmLine',
+        #                                             [fieldstr(PurchParmSubLine, LineRefRecId),   'RECID']);
+        #
+        #        //PurchParmLine_Asset
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmLine_Asset), '#tmpPurchParmLine',
+        #                                             [fieldstr(PurchParmLine_Asset, PurchParmLineRecId),   'RECID']);
+        #
+        #        sSQL += 'DROP TABLE #tmpPurchParmLine;  \n';
+        #
+        #        //PurchParmLine - delete
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                                     [fieldstr(PurchParmLine, ParmId),     'ParmId',
+        #                                                      fieldstr(PurchParmLine, TableRefId), 'TableRefId']);
+        #        //PurchParmTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmTable), sqlBuider.tmpDeleteBuffer(),
+        #                                           [fieldstr(PurchParmTable, RecId),     'RECID']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'PurchParmTables';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventSumSummarize unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventSumSummarize
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventSumSummarize
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{9AA4FAAD-B53E-49F0-B8E4-B4658D24A0E9}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventSumSummarize extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    InventSumSummarizeService       inventSumSummarizeService;
+        #    InventSumSummarizeContract      dataContract;
+        #    Query                           query;
+        #    InventSum                       inventSumMain;
+        #    int64                           recCount;
+        #    ;
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        this.displayEstimateInventSum();
+        #        return;
+        #    }
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        info("Not supported");
+        #        return;
+        #    }
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    select crosscompany count(RecId) from inventSumMain;
+        #    recCount = inventSumMain.RecId;
+        #
+        #    inventSumMain = null;
+        #    while select crosscompany inventSumMain
+        #        group by DataAreaId
+        #    {
+        #        changeCompany(inventSumMain.dataAreaId)
+        #        {
+        #            inventSumSummarizeService = new InventSumSummarizeService();
+        #            dataContract = InventSumSummarizeContract::construct();
+        #            query = new Query(querystr(InventSumSummarize));
+        #            dataContract.parmQuery(SysOperationHelper::base64Encode(query.pack()));
+        #            inventSumSummarizeService.summarize(dataContract);
+        #        }
+        #    }
+        #    inventSumMain = null;
+        #    select crosscompany count(RecId) from inventSumMain;
+        #    recCount = recCount - inventSumMain.RecId ;
+        #
+        #    this.logEnd(cleanupTaskSettings, any2int(recCount));
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventSum1-Summarize';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 31;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventSumTracking unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventSumTracking
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventSumTracking
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{E99C025B-0158-476D-8BCC-DCA2A680FBEA}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventSumTracking extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    InventCleanupTrackingInventSumService       inventCleanupTrackingInventSumService;
+        #    InventCleanupTrackingInventSumContract      dataContract;
+        #    Query                                       query;
+        #    InventSum                                   inventSumMain;
+        #    int64                                       recCount;
+        #    ;
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        this.displayEstimateInventSum();
+        #        return;
+        #    }
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        info("Not supported");
+        #        return;
+        #    }
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    select crosscompany count(RecId) from inventSumMain;
+        #    recCount = inventSumMain.RecId;
+        #
+        #    inventSumMain = null;
+        #    while select crosscompany inventSumMain
+        #        group by DataAreaId
+        #    {
+        #        changeCompany(inventSumMain.dataAreaId)
+        #        {
+        #            inventCleanupTrackingInventSumService = new InventCleanupTrackingInventSumService();
+        #            dataContract = new InventCleanupTrackingInventSumContract();
+        #            query = new Query(querystr(InventCleanupTrackingInventSum));
+        #            dataContract.parmQuery(SysOperationHelper::base64Encode(query.pack()));
+        #            dataContract.parmDeleteWhenNotUpdatedForDays(cleanupTaskSettings.CleanupDays);
+        #            inventCleanupTrackingInventSumService.cleanup(dataContract);
+        #        }
+        #    }
+        #    inventSumMain = null;
+        #    select crosscompany count(RecId) from inventSumMain;
+        #    recCount = recCount - inventSumMain.RecId ;
+        #
+        #
+        #    this.logEnd(cleanupTaskSettings, any2int(recCount));
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventSum2-Onhand';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 31;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventSumWHS unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventSumWHS
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventSumWHS
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{6848BAE4-9E57-430B-B5E9-F1C618CE05C7}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventSumWHS extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    InventCleanupWHSInventSumService            inventCleanupWHSInventSumService;
+        #    InventCleanupWHSInventSumContract           dataContract;
+        #    Query                                       query;
+        #    InventSum                                   inventSumMain;
+        #    int64                                       recCount;
+        #    ;
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        this.displayEstimateInventSum();
+        #        return;
+        #    }
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        info("Not supported");
+        #        return;
+        #    }
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    select crosscompany count(RecId) from inventSumMain;
+        #    recCount = inventSumMain.RecId;
+        #
+        #    inventSumMain = null;
+        #    while select crosscompany inventSumMain
+        #        group by DataAreaId
+        #    {
+        #        changeCompany(inventSumMain.dataAreaId)
+        #        {
+        #            inventCleanupWHSInventSumService = new InventCleanupWHSInventSumService();
+        #            dataContract = new InventCleanupWHSInventSumContract();
+        #            query = new Query(querystr(InventCleanupWHSInventSum));
+        #            dataContract.parmQuery(SysOperationHelper::base64Encode(query.pack()));
+        #            dataContract.parmDeleteWhenNotUpdatedForDays(cleanupTaskSettings.CleanupDays);
+        #            inventCleanupWHSInventSumService.cleanup(dataContract);
+        #        }
+        #    }
+        #    inventSumMain = null;
+        #    select crosscompany count(RecId) from inventSumMain;
+        #    recCount = recCount - inventSumMain.RecId ;
+        #
+        #
+        #    this.logEnd(cleanupTaskSettings, any2int(recCount));
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventSum3-WHS';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 31;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_BatchHistory unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_BatchHistory
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_BatchHistory
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{42450C76-0A01-4F37-8A5C-A8B879E3E9A7}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_BatchHistory extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #    sqlTableName = tableStr(BatchHistory);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #    sEstimatedSQL += strFmt('WHERE %1 < %2 ', fieldstr(BatchHistory, StartDateTime), sDateCondition);
+        #
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RECID, BatchJobHistoryId ');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #
+        #        //    --------------------------------------------------------------
+        #        sqlBuider.parmIsIgnoreCompany(true);
+        #        //BatchConstraintsHistory
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(BatchConstraintsHistory), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(BatchConstraintsHistory, BatchId), 'RECID']);
+        #
+        #        //BatchJobHistory
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(BatchJobHistory), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(BatchJobHistory, RecId), 'BatchJobHistoryId']);
+        #
+        #        //BatchHistory
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(BatchHistory), sqlBuider.tmpDeleteBuffer(),
+        #                                           [fieldstr(BatchHistory, RecId),     'RECID']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'BatchHistory';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_AifMessageLog unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_AifMessageLog
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_AifMessageLog
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{F01D114E-F053-49C2-A85C-CBBE9FBA031C}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_AifMessageLog extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #    sqlTableName = tableStr(AifMessageLog);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #    sEstimatedSQL += strFmt('WHERE %1 < %2 ', fieldstr(AifMessageLog, CreatedDateTime), sDateCondition);
+        #
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RecId, MessageId ');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #
+        #        //    --------------------------------------------------------------
+        #        sqlBuider.parmIsIgnoreCompany(true);
+        #        sqlBuider.parmIsIgnorePartition(true);
+        #        //AifDocumentLog
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(AifDocumentLog), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(AifDocumentLog, MessageId), 'MessageId']);
+        #
+        #        //AifCorrelation
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(AifCorrelation), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(AifCorrelation, MessageId), 'MessageId']);
+        #
+        #        //AifMessageLog
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(AifMessageLog), sqlBuider.tmpDeleteBuffer(),
+        #                                           [fieldstr(AifMessageLog, MessageId),     'MessageId']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'AifMessageLog';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SalesParmTables unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SalesParmTables
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SalesParmTables
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{1930EB6E-D665-4D0A-8ECB-703472F19B53}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SalesParmTables extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    str             sMainTableFieldList;
+        #
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #    sqlTableName = tableStr(SalesParmTable);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1 AS MainTable          \n',   sqlTableName);          //TABLE HERE
+        #    sEstimatedSQL += strFmt('where (([%1] = %2) OR ([%1] = %3) OR ( ' +
+        #                    '([%1] = %4) AND EXISTS (SELECT t.SalesId FROM %5 t where t.SalesId = MainTable.SalesId and t.Partition = MainTable.Partition and t.DataAreaId = MainTable.DataAreaId and t.%6 = %7) )) ',
+        #                            fieldstr(SalesParmTable, ParmJobStatus),
+        #                            any2int(ParmJobStatus::Executed),
+        #                            any2int(ParmJobStatus::ContainErrors),
+        #                            any2int(ParmJobStatus::Waiting),        //4
+        #                            tableStr(SalesTable),
+        #                            fieldstr(SalesTable, SalesStatus),     //6
+        #                            any2int(SalesStatus::Invoiced)
+        #                            );
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #
+        #    sEstimatedSQL += strFmt('AND %1 < %2 ', fieldstr(SalesParmTable, CreatedDateTime), sDateCondition);
+        #    //sEstimatedSQL += strFmt(' AND NOT EXISTS(SELECT t.ParmId FROM %1 t where t.ParmId = MainTable.ParmId and t.DataAreaId = MainTable.DataAreaId and t.%2 >= %3) ',
+        #    //            sqlTableName, fieldstr(SalesParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sMainTableFieldList = 'RECID, ParmId, TableRefId, DataAreaId, Partition';
+        #    sqlBuider.setMainTableSelectFieldList(sMainTableFieldList);
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #        //    --------------------------------------------------------------
+        #        //SalesParmUpdate
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmUpdate), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesParmUpdate, ParmId), 'ParmId'],
+        #                                               'MainTable.LATESELECTION = 0');
+        #        //SalesParmSubTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmSubTable), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesParmSubTable, ParmId),    'ParmId',
+        #                                                fieldstr(SalesParmSubTable, TableRefId),'TableRefId']);
+        #        //SalesParmLine - select
+        #        sSQL += strFmt('select MainTable.RECID, MainTable.DataAreaId, MainTable.Partition into #tmpSalesParmLine \n');
+        #        sSQL += sqlBuider.buildTmpExistsJoinCompany(tableStr(SalesParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                             [fieldstr(SalesParmLine, ParmId),     'ParmId',
+        #                                              fieldstr(SalesParmLine, TableRefId), 'TableRefId']);
+        #
+        #        //salesParmSubLine
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmSubLine), '#tmpSalesParmLine',
+        #                                             [fieldstr(SalesParmSubLine, LineRefRecId),   'RECID']);
+        #
+        #        sSQL += 'DROP TABLE #tmpSalesParmLine;  \n';
+        #
+        #        //SalesParmLine - delete
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                                     [fieldstr(SalesParmLine, ParmId),     'ParmId',
+        #                                                      fieldstr(SalesParmLine, TableRefId), 'TableRefId']);
+        #
+        #        //SalesParmTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmTable), sqlBuider.tmpDeleteBuffer(),
+        #                                         [fieldstr(SalesParmTable, ParmId),     'ParmId',
+        #                                          fieldstr(SalesParmTable, TableRefId), 'TableRefId']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SalesParmTables';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTaskBase unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTaskBase
+    PROPERTIES
+      Name                #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{7713365A-C058-4F0A-B8CB-6F2953B20F78}
+      LegacyId            #30457
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #displayEstimateInventSum
+        #void displayEstimateInventSum()
+        #{
+        #    InventSum                       inventSumMain;
+        #    ;
+        #    info(strFmt("Company, Closed, RecCount"));
+        #
+        #    while select crosscompany count(RecId) from inventSumMain
+        #        group by DataAreaId, Closed
+        #    {
+        #        info(strFmt("%1, %2, %3", inventSumMain.dataAreaId, inventSumMain.Closed, inventSumMain.RecId));
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #checkContinueLoop
+        #boolean checkContinueLoop(DEV_CleanupTaskSettings     _cleanupTaskSettings, int _recCount)
+        #{
+        #    boolean res;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return false;
+        #    }
+        #    res = (_recCount && _recCount == _cleanupTaskSettings.StepSelectRecords);
+        #
+        #    curLoopNumber++;
+        #
+        #    if (_cleanupTaskSettings.StepLoopMaxCount && curLoopNumber >= _cleanupTaskSettings.StepLoopMaxCount )
+        #    {
+        #        res = false;
+        #    }
+        #
+        #
+        #    return res;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTaskBase
+        #{
+        #    DEV_CleanupRunMode          cleanupRunMode;
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #
+        #
+        #    Connection      connection;
+        #    int             curLoopNumber;
+        #
+        #
+        #    int   curRecordNumber;
+        #
+        #}
+        #
+      ENDSOURCE
+      SOURCE #deleteAndLog
+        #void   deleteAndLog(Common  _tableToDelete, DEV_CleanupTaskSettings  _cleanupTaskSettings)
+        #{
+        #    _tableToDelete.skipTTSCheck(true);
+        #    _tableToDelete.delete();
+        #
+        #    curRecordNumber++;
+        #    if (curRecordNumber > 1000)
+        #    {
+        #        this.logAddRecords(_cleanupTaskSettings, curRecordNumber);
+        #        curRecordNumber = 0;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #public void execute()
+        #{
+        #    ;
+        #}
+      ENDSOURCE
+      SOURCE #getLastProcessedRecords
+        #int getLastProcessedRecords(DEV_CleanupTaskSettings     _cleanupTaskSettings)
+        #{
+        #    ;
+        #    _cleanupTaskSettings.reread();
+        #
+        #    return _cleanupTaskSettings.LastSelectRows;
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    throw error(Error::missingOverload(funcname()));
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    _taskSettings.CleanupDays       = 93;
+        #    _taskSettings.StepDeleteRecords = 5000;
+        #    _taskSettings.StepSelectRecords = 50000;
+        #    _taskSettings.Enabled           = true;
+        #
+        #    _taskSettings.ClassName = classId2name(classIdget(this));
+        #}
+      ENDSOURCE
+      SOURCE #logAddRecords
+        #void logAddRecords(DEV_CleanupTaskSettings     _cleanupTaskSettings, int _recCount)
+        #{
+        #    DEV_CleanupTaskSettings  cleanupTaskSettingsUpd;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return;
+        #    }
+        #
+        #    ttsBegin;
+        #
+        #    cleanupTaskSettingsUpd = DEV_CleanupTaskSettings::find(_cleanupTaskSettings.CleanupTaskName, true);
+        #
+        #    cleanupTaskSettingsUpd.LastUpdatedRecords += _recCount;
+        #    cleanupTaskSettingsUpd.update();
+        #
+        #    ttsCommit;
+        #}
+      ENDSOURCE
+      SOURCE #logBegin
+        #void logBegin(DEV_CleanupTaskSettings     _cleanupTaskSettings)
+        #{
+        #    DEV_CleanupTaskSettings  cleanupTaskSettingsUpd;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return;
+        #    }
+        #    ttsBegin;
+        #
+        #    cleanupTaskSettingsUpd = DEV_CleanupTaskSettings::find(_cleanupTaskSettings.CleanupTaskName, true);
+        #
+        #    cleanupTaskSettingsUpd.LastBeginTime      = DateTimeUtil::getSystemDateTime();
+        #    cleanupTaskSettingsUpd.LastEndTime        = utcDateTimeNull();
+        #    cleanupTaskSettingsUpd.LastUpdatedRecords = 0;
+        #    cleanupTaskSettingsUpd.update();
+        #
+        #    ttsCommit;
+        #
+        #    curLoopNumber = 0;
+        #    curRecordNumber = 0;
+        #}
+      ENDSOURCE
+      SOURCE #logEnd
+        #void logEnd(DEV_CleanupTaskSettings     _cleanupTaskSettings, int _recCount = 0)
+        #{
+        #    DEV_CleanupTaskSettings  cleanupTaskSettingsUpd;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return;
+        #    }
+        #
+        #    connection = null;
+        #
+        #    ttsBegin;
+        #
+        #    cleanupTaskSettingsUpd = DEV_CleanupTaskSettings::find(_cleanupTaskSettings.CleanupTaskName, true);
+        #
+        #    cleanupTaskSettingsUpd.LastEndTime        = DateTimeUtil::getSystemDateTime();
+        #    cleanupTaskSettingsUpd.LastUpdatedRecords += _recCount;
+        #    cleanupTaskSettingsUpd.update();
+        #
+        #    ttsCommit;
+        #}
+      ENDSOURCE
+      SOURCE #parmCleanupRunMode
+        #public DEV_CleanupRunMode parmCleanupRunMode(DEV_CleanupRunMode _cleanupRunMode = cleanupRunMode)
+        #{
+        #    ;
+        #    cleanupRunMode = _cleanupRunMode;
+        #
+        #    return cleanupRunMode;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmCleanupTaskSettings
+        #public DEV_CleanupTaskSettings parmCleanupTaskSettings(DEV_CleanupTaskSettings _cleanupTaskSettings = cleanupTaskSettings)
+        #{
+        #    ;
+        #    cleanupTaskSettings = _cleanupTaskSettings;
+        #
+        #    return cleanupTaskSettings;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #sqlExecuteQuery
+        #int sqlExecuteQuery(str  _sqlStr)
+        #{
+        #    int  res;
+        #    ResultSet       rs;
+        #    SqlStatementExecutePermission       perm;
+        #    Statement           statement;
+        #
+        #    ;
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::DisplaySQL)
+        #    {
+        #        info(_sqlStr);
+        #        return 0;
+        #    }
+        #
+        #    // create connection object
+        #    if (! connection)
+        #    {
+        #        connection = new Connection();
+        #
+        #    }
+        #    // create statement
+        #    if (! statement)
+        #    {
+        #        statement = connection.createStatement();
+        #    }
+        #    // assert SQL statement execute permission
+        #    perm = new SqlStatementExecutePermission(_sqlStr);
+        #    perm.assert();
+        #
+        #    //info(_sqlStr);
+        #
+        #    //BP Deviation documented
+        #    rs = statement.executeQuery(_sqlStr);
+        #    if (rs.next())
+        #    {
+        #        res = rs.getInt(1);
+        #    }
+        #    statement.close();
+        #    statement = null;
+        #
+        #    // limit the scope of the assert call
+        #    CodeAccessPermission::revertAssert();
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #sqlExecuteUpdate
+        #void sqlExecuteUpdate(str  _sqlStr)
+        #{
+        #    Statement           statement;
+        #    ;
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Init || cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        throw error(error::wrongUseOfFunction(funcName()));
+        #    }
+        #    if (cleanupRunMode == DEV_CleanupRunMode::DisplaySQL)
+        #    {
+        #        info(_sqlStr);
+        #        return;
+        #    }
+        #
+        #    // create connection object
+        #    if (! connection)
+        #    {
+        #        connection = new Connection();
+        #    }
+        #    // create statement
+        #    statement = connection.createStatement();
+        #
+        #    // assert SQL statement execute permission
+        #    new SqlStatementExecutePermission(_sqlStr).assert();
+        #
+        #    //BP Deviation documented
+        #    statement.executeUpdate(_sqlStr);
+        #
+        #    statement.close();
+        #    statement = null;
+        #
+        #    // limit the scope of the assert call
+        #    CodeAccessPermission::revertAssert();
+        #}
+      ENDSOURCE
+      SOURCE #test
+        #server static void test()
+        #{
+        #    DEV_CleanupDataTaskBase        processor = new DEV_CleanupDataTaskBase();
+        #    str     sSQL;
+        #    ;
+        #    sSQL = 'IF OBJECT_ID(\'tempdb..#tmpRes\')          IS NOT NULL DROP TABLE #tmpRes; \n';
+        #    sSQL += 'CREATE TABLE #tmpRes (RECID   BIGINT) \n';
+        #    processor.sqlExecuteUpdate(sSQL);
+        #    sSQL = '';
+        #    processor.sqlExecuteUpdate(sSQL);
+        #
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_ProdParmTables unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_ProdParmTables
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_ProdParmTables
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+      Origin              #{37F96921-C6FD-4246-83F7-1640EC259822}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_ProdParmTables extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    utcDateTime                 purgedate;
+        #
+        #    ProdParmRelease             prodPArmRelease;
+        #    ProdParmStartUp             prodPArmStartup;
+        #    ProdParmBOMCalc             prodParmBOMCalc;
+        #    ProdParmCostEstimation      prodParmCostEstimation;
+        #    ProdParmHistoricalCost      prodParmHistoricalCost;
+        #    ProdParmReportFinished      prodParmReportFinished;
+        #    ProdParmScheduling          prodParmScheduling;
+        #    ProdParmStatusDecrease      prodParmStatusDecrease;
+        #    int                         lastRowsProcessed;
+        #    ;
+        #    purgedate = cleanupTaskSettings.getCleanupDateTime();
+        #
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    while select forupdate prodPArmRelease
+        #        where   prodPArmRelease.ExecutedDateTime < purgedate  &&
+        #                prodPArmRelease.JobStatus       != ParmJobStatus::Waiting
+        #    {
+        #        prodParmUpdate::deleteParameters(prodPArmRelease.ParmId);
+        #        this.deleteAndLog(prodPArmRelease, cleanupTaskSettings);
+        #    }
+        #
+        #    while select forupdate prodPArmStartup
+        #        where prodPArmStartup.ExecutedDateTime < purgedate &&
+        #                prodPArmStartup.JobStatus != ParmJobStatus::Waiting
+        #    {
+        #        ttsBegin;
+        #        prodParmUpdate::deleteParameters(prodPArmStartup.ParmId);
+        #        ttsCommit;
+        #        this.deleteAndLog(prodPArmStartup, cleanupTaskSettings);
+        #    }
+        #
+        #    while select forupdate ProdParmBOMCalc where
+        #        ProdParmBOMCalc.ExecutedDateTime < purgedate &&
+        #        ProdParmBOMCalc.JobStatus      != ParmJobStatus::Waiting
+        #    {
+        #        prodParmUpdate::deleteParameters(ProdParmBOMCalc.ParmId);
+        #
+        #        this.deleteAndLog(ProdParmBOMCalc, cleanupTaskSettings);
+        #
+        #    }
+        #
+        #    while select forupdate ProdParmCostEstimation
+        #        where ProdParmCostEstimation.ExecutedDateTime < purgedate &&
+        #              ProdParmCostEstimation.JobStatus       != ParmJobStatus::Waiting
+        #    {
+        #        prodParmUpdate::deleteParameters(ProdParmCostEstimation.ParmId);
+        #        this.deleteAndLog(ProdParmCostEstimation, cleanupTaskSettings);
+        #    }
+        #
+        #    while select forupdate ProdParmHistoricalCost
+        #        where ProdParmHistoricalCost.ExecutedDateTime < purgedate &&
+        #              ProdParmHistoricalCost.JobStatus != ParmJobStatus::Waiting
+        #    {
+        #        prodParmUpdate::deleteParameters(ProdParmHistoricalCost.ParmId);
+        #        this.deleteAndLog(ProdParmHistoricalCost, cleanupTaskSettings);
+        #    }
+        #
+        #    while select forupdate ProdParmReportFinished
+        #        where ProdParmReportFinished.ExecutedDateTime < purgedate &&
+        #              ProdParmReportFinished.JobStatus != ParmJobStatus::Waiting
+        #    {
+        #        prodParmUpdate::deleteParameters(ProdParmReportFinished.ParmId);
+        #        this.deleteAndLog(ProdParmReportFinished, cleanupTaskSettings);
+        #    }
+        #
+        #    while select forupdate ProdParmScheduling
+        #        where ProdParmScheduling.ExecutedDateTime < purgedate &&
+        #        ProdParmScheduling.JobStatus != ParmJobStatus::Waiting
+        #    {
+        #        prodParmUpdate::deleteParameters(ProdParmScheduling.ParmId);
+        #        this.deleteAndLog(ProdParmScheduling, cleanupTaskSettings);
+        #    }
+        #
+        #    while select forupdate ProdParmStatusDecrease
+        #        where ProdParmStatusDecrease.ExecutedDateTime < purgedate &&
+        #              ProdParmStatusDecrease.JobStatus != ParmJobStatus::Waiting
+        #    {
+        #        prodParmUpdate::deleteParameters(ProdParmStatusDecrease.ParmId);
+        #        this.deleteAndLog(ProdParmStatusDecrease, cleanupTaskSettings);
+        #    }
+        #
+        #    this.logEnd(cleanupTaskSettings, curRecordNumber);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'ProdParmTables';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTaskProcessor unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTaskProcessor
+    PROPERTIES
+      Name                #DEV_CleanupDataTaskProcessor
+      Extends             #RunBaseBatch
+      RunOn               #Server
+      Origin              #{38D56ADD-5150-4659-B317-D31E08F965D6}
+      LegacyId            #30456
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #allowSaveLast
+        #public boolean allowSaveLast()
+        #{
+        #    boolean ret;
+        #
+        #    ret = super();
+        #
+        #    if (cleanUpTaskNameExternal)
+        #    {
+        #        ret = false;
+        #    }
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTaskProcessor extends RunBaseBatch
+        #{
+        #    Integer                 dummy;
+        #    DEV_CleanUpTaskName     cleanUpTaskNameExternal;
+        #
+        #    QueryRun                queryRun;
+        #
+        #    DEV_CleanupRunMode  cleanupRunMode;
+        #
+        #    #define.CurrentVersion(1)
+        #    #localmacro.CurrentList
+        #        dummy
+        #    #endmacro
+        #}
+        #
+      ENDSOURCE
+      SOURCE #dialog
+        #public Object dialog()
+        #{
+        #    DialogRunbase       dialog = super();
+        #    ;
+        #    if (cleanUpTaskNameExternal)
+        #    {
+        #        dialog.addText(strFmt("Execute %1", cleanUpTaskNameExternal));
+        #    }
+        #    //dlgDummy                   = dialog.addFieldValue(extendedtypestr(Integer), dummy);
+        #
+        #    return dialog;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #executeTask
+        #void executeTask(DEV_CleanupDataTaskBase  _cleanupDataTaskBase, DEV_CleanupTaskSettings  _cleanupTaskSettings)
+        #{
+        #    ;
+        #    _cleanupDataTaskBase.parmCleanupRunMode(cleanupRunMode);
+        #    _cleanupDataTaskBase.parmCleanupTaskSettings(_cleanupTaskSettings);
+        #
+        #    if (_cleanupTaskSettings.Enabled ||
+        #       (cleanupRunMode == DEV_CleanupRunMode::Estimate || cleanupRunMode == DEV_CleanupRunMode::DisplaySQL) )
+        #    {
+        #        _cleanupDataTaskBase.execute();
+        #     }
+        #}
+      ENDSOURCE
+      SOURCE #getFromDialog
+        #public boolean getFromDialog()
+        #{
+        #    ;
+        #
+        #    //dummy              = dlgDummy.value();
+        #
+        #    return super();
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initParmDefault
+        #public void initParmDefault()
+        #{
+        #    ;
+        #
+        #    this.initQuery();
+        #
+        #    super();
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initQuery
+        #public void initQuery()
+        #{
+        #    Query                   query = new Query();
+        #    QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEV_CleanupTaskSettings));
+        #    QueryBuildRange         qBR;
+        #    ;
+        #
+        #    qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEV_CleanupTaskSettings, CleanupTaskName));
+        #    qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEV_CleanupTaskSettings, Enabled));
+        #    qBR.value(queryValue(NoYes::Yes));
+        #    queryRun = new QueryRun(query);
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initSettingsForTask
+        #DEV_CleanupTaskSettings initSettingsForTask(DEV_CleanupDataTaskBase  _cleanupDataTaskBase)
+        #{
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #    DEV_CleanUpTaskName         cleanUpTaskName;
+        #    ;
+        #    cleanUpTaskName = _cleanupDataTaskBase.getTaskName();
+        #    if (! cleanUpTaskName)
+        #    {
+        #        throw error("Task name is not specified for %1 class", classid2name(classidget(this)));
+        #    }
+        #
+        #    cleanupTaskSettings = DEV_CleanupTaskSettings::find(cleanUpTaskName);
+        #    if (! cleanupTaskSettings.RecId)
+        #    {
+        #        cleanupTaskSettings.CleanupTaskName = cleanUpTaskName;
+        #        _cleanupDataTaskBase.initDefaultParameters(cleanupTaskSettings);
+        #
+        #        if (! cleanupTaskSettings.validateWrite())
+        #        {
+        #            throw error(strFmt("Failed to init task '%1'", cleanUpTaskName));
+        #        }
+        #        cleanupTaskSettings.insert();
+        #    }
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Init)
+        #    {
+        #        cleanupTaskSettings.Enabled = false;
+        #    }
+        #
+        #    return cleanupTaskSettings;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #new
+        #public void new()
+        #{
+        #    super();
+        #    this.initQuery();
+        #}
+      ENDSOURCE
+      SOURCE #pack
+        #public container pack()
+        #{
+        #    ;
+        #
+        #    return [#CurrentVersion, #CurrentList, queryRun.pack()];
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmCleanupRunMode
+        #public DEV_CleanupRunMode parmCleanupRunMode(DEV_CleanupRunMode _cleanupRunMode = cleanupRunMode)
+        #{
+        #    ;
+        #    cleanupRunMode = _cleanupRunMode;
+        #
+        #    return cleanupRunMode;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #queryRun
+        #public QueryRun queryRun()
+        #{
+        #    ;
+        #
+        #    return queryRun;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #run
+        #public void run()
+        #{
+        #    QueryBuildDataSource        qBDS;
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #    DEV_CleanupDataTaskBase     cleanupDataTaskBase;
+        #    DictClass                   dc;
+        #    ;
+        #    DEV_CleanupDataTaskProcessor::initTasksSettings();
+        #
+        #    qBDS = queryRun.query().dataSourceTable(tableNum(DEV_CleanupTaskSettings));
+        #
+        #    if (cleanUpTaskNameExternal)
+        #    {
+        #        qbds.clearRanges();
+        #        qbds.addRange(fieldnum(DEV_CleanupTaskSettings, CleanupTaskName)).value(queryValue(cleanUpTaskNameExternal));
+        #    }
+        #
+        #    while (queryRun.next())
+        #    {
+        #        cleanupTaskSettings = queryRun.get(tablenum(DEV_CleanupTaskSettings));
+        #        if (classname2id(cleanupTaskSettings.ClassName))
+        #        {
+        #            dc = new DictClass(classname2id(cleanupTaskSettings.ClassName));
+        #            cleanupDataTaskBase = dc.makeObject();
+        #            this.executeTask(cleanupDataTaskBase, cleanupTaskSettings);
+        #        }
+        #
+        #    }
+        #
+        #}
+        #
+      ENDSOURCE
+      SOURCE #setCleanupTaskSettingsExternal
+        #public void setCleanupTaskSettingsExternal(DEV_CleanupTaskSettings _cleanupTaskSettingsExternal )
+        #{
+        #    ;
+        #    cleanUpTaskNameExternal = _cleanupTaskSettingsExternal.CleanupTaskName;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #showQueryValues
+        #public boolean showQueryValues()
+        #{
+        #    ;
+        #
+        #    return cleanUpTaskNameExternal ? false : true;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #unpack
+        #public boolean unpack(container _packedClass)
+        #{
+        #    Version    version = RunBase::getVersion(_packedClass);
+        #    container  queryCon;
+        #    ;
+        #
+        #    switch (version)
+        #    {
+        #        case #CurrentVersion:
+        #            [version,#CurrentList,queryCon] = _packedClass;
+        #            if (SysQuery::isPackedOk(queryCon))
+        #            {
+        #                queryRun = new QueryRun(queryCon);
+        #            }
+        #            else
+        #            {
+        #                this.initQuery();
+        #            }
+        #            break;
+        #        default:
+        #            return false;
+        #    }
+        #
+        #    return true;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #construct
+        #public static DEV_CleanupDataTaskProcessor construct()
+        #{
+        #    return new DEV_CleanupDataTaskProcessor();
+        #}
+      ENDSOURCE
+      SOURCE #description
+        #static ClassDescription description()
+        #{
+        #    ;
+        #
+        #    return "Cleanup historic data";
+        #}
+      ENDSOURCE
+      SOURCE #initTasksSettings
+        #public server static void initTasksSettings()
+        #{
+        #    DEV_CleanupTaskSettings         cleanupTaskSettings;
+        #    DEV_CleanupDataTaskBase         cleanupDataTaskBase;
+        #    DictClass                       dc;
+        #    DEV_CleanupDataTaskProcessor    cleanupDataTaskProcessor = new DEV_CleanupDataTaskProcessor();
+        #    ;
+        #    ttsbegin;
+        #    while select forupdate cleanupTaskSettings
+        #    {
+        #        if (classname2id(cleanupTaskSettings.ClassName))
+        #        {
+        #            dc = new DictClass(classname2id(cleanupTaskSettings.ClassName));
+        #            cleanupDataTaskBase = dc.makeObject();
+        #        }
+        #        else
+        #        {
+        #            cleanupTaskSettings.delete();
+        #        }
+        #    }
+        #    ttscommit;
+        #
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_SalesParmTables());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_PurchParmTable());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_AifMessageLog());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_BatchHistory());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_ProdParmTables());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_InventSumSummarize());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_InventSumTracking());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_InventSumWHS());
+        #}
+        #
+      ENDSOURCE
+      SOURCE #main
+        #public static void main(Args _args)
+        #{
+        #    DEV_CleanupDataTaskProcessor   runObject = DEV_CleanupDataTaskProcessor::construct();
+        #    DEV_CleanupTaskSettings        cleanupTaskSettingsExt;
+        #    FormDataSource                 fds;
+        #    ;
+        #
+        #    if (_args && _args.record() && _args.record().TableId == tablenum(DEV_CleanupTaskSettings))
+        #    {
+        #        cleanupTaskSettingsExt = _args.record();
+        #        runObject.setCleanupTaskSettingsExternal(cleanupTaskSettingsExt);
+        #
+        #        //runObject.parmIsDisableUnpackQuery(true);
+        #    }
+        #    if (runObject.prompt())
+        #    {
+        #        runObject.run();
+        #    }
+        #    if (cleanupTaskSettingsExt.dataSource())
+        #    {
+        #        fds = cleanupTaskSettingsExt.dataSource();
+        #        fds.research(true);
+        #    }
+        #}
+        #
+      ENDSOURCE
+      SOURCE #runDisplaySQL
+        #server static void runDisplaySQL(DEV_CleanupTaskSettings _cleanupTaskSettingsExternal)
+        #{
+        #    DEV_CleanupDataTaskProcessor         runObject = DEV_CleanupDataTaskProcessor::construct();
+        #    ;
+        #    runObject.setCleanupTaskSettingsExternal(_cleanupTaskSettingsExternal);
+        #    runObject.parmCleanupRunMode(DEV_CleanupRunMode::DisplaySQL);
+        #    runObject.run();
+        #}
+      ENDSOURCE
+      SOURCE #runEstimate
+        #server static void runEstimate(DEV_CleanupTaskSettings _cleanupTaskSettingsExternal)
+        #{
+        #    DEV_CleanupDataTaskProcessor         runObject = DEV_CleanupDataTaskProcessor::construct();
+        #    ;
+        #    runObject.setCleanupTaskSettingsExternal(_cleanupTaskSettingsExternal);
+        #    runObject.parmCleanupRunMode(DEV_CleanupRunMode::Estimate);
+        #    runObject.run();
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataSQLBuider unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataSQLBuider
+    PROPERTIES
+      Name                #DEV_CleanupDataSQLBuider
+      Origin              #{B7E74357-A003-41BF-B958-D266A0BE5B79}
+      LegacyId            #30458
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #buildBeginDropTmpTables
+        #str buildBeginDropTmpTables()
+        #{
+        #    str             sSQL;
+        #
+        #    sSQL =  'IF OBJECT_ID(\'tempdb..#tmpSelectBuffer\') IS NOT NULL DROP TABLE #tmpSelectBuffer; \n ';
+        #    sSQL += 'IF OBJECT_ID(\'tempdb..#tmpDeleteBuffer\') IS NOT NULL DROP TABLE #tmpDeleteBuffer; \n ';
+        #
+        #
+        #
+        #    return sSQL;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #buildDeleteBufferSelectIntoEnd
+        #str buildDeleteBufferSelectIntoEnd()
+        #{
+        #    str             sSQL;
+        #    ;
+        #    sSQL += 'delete from #tmpSelectBuffer from #tmpSelectBuffer as dt inner join #tmpDeleteBuffer as dl on dl.RECID =dt.RECID; \n';
+        #
+        #    sSQL += 'END  \n';
+        #    sSQL += 'DROP TABLE #tmpSelectBuffer;  \n';
+        #    sSQL += 'DROP TABLE #tmpDeleteBuffer;  \n';
+        #    //sSQL += 'DROP TABLE #tmpRes; \n';
+        #
+        #
+        #    return sSQL;
+        #}
+      ENDSOURCE
+      SOURCE #buildDeleteBufferSelectIntoStart
+        #str buildDeleteBufferSelectIntoStart()
+        #{
+        #    str             sSQL;
+        #    ;
+        #    sSQL += strFmt('select top 1 %1 into #tmpDeleteBuffer FROM #tmpSelectBuffer; \n', sMainTableFieldList);
+        #
+        #    sSQL += 'set @step= 0; \n';
+        #    sSQL += strFmt('WHILE (@step < %1) BEGIN \n',  int2str(any2int(roundUp(cleanupTaskSettings.StepSelectRecords / cleanupTaskSettings.StepDeleteRecords, 1))));
+        #
+        #    sSQL += '    SET @step = @step + 1 \n';
+        #    sSQL +=        '    TRUNCATE TABLE #tmpDeleteBuffer; \n';
+        #    sSQL += strFmt('    INSERT INTO #tmpDeleteBuffer(%2) SELECT TOP %1 %2 FROM  #tmpSelectBuffer; \n', cleanupTaskSettings.StepDeleteRecords, sMainTableFieldList);
+        #    sSQL += '    IF (@@ROWCOUNT = 0) break; \n';
+        #
+        #    return sSQL;
+        #}
+      ENDSOURCE
+      SOURCE #buildSelectBufferSelectInto
+        #str buildSelectBufferSelectInto(str _estimatedWhereSQL)
+        #{
+        #    str             sSQL;
+        #    sSQL = '';
+        #    sSQL += ' \n declare @lastSelectRows int; \n';
+        #    sSQL += 'declare @step           int; \n';
+        #    sSQL += this.buildBeginDropTmpTables();
+        #    sSQL += strFmt(' select top %1 %2 into #tmpSelectBuffer \n', int2str(cleanupTaskSettings.StepSelectRecords), sMainTableFieldList);
+        #    sSQL += _estimatedWhereSQL;
+        #
+        #    sSQL += '\n SET @lastSelectRows = @@ROWCOUNT; \n';
+        #    sSQL += strFmt('UPDATE %1 SET %2 = @lastSelectRows WHERE %3=N\'%4\';  \n ',
+        #           tablestr(DEV_CleanupTaskSettings),
+        #           fieldstr(DEV_CleanupTaskSettings, LastSelectRows),
+        #           fieldstr(DEV_CleanupTaskSettings, CleanupTaskName),
+        #           cleanupTaskSettings.CleanupTaskName);
+        #
+        #    sSQL += 'CREATE NONCLUSTERED INDEX [##_RECID] ON #tmpSelectBuffer (RECID ASC); \n';
+        #
+        #
+        #    return sSQL;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #buildTmpDeleteCompany
+        #str buildTmpDeleteCompany(str _mainTable, str _tmpTable, container _linkedFields, str _additionCondition = '' )
+        #{
+        #    str res;
+        #    ;
+        #    res += strFmt('    delete FROM [dbo].%1 ', _mainTable);
+        #
+        #    res += this.buildTmpSelectCompany(_mainTable, _tmpTable, _linkedFields, _additionCondition);
+        #
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #buildTmpExistsJoinCompany
+        #str buildTmpExistsJoinCompany(str _mainTable, str _tmpTable, container _linkedFields )
+        #{
+        #    str res;
+        #    int i;
+        #    ;
+        #    res += strFmt(' FROM [dbo].%1  AS MainTable \n', _mainTable);
+        #
+        #    res += strFmt('    WHERE EXISTS (SELECT \'x\' FROM %1 AS tmpT WHERE  ', _tmpTable);
+        #    for (i = 1; i <= conlen(_linkedFields) ; i+=2 )
+        #    {
+        #        res += strFmt('MainTable.%1 = tmpT.%2 AND ', conpeek(_linkedFields, i), conpeek(_linkedFields, i + 1));
+        #    }
+        #    res += strFmt('MainTable.DataAreaId = tmpT.DataAreaId AND MainTable.Partition = tmpT.Partition);  \n');
+        #
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #buildTmpSelectCompany
+        #str buildTmpSelectCompany(str _mainTable, str _tmpTable, container _linkedFields, str _additionCondition = '' )
+        #{
+        #    str res;
+        #    int i;
+        #    ;
+        #    res += strFmt(' FROM [dbo].%1  AS MainTable \n', _mainTable);
+        #    res += strFmt('    INNER JOIN %1 AS tmpT ON ', _tmpTable);
+        #    for (i = 1; i <= conlen(_linkedFields); i+=2 )
+        #    {
+        #        res += strFmt('MainTable.%1 = tmpT.%2 AND ', conpeek(_linkedFields, i), conpeek(_linkedFields, i + 1));
+        #    }
+        #    if (! isIgnoreCompany)
+        #    {
+        #        res += strFmt('MainTable.DataAreaId = tmpT.DataAreaId AND MainTable.Partition = tmpT.Partition');
+        #    }
+        #    else
+        #    {
+        #        res += ' 1=1 ';
+        #    }
+        #
+        #    if (_additionCondition)
+        #    {
+        #        res += strFmt(' \n WHERE %1 ', _additionCondition);
+        #    }
+        #    res += ' ; \n';
+        #
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataSQLBuider
+        #{
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #
+        #    str             sMainTableFieldList;
+        #
+        #    boolean         isIgnoreCompany;
+        #    boolean         isIgnorePartition;
+        #}
+      ENDSOURCE
+      SOURCE #parmCleanupTaskSettings
+        #public DEV_CleanupTaskSettings parmCleanupTaskSettings(DEV_CleanupTaskSettings _cleanupTaskSettings = cleanupTaskSettings)
+        #{
+        #    ;
+        #    cleanupTaskSettings = _cleanupTaskSettings;
+        #
+        #    return cleanupTaskSettings;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmIsIgnoreCompany
+        #public NoYesId parmIsIgnoreCompany(NoYesId _isIgnoreCompany = isIgnoreCompany)
+        #{
+        #    isIgnoreCompany = _isIgnoreCompany;
+        #
+        #    return isIgnoreCompany;
+        #}
+      ENDSOURCE
+      SOURCE #parmIsIgnorePartition
+        #public NoYesId parmIsIgnorePartition(NoYesId _isIgnorePartition = isIgnoreCompany)
+        #{
+        #    isIgnorePartition = _isIgnorePartition;
+        #
+        #    return isIgnorePartition;
+        #}
+      ENDSOURCE
+      SOURCE #setMainTableSelectFieldList
+        #void setMainTableSelectFieldList(str  _sMainTableFieldList)
+        #{
+        #    sMainTableFieldList = _sMainTableFieldList;
+        #}
+      ENDSOURCE
+      SOURCE #tmpDeleteBuffer
+        #str tmpDeleteBuffer()
+        #{
+        #    return '#tmpDeleteBuffer';
+        #}
+      ENDSOURCE
+      SOURCE #construct
+        #public static DEV_CleanupDataSQLBuider construct(DEV_CleanupTaskSettings   _cleanupTaskSettings)
+        #{
+        #    DEV_CleanupDataSQLBuider    res;
+        #
+        #    res = new DEV_CleanupDataSQLBuider();
+        #    res.parmCleanupTaskSettings(_cleanupTaskSettings);
+        #
+        #    return res;
+        #}
+        #
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #DEV_CleanupTaskSettings
+  PROPERTIES
+    Name                #DEV_CleanupTaskSettings
+    Origin              #{FA805275-D3CF-432D-BA18-1D16369730A4}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    super();
+      #
+      #    DEV_CleanupDataTaskProcessor::initTasksSettings();
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #DEV_CleanupTaskSettings
+          Table               #DEV_CleanupTaskSettings
+          AllowCreate         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Height              #Column height
+      TitleDatasource     #DEV_CleanupTaskSettings
+      SetCompany          #No
+      DataSource          #DEV_CleanupTaskSettings
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1431655764
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #TabPageOverview
+          DataSource          #DEV_CleanupTaskSettings
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #AdvancedSettings
+          ElementPosition     #1610612733
+          HierarchyParent     #TabPageGenral
+          DataSource          #DEV_CleanupTaskSettings
+          DataGroup           #AdvancedSettings
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Overview
+          ElementPosition     #1431655764
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          DataSource          #DEV_CleanupTaskSettings
+          DataGroup           #Overview
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #StatusHistory
+          ElementPosition     #1073741822
+          HierarchyParent     #TabPageGenral
+          DataSource          #DEV_CleanupTaskSettings
+          DataGroup           #StatusHistory
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TAB
+        PROPERTIES
+          Name                #Tab
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #715827882
+          DataSource          #DEV_CleanupTaskSettings
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #TabPageGenral
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #Tab
+          Caption             #@SYS2952
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #TabPageOverview
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #Tab
+          Caption             #@SYS9039
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #DisplaySQLButton
+          HelpText            #Display task SQL
+          ElementPosition     #1288490187
+          HierarchyParent     #ButtonGroup
+          Text                #Display SQL
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    ;
+            #    DEV_CleanupDataTaskProcessor::runDisplaySQL(DEV_CleanupTaskSettings);
+            #
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #EstimateButton
+          HelpText            #Estimate number of records
+          ElementPosition     #858993458
+          HierarchyParent     #ButtonGroup
+          Text                #Estimate
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    ;
+            #    DEV_CleanupDataTaskProcessor::runEstimate(DEV_CleanupTaskSettings);
+            #
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #DEV_CleanupDataTask
+          ElementPosition     #1717986916
+          HierarchyParent     #ButtonGroup
+          Text                #Execute selected
+          MenuItemType        #Action
+          MenuItemName        #DEV_CleanupDataTaskProcessor
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL REALEDIT
+        PROPERTIES
+          Name                #Overview_M_durationMin
+          AllowEdit           #No
+          HelpText            #Last execution duration(Min)
+          ElementPosition     #1717986912
+          HierarchyParent     #Overview
+          Label               #Last duration(Min)
+          DataSource          #DEV_CleanupTaskSettings
+          DataMethod          #durationMin
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+***Element: FTM
+
+; Microsoft Dynamics AX MENUITEM : DEV_CleanupTaskSettings unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEV_CleanupTaskSettings
+    Type: 1
+    PROPERTIES
+      Name                #DEV_CleanupTaskSettings
+      Label               #Cleanup settings
+      HelpText            #Cleanup settings table
+      Object              #DEV_CleanupTaskSettings
+      Origin              #{266B4D8A-ED5B-43DC-A157-5C9D7890EE58}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+***Element: FTM
+
+; Microsoft Dynamics AX MENUITEM : DEV_CleanupDataTaskProcessor unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEV_CleanupDataTaskProcessor
+    Type: 3
+    PROPERTIES
+      Name                #DEV_CleanupDataTaskProcessor
+      Label               #Cleanup historic data
+      HelpText            #Perform Cleanup historic data
+      ObjectType          #Class
+      Object              #DEV_CleanupDataTaskProcessor
+      Origin              #{4DCE3FA1-6C52-4ED1-B0B2-B5A343D523B3}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+***Element: SPV
+
+; Microsoft Dynamics AX PRIVILEGE : DEV_CleanupDataTaskMaintain unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  PRIVILEGE #DEV_CleanupDataTaskMaintain
+    PROPERTIES
+      Name                #DEV_CleanupDataTaskMaintain
+      Label               #Data cleanup maintain
+      Origin              #{88AA2EDE-9A7D-4C1C-8EC8-151C5A88F852}
+    ENDPROPERTIES
+    
+    ENTRYPOINTS #Entry Points
+      ENTRYPOINT #DEV_CleanupDataTaskProcessor
+        PROPERTIES
+          Name                #DEV_CleanupDataTaskProcessor
+          ObjectType          #MenuItemAction
+          ObjectName          #DEV_CleanupDataTaskProcessor
+          AccessLevel         #Delete
+        ENDPROPERTIES
+        
+      ENDENTRYPOINT
+      
+    ENTRYPOINT #DEV_CleanupTaskSettings
+      PROPERTIES
+        Name                #DEV_CleanupTaskSettings
+        ObjectType          #MenuItemDisplay
+        ObjectName          #DEV_CleanupTaskSettings
+        AccessLevel         #Delete
+      ENDPROPERTIES
+      
+    ENDENTRYPOINT
+    
+ENDENTRYPOINTS
+
+PERMISSIONSET #Permissions
+  PROPERTIES
+  ENDPROPERTIES
+  
+  TABLES #Tables
+  ENDTABLES
+  
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+FORMS #Forms
+  FORM #SysUserSetup
+    PROPERTIES
+      Form                #SysUserSetup
+    ENDPROPERTIES
+    
+    CONTROL #SQL
+      PROPERTIES
+        Control             #SQL
+        EffectiveAccess     #Delete
+      ENDPROPERTIES
+      
+    ENDCONTROL
+    
+ENDFORM
+
+ENDFORMS
+
+ENDPERMISSIONSET
+
+ENDPRIVILEGE
+
+
+***Element: MNU
+
+; Microsoft Dynamics AX Menu : SystemAdministration unloaded
+; --------------------------------------------------------------------------------
+  MNUVERSION 5
+  
+  MENU #SystemAdministration
+    PROPERTIES
+      Name                #SystemAdministration
+      Label               #@SYS334405
+      SetCompany          #Yes
+      NormalImage         #3467
+      ImageLocation       #EmbeddedResource
+      Origin              #{FACC2DF0-3622-42E9-B6B1-0EE0606E9541}
+    ENDPROPERTIES
+    
+    MENU #@SYS333846
+      PROPERTIES
+        Name                #Common
+        Label               #@SYS333846
+        NormalImage         #3495
+        ImageLocation       #EmbeddedResource
+      ENDPROPERTIES
+      
+      MENU #@SYS334407
+        PROPERTIES
+          Name                #Users
+          Label               #@SYS334407
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Users
+            MenuItemName        #SysUserInfoPage
+            IsDisplayedInContentArea    #Yes
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Online users
+            MenuItemName        #SysUsersOnline
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #External web users
+            MenuItemName        #SysEPParameters
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #User relations
+            MenuItemName        #DirPersonUser
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #User groups
+            MenuItemName        #SysUserGroupInfo
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #User profiles
+            MenuItemName        #Profiles
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #User requests
+            MenuItemName        #UserRequestListPage
+            IsDisplayedInContentArea    #Yes
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334408
+        PROPERTIES
+          Name                #DataExport/import
+          Label               #@SYS334408
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Definition groups
+            MenuItemName        #SysExpImpGroup
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Export to
+            MenuItemType        #Action
+            MenuItemName        #SysDataExport
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Import
+            MenuItemType        #Action
+            MenuItemName        #SysDataImport
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENUITEM
+        PROPERTIES
+          Name                #File archive
+          MenuItemName        #BankFileArchTable
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    MENU #@SYS333856
+      PROPERTIES
+        Name                #Inquiries
+        Label               #@SYS333856
+        NormalImage         #3474
+        ImageLocation       #EmbeddedResource
+      ENDPROPERTIES
+      
+      MENU #@SYS334411
+        PROPERTIES
+          Name                #BatchJobs
+          Label               #@SYS334411
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Batch job history
+            MenuItemName        #BatchJobHistory
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Batch jobs
+            MenuItemName        #BatchJob
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334412
+        PROPERTIES
+          Name                #Database
+          Label               #@SYS334412
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Database information
+            MenuItemName        #SysSqlStatus
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Database log
+            MenuItemName        #SysDatabaseLog
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #SQL statement trace log
+            MenuItemName        #SysTraceSQL
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334413
+        PROPERTIES
+          Name                #SynchronizationService
+          Label               #@SYS334413
+          ConfigurationKey    #ProjServerIntegration
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Integration log
+            MenuItemName        #SyncCompoundTrans
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334414
+        PROPERTIES
+          Name                #System
+          Label               #@SYS334414
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Element usage log
+            MenuItemName        #SysUtilElementsLog
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334415
+        PROPERTIES
+          Name                #Users
+          Label               #@SYS334415
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #User log
+            MenuItemName        #SysUserLog
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+    ENDMENU
+    MENU #@SYS333860
+      PROPERTIES
+        Name                #Reports
+        Label               #@SYS333860
+        NormalImage         #3477
+        ImageLocation       #EmbeddedResource
+      ENDPROPERTIES
+      
+      MENU #@SYS334426
+        PROPERTIES
+          Name                #Licensing
+          Label               #@SYS334426
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Named User License Counts
+            MenuItemType        #Output
+            MenuItemName        #SysUserLicenseCountReport
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Named User License Counts History
+            MenuItemType        #Output
+            MenuItemName        #SysUserLicenseCountHistoryReport
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334416
+        PROPERTIES
+          Name                #Database
+          Label               #@SYS334416
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Database log
+            MenuItemType        #Output
+            MenuItemName        #SysDatabaseLog
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Tables
+            MenuItemType        #Output
+            MenuItemName        #SysDataAreaPrintCollections
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Size of company accounts
+            MenuItemType        #Output
+            MenuItemName        #SysCompanySize
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #User operation log inquiry
+            MenuItemName        #ComplianceUserOperationLogInquiry_CN
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334417
+        PROPERTIES
+          Name                #Security
+          Label               #@SYS334417
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Online time
+            MenuItemType        #Output
+            MenuItemName        #SysUsersOnlineReport
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Record level security
+            MenuItemType        #Output
+            MenuItemName        #SysRecordLevelSecurity
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+    ENDMENU
+    MENU #@SYS333865
+      PROPERTIES
+        Name                #Periodic
+        Label               #@SYS333865
+        NormalImage         #3476
+        ImageLocation       #EmbeddedResource
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Notification clean up
+          MenuItemType        #Action
+          MenuItemName        #EventAlertCleanup
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Compile application
+          MenuItemType        #Action
+          MenuItemName        #SysCompileAll
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Compile into .NET Framework CIL
+          MenuItemType        #Action
+          MenuItemName        #syscheckListitem_ciLGenerations
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENU #@SYS334418
+        PROPERTIES
+          Name                #Database
+          Label               #@SYS334418
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Consistency check
+            MenuItemType        #Action
+            MenuItemName        #SysConsistencyCheckBase
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #SQL administration
+            MenuItemName        #SysSqlAdmin
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334419
+        PROPERTIES
+          Name                #MenuAIF
+          Label               #@SYS334419
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Queue manager
+            MenuItemName        #AifQueueManager
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #History
+            MenuItemName        #AifDocumentHistory
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Exceptions
+            MenuItemName        #Exceptions
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS333867
+        PROPERTIES
+          Name                #Alerts
+          Label               #@SYS333867
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Change based alerts
+            MenuItemType        #Action
+            MenuItemName        #EventCUD
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Due date alerts
+            MenuItemType        #Action
+            MenuItemName        #EventDueDate
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYP4881784
+        PROPERTIES
+          Name                #EmailAttachments
+          Label               #@SYP4881784
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #E-mail attachments
+            MenuItemType        #Action
+            MenuItemName        #SysEmailAttachment
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334420
+        PROPERTIES
+          Name                #E-mailProcessing
+          Label               #@SYS334420
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #E-mail broadcast
+            MenuItemType        #Action
+            MenuItemName        #SysEmailBroadcast
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #E-mail sending status
+            MenuItemName        #SysOutgoingEmailTable
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Batch
+            MenuItemType        #Action
+            MenuItemName        #SysEmailDistributor
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Retry schedule
+            MenuItemName        #SysEmailRetrySchedule
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYP4889271
+        PROPERTIES
+          Name                #MicrosoftD365IntegrationPeriodic
+          Label               #@SYP4889271
+        ENDPROPERTIES
+        
+        MENU #@SYS35003
+          PROPERTIES
+            Name                #CostAccountingPeriodic
+            Label               #@SYS35003
+            ConfigurationKey    #CAMCostAccounting
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Transfer source entry configuration
+              MenuItemType        #Action
+              MenuItemName        #CAMSourceEntryTransferConfiguration
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Transfer general ledger entries
+              MenuItemType        #Action
+              MenuItemName        #CAMGeneralLedgerEntryTransfer
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Transfer budget entries
+              MenuItemType        #Action
+              MenuItemName        #CAMBudgetEntryTransfer
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Transfer statistical measures
+              MenuItemType        #Action
+              MenuItemName        #CAMStatisticalMeasureTransfer
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Data transfers
+              MenuItemName        #CAMDataTransfer
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+      ENDMENU
+      MENU #Data cleanup
+        PROPERTIES
+          Name                #DEV_DataCleanup
+          Label               #Data cleanup
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Cleanup settings
+            MenuItemName        #DEV_CleanupTaskSettings
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Cleanup historic data
+            MenuItemType        #Action
+            MenuItemName        #DEV_CleanupDataTaskProcessor
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+    ENDMENU
+    MENU #@SYS333869
+      PROPERTIES
+        Name                #Setup
+        Label               #@SYS333869
+        NormalImage         #3478
+        ImageLocation       #EmbeddedResource
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #System parameters
+          MenuItemName        #SystemParameters
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Batch group
+          MenuItemName        #BatchGroup
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Virtual company accounts
+          MenuItemName        #SysDataAreaVirtual
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Partitions
+          MenuItemName        #PartitionAdministration
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENU #@SYS334421
+        PROPERTIES
+          Name                #CopyOfSecurity
+          Label               #@SYS334421
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Assign users to roles
+            MenuItemName        #SysSecRolesEditUsers
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Security roles
+            MenuItemName        #SysSecRolesEditTasks
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Security privileges
+            MenuItemName        #SysSecTasksEditPS
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Record level security
+            MenuItemName        #SysRecordLevelSecurity
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #External roles
+            MenuItemName        #DirExternalRoles
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENU #@SYS334422
+          PROPERTIES
+            Name                #SegregationOfDuties
+            Label               #@SYS334422
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Segregation of duties rules
+              MenuItemName        #SysSecSegregationOfDutiesRule
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Segregation of duties conflicts
+              MenuItemName        #SysSecSegregationOfDutiesConflictsAll
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Segregation of duties unresolved conflicts
+              MenuItemName        #SysSecSegregationOfDutiesConflictsNew
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Verify compliance of user-role assignments
+              MenuItemType        #Action
+              MenuItemName        #SECuritysegregationOfDuties
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+      ENDMENU
+      MENU #@SYS334423
+        PROPERTIES
+          Name                #CopyOfSystem
+          Label               #@SYS334423
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Client performance options
+            MenuItemName        #SysClientPerf
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #System service accounts
+            MenuItemName        #SysBusinessConnectorProxy
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Server configuration
+            MenuItemName        #SysServerConfig
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Cluster configuration
+            MenuItemName        #SysClusterConfig
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #E-mail parameters
+            MenuItemName        #SysEmailParameters
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #E-mail client constraints
+            MenuItemName        #SysEmailPopClientConstraints
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Help system parameters
+            MenuItemName        #SysHelpSystemParameters
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Modify data types
+            MenuItemName        #SysEDTSetup
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Modify invalid conditions
+            MenuItemName        #ExpressionUpgradeInvalidExpressions
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334424
+        PROPERTIES
+          Name                #CopyOfWorkflow
+          Label               #@SYS334424
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Workflow parameters
+            MenuItemName        #WorkflowParametersAdmin
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Workflow infrastructure configuration
+            MenuItemName        #WorkflowSetupWizard
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #User workflows
+            MenuItemName        #UserWorkFlowConfigurationUser
+            IsDisplayedInContentArea    #Yes
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334425
+        PROPERTIES
+          Name                #CopyOfDatabase
+          Label               #@SYS334425
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Database log setup
+            MenuItemName        #SysDatabaseLogSetup
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Select concurrency mode
+            MenuItemName        #SysOccConfiguration
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Modify data types
+            MenuItemName        #SYSEDTSETUP
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334426
+        PROPERTIES
+          Name                #CopyOfLicensing
+          Label               #@SYS334426
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #License configuration
+            MenuItemName        #SysConfiguration
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #License information
+            MenuItemName        #SysLicenseCode
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334427
+        PROPERTIES
+          Name                #BusinessIntelligence
+          Label               #@SYS334427
+        ENDPROPERTIES
+        
+        MENU #@SYS334428
+          PROPERTIES
+            Name                #AnalysisServices
+            Label               #@SYS334428
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Analysis servers
+              MenuItemName        #BIOlapAdministration
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #System currency and exchange rate type
+              MenuItemName        #BISetupExchangeRates
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Time periods
+              MenuItemName        #BITimePeriodsMDX
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Date dimensions
+              MenuItemName        #BICalendarBuilder
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+        MENU #@SYS334429
+          PROPERTIES
+            Name                #ReportingServices
+            Label               #@SYS334429
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Report servers
+              MenuItemName        #SRSReportingServicesServersMenuItem
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Report deployment settings
+              MenuItemName        #SRSReportDeploymentSettingsMenuItem
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+      ENDMENU
+      MENU #@SYS334430
+        PROPERTIES
+          Name                #CopyOfChecklists
+          Label               #@SYS334430
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Initialization checklist
+            MenuItemName        #SysCheckList_Setup
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Prevent startup of checklists
+            MenuItemType        #Action
+            MenuItemName        #SysCheckList_InitNoUpdate
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Code upgrade checklist
+            MenuItemName        #SysCheckList_UpgradeCode
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Data upgrade checklist
+            MenuItemName        #SysCheckList_Upgrade
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Partition initialization checklist
+            MenuItemName        #SysCheckList_SetupPartition
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Software update checklist
+            MenuItemName        #SysCheckList_Servicing
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Code upgrade checklist for in-place upgrade
+            MenuItemName        #syscheckList_sysupdateCode
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Data upgrade checklist for in-place upgrade
+            MenuItemName        #SysCheckList_Update
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334431
+        PROPERTIES
+          Name                #ServicesAndAIF
+          Label               #@SYS334431
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Inbound ports
+            MenuItemName        #AifInboundPort
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Outbound ports
+            MenuItemName        #AifOutboundPort
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Value substitution maps
+            MenuItemName        #AifLookupTable
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Web sites
+            MenuItemName        #AifWebsites
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENU #@SYS4004478
+          PROPERTIES
+            Name                #PositivePayServices
+            Label               #@SYS4004478
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Outbound ports for positive pay
+              MenuItemName        #BankPositivePayFormat
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Outbound ports for payroll positive pay
+              MenuItemName        #PayrollPositivePayFormat
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+        MENUITEM
+          PROPERTIES
+            Name                #Windows Azure Service Bus configuration
+            MenuItemName        #AifAzureServiceBus
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENU #@SYS335927
+          PROPERTIES
+            Name                #ElectronicPaymentServices
+            Label               #@SYS335927
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Outbound ports for electronic payments
+              MenuItemName        #CustVendAifPaymTable
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+        MENUITEM
+          PROPERTIES
+            Name                #Outbound ports for electronic audit reports
+            MenuItemName        #AifOutboundPortRun
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334432
+        PROPERTIES
+          Name                #EnterprisePortal
+          Label               #@SYS334432
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Enterprise Portal parameters
+            MenuItemName        #EPParameters
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Deployments
+            MenuItemName        #EPWizard
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Publish images
+            MenuItemName        #EPPublishImages
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Web sites
+            MenuItemName        #EPWebSiteParameters
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Collaboration workspace settings
+            MenuItemName        #CollabSiteSettings
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS60181
+        PROPERTIES
+          Name                #SearchSetup
+          Label               #@SYS60181
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Search configuration
+            MenuItemName        #SysSearchSetup
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Update search crawler role
+            MenuItemName        #SysSearchSetupRole
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334434
+        PROPERTIES
+          Name                #FileArchiving
+          Label               #@SYS334434
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #File archiving parameters
+            MenuItemName        #BankFileArchParameters
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #File types
+            MenuItemName        #BankFileArchFileTypeTable
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS334413
+        PROPERTIES
+          Name                #SynchronizationService
+          Label               #@SYS334413
+          ConfigurationKey    #ProjServerIntegration
+        ENDPROPERTIES
+        
+        MENU #@RET3014
+          PROPERTIES
+            Name                #Retail
+            Label               #@RET3014
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Retail POS redeployment
+              MenuItemName        #retailredeploySelectStores
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+        MENUITEM
+          PROPERTIES
+            Name                #Integration settings
+            MenuItemName        #ProjServerConfigure
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Synchronization service parameters
+            MenuItemName        #SyncParameters
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYS4007920
+        PROPERTIES
+          Name                #WindowsAppStore
+          Label               #@SYS4007920
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Windows Application Store setup
+            MenuItemName        #SysWindowsAppSetup
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENU #@SYP4889271
+        PROPERTIES
+          Name                #MicrosoftD365IntegrationSetup
+          Label               #@SYP4889271
+        ENDPROPERTIES
+        
+        MENU #@SYS35003
+          PROPERTIES
+            Name                #CostAccountingSetup
+            Label               #@SYS35003
+            ConfigurationKey    #CAMCostAccounting
+          ENDPROPERTIES
+          
+          MENUITEM
+            PROPERTIES
+              Name                #Data connector configurations
+              MenuItemName        #CAMDataConnectorConfiguration
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+          MENUITEM
+            PROPERTIES
+              Name                #Statistical measure configurations
+              MenuItemName        #CAMStatisticalMeasureConfiguration
+            ENDPROPERTIES
+            
+          ENDMENUITEM
+        ENDMENU
+      ENDMENU
+    ENDMENU
+  ENDMENU
+  
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : DEV_PerfAuditDataCleanUp2 unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #DEV_PerfAuditDataCleanUp2
+  SHARED
+  PROPERTIES
+    Name                #DEV_PerfAuditDataCleanUp2
+    Origin              #{E2DC7730-DE31-463D-850E-F86FE84BF29C}
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #Data_Dictionary
+      PROPERTIES
+        Name                #Data_Dictionary
+        ProjectGroupType    #DataDictionary
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      GROUP #Tables
+        PROPERTIES
+          Name                #Tables
+          ProjectGroupType    #Tables
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 44
+          UTILOBJECTID 50037
+          NODETYPE 204
+          NAME #DEV_CleanupTaskSettings
+        ENDNODE
+        ENDGROUP
+        
+      GROUP #Extended_Data_Types
+        PROPERTIES
+          Name                #Extended_Data_Types
+          ProjectGroupType    #ExtendedDataTypes
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 41
+          UTILOBJECTID 50003
+          NODETYPE 234
+          NAME #DEV_CleanUpTaskName
+        ENDNODE
+        ENDGROUP
+        
+      GROUP #BaseEnums
+        PROPERTIES
+          Name                #BaseEnums
+          ProjectGroupType    #BaseEnums
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 40
+          UTILOBJECTID 101928
+          NODETYPE 209
+          NAME #DEV_CleanupRunMode
+        ENDNODE
+        ENDGROUP
+        
+      ENDGROUP
+      
+    GROUP #Classes
+      PROPERTIES
+        Name                #Classes
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033475
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_PurchParmTable
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033480
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_InventSumSummarize
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033481
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_InventSumTracking
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033482
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_InventSumWHS
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033478
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_BatchHistory
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033479
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_AifMessageLog
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033476
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_SalesParmTables
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 30457
+        NODETYPE 329
+        NAME #DEV_CleanupDataTaskBase
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1033477
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_ProdParmTables
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 30456
+        NODETYPE 329
+        NAME #DEV_CleanupDataTaskProcessor
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 30458
+        NODETYPE 329
+        NAME #DEV_CleanupDataSQLBuider
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Forms
+      PROPERTIES
+        Name                #Forms
+        ProjectGroupType    #Forms
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 11
+        UTILOBJECTID 0
+        NODETYPE 201
+        NAME #DEV_CleanupTaskSettings
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Menu_Items
+      PROPERTIES
+        Name                #Menu_Items
+        ProjectGroupType    #MenuItems
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      GROUP #Display
+        PROPERTIES
+          Name                #Display
+          ProjectGroupType    #Display
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 1
+          UTILOBJECTID 0
+          NODETYPE 296
+          NAME #DEV_CleanupTaskSettings
+        ENDNODE
+        ENDGROUP
+        
+      GROUP #Action
+        PROPERTIES
+          Name                #Action
+          ProjectGroupType    #Action
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 3
+          UTILOBJECTID 0
+          NODETYPE 296
+          NAME #DEV_CleanupDataTaskProcessor
+        ENDNODE
+        ENDGROUP
+        
+      ENDGROUP
+      
+    GROUP #SecurityPrivileges
+      PROPERTIES
+        Name                #SecurityPrivileges
+        ProjectGroupType    #SecurityPrivileges
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 134
+        UTILOBJECTID 0
+        NODETYPE 1628
+        NAME #DEV_CleanupDataTaskMaintain
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Menus
+      PROPERTIES
+        Name                #Menus
+        ProjectGroupType    #Menus
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 16
+        UTILOBJECTID 0
+        NODETYPE 205
+        NAME #SystemAdministration
+      ENDNODE
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END
