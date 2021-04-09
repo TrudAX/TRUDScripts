@@ -1,0 +1,40 @@
+Solution
+The problem is described in the following link
+https://translate.google.com/translate?depth=1&hl=en&prev=search&rurl=translate.google.com&sl=fr&sp=nmt4&u=http://www.mathdax.ca/2015/10/dynamics-ax-2012-management-reporter.html 
+https://stackoverflow.com/questions/39754991/who-is-executing-this-particular-query 
+
+It seems it is a standard bug in MR reporter. The current workaround is to increase sync time (for users and companies) from 5 minutes(default). I suggest to put 1h. Need to execute the following command on aa and restart Management reporter on bb
+
+ SELECT T.NAME, 
+CASE TS.STATETYPE
+WHEN 3 THEN 'PROCESSING'
+WHEN 5 THEN 'COMPLETE'
+WHEN 7 THEN 'ERROR'
+END AS STATETYPE,
+TS.PROGRESS, TR.ID AS TRIGGERID,
+CASE TR.ISENABLED
+WHEN 1 THEN 'ENABLED'
+ELSE 'DISABLED'
+END AS NAMESTATUS,
+TR.INTERVAL,
+CASE TR.UNITOFMEASURE
+WHEN 2 THEN 'MINUTES'
+ELSE 'SECONDS'
+END AS INTERVALTIMING, 
+TS.STATETYPE,
+T.TYPEID,
+TS.LastRunTime AS [LAST RUN],
+TS.NextRunTime AS [NEXT RUN]
+FROM SCHEDULING.TASK T JOIN SCHEDULING.TASKSTATE TS
+ON T.ID = TS.TASKID JOIN SCHEDULING. [TRIGGER] TR ON TR.ID = T.TRIGGERID 
+WHERE ISENABLED <> 0 AND Interval > 10
+
+
+SELECT * FROM scheduling.[Trigger]  WHERE Id = '115A87BB-232A-4857-9C82-E9AFD41AB425' 
+SELECT * FROM scheduling.[Trigger]  WHERE Id = '1682ECB0-53FD-4313-9465-8446CB4205F4' 
+
+/*
+UPDATE  scheduling.[Trigger]  set  Interval =  3600   WHERE  Id = '115A87BB-232A-4857-9C82-E9AFD41AB425' 
+UPDATE  scheduling.[Trigger]  set  Interval =  3600   WHERE  Id = '1682ECB0-53FD-4313-9465-8446CB4205F4' 
+
+*/
