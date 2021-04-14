@@ -33,3 +33,7 @@ https://elandax.blogspot.com/2019/04/comprehensive-list-of-types-for.html
 ## Task recorder with screenshot 
 
 http://d365tour.com/en/microsoft-dynamics-d365o/task-recorder-with-screenshot/
+
+## Import/Export Container Data Fields Using D365FO Data Management
+
+https://ax.docentric.com/import-export-container-data-fields-using-d365fo-data-management/
