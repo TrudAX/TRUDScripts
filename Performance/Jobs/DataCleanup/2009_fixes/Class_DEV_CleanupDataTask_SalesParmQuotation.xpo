@@ -1,0 +1,124 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SalesParmQuotation unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SalesParmQuotation
+    Id 56106
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SalesParmQuotation
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SalesParmQuotation extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    str             sMainTableFieldList;
+        #
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #
+        #    ;
+        #    sqlTableName = tableStr(SalesQuotationParmTable);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1 AS MainTable          \n',   sqlTableName);          //TABLE HERE
+        #    sEstimatedSQL += strFmt('where  ');
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #
+        #    sEstimatedSQL += strFmt('%1 < %2 ', fieldstr(SalesQuotationParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sMainTableFieldList = 'RECID, ParmId, TableRefId, DataAreaId';
+        #    sqlBuider.setMainTableSelectFieldList(sMainTableFieldList);
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #        //    --------------------------------------------------------------
+        #        //SalesQuotationParmUpdate
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmUpdate), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesQuotationParmUpdate, ParmId), 'ParmId'],
+        #                                               'MainTable.LATESELECTION = 0');
+        #
+        #        //SalesQuotationParmSubTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmSubTable), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesQuotationParmSubTable, ParmId),    'ParmId',
+        #                                                fieldstr(SalesQuotationParmSubTable, TableRefId),'TableRefId']);
+        #
+        #        //SalesQuotationParmLine
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesQuotationParmLine, ParmId),    'ParmId',
+        #                                                fieldstr(SalesQuotationParmLine, TableRefId),'TableRefId']);
+        #
+        #        //SalesParmTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmTable), sqlBuider.tmpDeleteBuffer(),
+        #                                         [fieldstr(SalesQuotationParmTable, ParmId),     'ParmId',
+        #                                          fieldstr(SalesQuotationParmTable, TableRefId), 'TableRefId']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SalesParmQuotation';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 186;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: END

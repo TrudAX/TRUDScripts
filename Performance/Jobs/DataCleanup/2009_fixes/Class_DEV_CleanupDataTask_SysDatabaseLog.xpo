@@ -1,0 +1,105 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SysDatabaseLog unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SysDatabaseLog
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SysDatabaseLog
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SysDatabaseLog extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #
+        #    sqlTableName = tableStr(SysDataBaseLog);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #    sEstimatedSQL += strFmt('WHERE %1 < %2 ', fieldstr(SysDataBaseLog, CreatedDateTime), sDateCondition);
+        #
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RECID, DATAAREAID ');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #        //    --------------------------------------------------------------
+        #        //sqlBuider.parmIsIgnoreCompany(true);
+        #        //SysDataBaseLog
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SysDataBaseLog), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SysDataBaseLog, RecId), 'RECID']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SysDatabaseLog';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: END
