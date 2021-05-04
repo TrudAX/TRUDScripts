@@ -177,6 +177,20 @@ LEFT JOIN [msdb].[dbo].[sysjobschedules] AS [sJOBSCH] ON [sJOB].[job_id] = [sJOB
 LEFT JOIN [msdb].[dbo].[sysschedules] AS [sSCH] ON [sJOBSCH].[schedule_id] = [sSCH].[schedule_id]
 WHERE [sJOB].[enabled] = 1
 ORDER BY [JobName]
+
+-- all Jobs
+ SELECT [sJOB].[name] AS [JobName]
+        ,CASE WHEN [run_date] IS NULL
+        OR [run_time] IS NULL THEN NULL ELSE CAST(CAST([run_date] AS CHAR(8)) + ' ' + STUFF(STUFF(RIGHT('000000' + CAST([run_time] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS DATETIME) END AS [LastRunDateTime],
+        STUFF(STUFF(RIGHT('000000' + CAST([run_duration] AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS [LastRunDuration (HH:MM:SS)]
+        ,[run_status]  ,[run_duration]  ,[message]
+        ,ROW_NUMBER() OVER (
+            PARTITION BY [sJOBH].[job_id] ORDER BY [run_date] DESC
+            ,[run_time] DESC ) AS RowNumber
+    FROM [msdb].[dbo].[sysjobhistory] [sJOBH] , [msdb].[dbo].[sysjobs] AS [sJOB]
+    WHERE [sJOB].[job_id] = [sJOBH].[job_id] AND [step_id] = 0
+    and run_duration > 600
+    ORDER BY [run_date], [run_time]
 ```
 
 ## Table statistics
