@@ -190,7 +190,7 @@ ORDER BY [JobName]
     FROM [msdb].[dbo].[sysjobhistory] [sJOBH] , [msdb].[dbo].[sysjobs] AS [sJOB]
     WHERE [sJOB].[job_id] = [sJOBH].[job_id] AND [step_id] = 0
     and run_duration > 600
-    ORDER BY [run_date], [run_time]
+    ORDER BY [run_date] desc, [run_time] desc
 ```
 
 ## Table statistics

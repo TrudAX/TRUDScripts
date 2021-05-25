@@ -1,0 +1,1121 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: DBT
+
+; Microsoft Dynamics AX Table : DEV_BenchmarkLogParameters unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEV_BenchmarkLogParameters
+    Id 50002
+    PROPERTIES
+      Name                #DEV_BenchmarkLogParameters
+      Label               #Benchmark log parameters
+      TitleField1         #Key
+      TitleField2         #IsLogEnabled
+      CacheLookup         #EntireTable
+      SaveDataPerCompany  #No
+      PrimaryIndex        #KeyIdx
+      ClusterIndex        #KeyIdx
+      ModifiedDateTime    #Yes
+      ModifiedBy          #Yes
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #Key
+        Id 50001
+        INT
+        PROPERTIES
+          Name                #Key
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #DEV_BenchmarkLogParameters
+          ExtendedDataType    
+            ARRAY 
+              #ParametersKey
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #IsLogEnabled
+        Id 50002
+        ENUM
+        PROPERTIES
+          Name                #IsLogEnabled
+          Label               #Enabled?
+          HelpText            #Is log enabled
+          Table               #DEV_BenchmarkLogParameters
+          ExtendedDataType    
+            ARRAY 
+              #NoYesId
+              #
+            ENDARRAY
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #Parameters
+        PROPERTIES
+          Name                #Parameters
+          Label               #Parameters
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #IsLogEnabled
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #KeyIdx
+      Id 50001
+      PROPERTIES
+        Name                #KeyIdx
+        AllowDuplicates     #No
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #Key
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      Version: 3
+      SOURCE #find
+        #// AOSRunmode:: CalledFrom
+        #public static DEV_BenchmarkLogParameters find( boolean _forUpdate = false)
+        #{
+        #    DEV_BenchmarkLogParameters benchmarkLogParameters;
+        #    ;
+        #    if (_forUpdate)
+        #    {
+        #        benchmarkLogParameters.selectForUpdate(_forUpdate);
+        #    }
+        #
+        #    select firstonly benchmarkLogParameters
+        #        where benchmarkLogParameters.Key == 0;
+        #
+        #    if (!benchmarkLogParameters)
+        #    {
+        #        Company::createParameter(benchmarkLogParameters);
+        #    }
+        #
+        #    return benchmarkLogParameters;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+***Element: DBT
+
+; Microsoft Dynamics AX Table : DEV_BenchmarkLog unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEV_BenchmarkLog
+    Id 50001
+    PROPERTIES
+      Name                #DEV_BenchmarkLog
+      Label               #Operations log table
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      ClusterIndex        #SesUserIdx
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+      CreatedTransactionId #Yes
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #UserId
+        Id 50001
+        STRING
+        PROPERTIES
+          Name                #UserId
+          Table               #DEV_BenchmarkLog
+          ExtendedDataType    
+            ARRAY 
+              #userId
+              #
+            ENDARRAY
+          StringSize          #5
+        ENDPROPERTIES
+        
+      FIELD #SessionId
+        Id 50002
+        INT
+        PROPERTIES
+          Name                #SessionId
+          Table               #DEV_BenchmarkLog
+          ExtendedDataType    
+            ARRAY 
+              #SessionId
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #Operation
+        Id 50003
+        ENUM
+        PROPERTIES
+          Name                #Operation
+          Table               #DEV_BenchmarkLog
+          EnumType            #DEV_BMLogOperation
+        ENDPROPERTIES
+        
+      FIELD #LineCount
+        Id 50004
+        INT
+        PROPERTIES
+          Name                #LineCount
+          Label               #Line Count
+          Table               #DEV_BenchmarkLog
+          ExtendedDataType    
+            ARRAY 
+              #PositiveNumber
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #StartDateTime
+        Id 50005
+        DATETIME
+        PROPERTIES
+          Name                #StartDateTime
+          Table               #DEV_BenchmarkLog
+          ExtendedDataType    
+            ARRAY 
+              #StartDateTime
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #EndDateTime
+        Id 50006
+        DATETIME
+        PROPERTIES
+          Name                #EndDateTime
+          Table               #DEV_BenchmarkLog
+          ExtendedDataType    
+            ARRAY 
+              #EndDateTime
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #Details
+        Id 50007
+        STRING
+        PROPERTIES
+          Name                #Details
+          Label               #Description
+          Table               #DEV_BenchmarkLog
+          ExtendedDataType    
+            ARRAY 
+              #NotesLine
+              #
+            ENDARRAY
+          StringSize          #254
+        ENDPROPERTIES
+        
+      FIELD #Duration
+        Id 50008
+        INT
+        PROPERTIES
+          Name                #Duration
+          Label               #Duration(sec)
+          Table               #DEV_BenchmarkLog
+          ExtendedDataType    
+            ARRAY 
+              #PositiveNumber
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #GridGroup
+        PROPERTIES
+          Name                #GridGroup
+          Label               #Overview
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #UserId
+          #Operation
+          #StartDateTime
+          #EndDateTime
+          #Duration
+          #LineCount
+          #Details
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #SesUserIdx
+      Id 50001
+      PROPERTIES
+        Name                #SesUserIdx
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #UserId
+        #SessionId
+      ENDINDEXFIELDS
+      
+      #StartDateTimeIdx
+      Id 50002
+      PROPERTIES
+        Name                #StartDateTimeIdx
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #StartDateTime
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      Version: 3
+      SOURCE #durationDisp
+        #display Integer durationDisp()
+        #{
+        #    Integer res;
+        #    ;
+        #    if (this.EndDateTime && this.StartDateTime)
+        #    {
+        #        res = any2int(DateTimeUtil::getDifference(this.EndDateTime,this.StartDateTime));
+        #    }
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #clear
+        #static void clear()
+        #{
+        #    DEV_BenchmarkLog  benchmarkLog;
+        #
+        #    ;
+        #    delete_from benchmarkLog;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+***Element: DBE
+
+; Microsoft Dynamics AX Enumtype : DEV_BMLogOperation unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #DEV_BMLogOperation
+    Id 50001
+    PROPERTIES
+      Name                #DEV_BMLogOperation
+      Label               #Operation type
+      Help                #Operation
+      UseEnumValue        #Yes
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #SalesPackingSlipPosting
+      PROPERTIES
+        Name                #SalesPackingSlipPosting
+        Label               #Sales delivery note post
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #SalesInvoicePosting
+      PROPERTIES
+        Name                #SalesInvoicePosting
+        Label               #Sales invoice post
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #SalesPickingListPosting
+      PROPERTIES
+        Name                #SalesPickingListPosting
+        Label               #Sales picking list post
+        EnumValue           #2
+      ENDPROPERTIES
+      
+      #SalesPackingSlipPrinting
+      PROPERTIES
+        Name                #SalesPackingSlipPrinting
+        Label               #Sales delivery note print
+        EnumValue           #3
+      ENDPROPERTIES
+      
+      #KOO_PrintSummaryPickList
+      PROPERTIES
+        Name                #KOO_PrintSummaryPickList
+        Label               #KOO_PrintSummaryPickList
+        EnumValue           #4
+      ENDPROPERTIES
+      
+      #SalesPickingListPrinting
+      PROPERTIES
+        Name                #SalesPickingListPrinting
+        Label               #Sales picking list print
+        EnumValue           #5
+      ENDPROPERTIES
+      
+      #SalesInvoicePrinting
+      PROPERTIES
+        Name                #SalesInvoicePrinting
+        Label               #Sales invoice print
+        EnumValue           #6
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_ProcMetrics unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_ProcMetrics
+    Id 50001
+    PROPERTIES
+      Name                #DEV_ProcMetrics
+      Extends             #
+      RunOn               #Called from
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #beginTrace
+        #void  beginTrace(
+        #                UtcDateTIme _dateTimeBegin = DateTimeUtil::getSystemDateTime()
+        #                )
+        #{
+        #    ;
+        #    dateTimeBegin           = _dateTimeBegin;
+        #    dateTimeEnd             = dateTimeBegin;
+        #    dateTimeCurrent         = dateTimeBegin;
+        #    totalTimePeriod         = 0;
+        #    tracePaused             = false;
+        #    lineCount               = 0;
+        #    machineTimer            = null;
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #/*
+        ##A9e4qvP/t7voAOM12auzTQ=
+        #    DEV_ProcMetrics     procMetrics = DEV_ProcMetrics::construct();
+        #    ;
+        #
+        #    procMetrics.beginTrace();
+        #
+        #    // operation exec;
+        #    // can use procMetrics.incLineCount();
+        #
+        #    procMetrics.endTrace(_BusinessProcMetricsType::SalesInvoicePost,
+        #                             int642int(salesParmLineLocal.RecId), // or procMetrics.getLineCounter()
+        #                             "document ref");
+        #
+        #*/
+        #class DEV_ProcMetrics
+        #{
+        #    UtcDateTime     dateTimeBegin;
+        #    UtcDateTime     dateTimeEnd;
+        #    UtcDateTime     dateTimeCurrent;
+        #
+        #    boolean         tracePaused;
+        #
+        #    int64           totalTimePeriod;
+        #
+        #    Integer         lineCount;
+        #
+        #    DEV_SysTimer           machineTimer;
+        #}
+      ENDSOURCE
+      SOURCE #dateTimeBegin
+        #UtcDateTime dateTimeBegin(UtcDateTime _dateTimeBegin = dateTimeBegin)
+        #{
+        #    ;
+        #    dateTimeBegin = _dateTimeBegin;
+        #    return dateTimeBegin;
+        #}
+      ENDSOURCE
+      SOURCE #dateTimeEnd
+        #UtcDateTime dateTimeEnd(UtcDateTime _dateTimeEnd = dateTimeEnd)
+        #{
+        #    ;
+        #    dateTimeEnd = _dateTimeEnd;
+        #    return dateTimeEnd;
+        #}
+      ENDSOURCE
+      SOURCE #endTrace
+        #
+        #void endTrace(DEV_BMLogOperation                _metricsType,
+        #              Integer                           _lineCount = lineCount,
+        #              str                               _descriptionString   = '')
+        #{
+        #    DEV_BenchmarkLog     procMetrics;
+        #
+        #    ;
+        #    procMetrics.clear();
+        #    procMetrics.initValue();
+        #    procMetrics.Operation   = _metricsType;
+        #    procMetrics.StartDateTime = dateTimeBegin;
+        #    procMetrics.EndDateTime   = DateTimeUtil::getSystemDateTime();
+        #    procMetrics.Details       = _descriptionString;
+        #    procMetrics.UserId        = curuserid();
+        #
+        #    procMetrics.Duration      = procMetrics.durationDisp();
+        #    if (procMetrics.Duration == 0)
+        #    {
+        #        return;
+        #    }
+        #
+        #    procMetrics.LineCount = _lineCount;
+        #
+        #    //procMetrics.Value       = procMetrics.Duration ? (procMetrics.LineCount / procMetrics.Duration) : 0;
+        #
+        #/*
+        #    if (machineTimer)
+        #    {
+        #        procMetrics.DurationMachine = machineTimer.time(1) / 1000;
+        #    }
+        #    else
+        #    {
+        #        procMetrics.DurationMachine = procMetrics.Duration;
+        #    }
+        #  */
+        #    procMetrics.insert();
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getLineCounter
+        #Integer getLineCounter()
+        #{
+        #    return lineCount;
+        #}
+      ENDSOURCE
+      SOURCE #getSecondsInPeriod
+        #int64 getSecondsInPeriod(UtcDateTime _dtEnd, UtcDateTime _dtBegin)
+        #{
+        #    ;
+        #    return DateTimeUtil::getDifference(_dtEnd, _dtBegin);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #incLineCount
+        #void incLineCount()
+        #{
+        #    lineCount++;
+        #}
+      ENDSOURCE
+      SOURCE #runTrace
+        #void runTrace()
+        #{
+        #    ;
+        #    tracePaused     = false;
+        #    dateTimeCurrent = DateTimeUtil::getSystemDateTime();
+        #}
+      ENDSOURCE
+      SOURCE #startMachineTime
+        #void startMachineTime()
+        #{
+        #    ;
+        #    if (! machineTimer)
+        #    {
+        #        machineTimer = new DEV_SysTimer();
+        #    }
+        #    machineTimer.start(1);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #stopMachineTime
+        #void stopMachineTime()
+        #{
+        #    ;
+        #    if (machineTimer)
+        #    {
+        #        machineTimer.stop(1);
+        #    }
+        #
+        #}
+        #
+      ENDSOURCE
+      SOURCE #stopTrace
+        #void stopTrace()
+        #{
+        #    UtcDateTime    tmpDateTime = DateTimeUtil::getSystemDateTime();
+        #    ;
+        #
+        #    dateTimeEnd = tmpDateTime;
+        #
+        #    if (!tracePaused)
+        #    {
+        #        totalTimePeriod += this.getSecondsInPeriod(tmpDateTime, dateTimeCurrent);
+        #    }
+        #
+        #    tracePaused = false;
+        #}
+      ENDSOURCE
+      SOURCE #timePeriod
+        #int64 timePeriod()
+        #{
+        #    ;
+        #    return totalTimePeriod;
+        #}
+      ENDSOURCE
+      SOURCE #construct
+        #static DEV_ProcMetrics construct()
+        #{
+        #    DEV_ProcMetrics procMetrics;
+        #    ;
+        #    procMetrics = new DEV_ProcMetrics();
+        #    return procMetrics;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_SysTimer unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_SysTimer
+    Id 50002
+    PROPERTIES
+      Name                #DEV_SysTimer
+      Extends             #
+      RunOn               #Called from
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_SysTimer
+        #{
+        #    real sumTime[];
+        #    real start[];
+        #}
+      ENDSOURCE
+      SOURCE #clear
+        #void  clear(int clockNum)
+        #{
+        #    if (clockNum > 0)
+        #    {
+        #        sumTime[clockNum]   = 0;
+        #        start[clockNum]     = 0;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #start
+        #void start(int clockNum)
+        #{
+        #    if (clockNum > 0)
+        #        start[clockNum] = DEV_SysTimer::getTickCount();
+        #}
+      ENDSOURCE
+      SOURCE #stop
+        #void stop(int clockNum)
+        #{
+        #    if (clockNum > 0 && start[clockNum])
+        #    {
+        #        sumTime[clockNum]   = sumTime[clockNum] + (DEV_SysTimer::getTickCount() - start[clockNum]);
+        #        start[clockNum]     = 0;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #time
+        #real time(int clockNum)
+        #{
+        #    if (clockNum > 0)
+        #        return sumTime[clockNum];
+        #    return 0;
+        #}
+      ENDSOURCE
+      SOURCE #getTickCount
+        #static  int getTickCount()
+        #{
+        #    int ticks;
+        #    ;
+        #    try
+        #    {
+        #        new InteropPermission(InteropKind::ClrInterop).assert();
+        #
+        #        ticks = System.Environment::get_TickCount();
+        #        CodeAccessPermission::revertAssert();
+        #
+        #    }
+        #    catch(Exception::CLRError)
+        #    {
+        #        CodeAccessPermission::revertAssert();
+        #    }
+        #
+        #    return ticks;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: JOB
+
+; Microsoft Dynamics AX Job: DEV_displayEnumValues unloaded
+; --------------------------------------------------------------------------------
+  JOBVERSION 1
+  
+  SOURCE #DEV_displayEnumValues
+    #static void DEV_displayEnumValues(Args _args)
+    #{
+    #    DictEnum de = new DictEnum(enumnum(DEV_BMLogOperation));
+    #    int      i;
+    #    str      resStr;
+    #    ;
+    #    resStr = "case" + '\n';
+    #    for(i = 1; i <= de.values(); i++)
+    #    {
+    #        resStr += strFmt("WHEN [OPERATION] = %1 THEN N'%2'", i - 1,
+    #            de.index2Label(i - 1)) + '\n';
+    #        //info(strFmt('%1', de.index2Label(i - 1)));
+    #    }
+    #    resStr += "END AS OperationType";
+    #
+    #    info(resStr);
+    #
+    #}
+  ENDSOURCE
+
+***Element: FTM
+
+; Microsoft Dynamics AX MENUITEM : DEV_BenchmarkLog unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEV_BenchmarkLog
+    Type: 1
+    PROPERTIES
+      Name                #DEV_BenchmarkLog
+      Label               #Operations log
+      HelpText            #Operations log table
+      Object              #DEV_BenchmarkLog
+      RunOn               #Called from
+      SecurityKey         #AdminInquiries
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+***Element: FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 5
+
+FORM #DEV_BenchmarkLog
+  PROPERTIES
+    Name                #DEV_BenchmarkLog
+  ENDPROPERTIES
+  
+  METHODS
+    Version: 3
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    QueryBuildDataSource  qBDS;
+      #    ;
+      #    DEV_BenchmarkLogParameters::find();
+      #    super();
+      #
+      #    qBDS = BenchmarkLog_ds.query().dataSourceName(BenchmarkLog_ds.name());
+      #    qBDS.addSortField(fieldnum(DEV_BenchmarkLog, StartDateTime), SortOrder::Descending);
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #BenchmarkLog
+          Table               #DEV_BenchmarkLog
+          AllowEdit           #No
+          AllowCreate         #No
+          InsertAtEnd         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+    ENDDATASOURCE
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #BenchmarkLogParameters
+          Table               #DEV_BenchmarkLogParameters
+          AllowCreate         #No
+          AllowDelete         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  JOINS
+  ENDJOINS
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Height              #Column height
+      Caption             #Operations log
+      SaveSize            #Yes
+      Columns             #2
+      ArrangeGuide        
+        ARRAY INDEX Columns 
+          #0
+          #0
+        ENDARRAY
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL TAB
+        PROPERTIES
+          Name                #Tab
+          Width               #Column width
+          Height              #Column height
+        ENDPROPERTIES
+        
+        CONTAINER
+          CONTROL TABPAGE
+            PROPERTIES
+              Name                #DataTabPage
+              Width               #Column width
+              Height              #Column height
+              Caption             #Data
+              DataSource          #BenchmarkLog
+            ENDPROPERTIES
+            
+            CONTAINER
+              CONTROL GRID
+                PROPERTIES
+                  Name                #Grid
+                  Width               #Column width
+                  Height              #Column height
+                  DataSource          #BenchmarkLog
+                ENDPROPERTIES
+                
+                  CONTAINER
+                    CONTROL GROUP
+                      PROPERTIES
+                        Name                #GridGroup
+                        BackgroundColor     #Window background
+                        DataSource          #BenchmarkLog
+                        DataGroup           #GridGroup
+                        AutoDataGroup       #Yes
+                      ENDPROPERTIES
+                      
+                        CONTAINER
+                        ENDCONTAINER
+                        
+                    ENDCONTROL 
+                    
+                  ENDCONTAINER
+                  
+              ENDCONTROL 
+              
+              CONTROL BUTTONGROUP
+                PROPERTIES
+                  Name                #ButtonGroup
+                  ArrangeMethod       #Horizontal, flush right
+                  Columns             #2
+                  ArrangeGuide        
+                    ARRAY INDEX Columns 
+                      #0
+                      #0
+                    ENDARRAY
+                ENDPROPERTIES
+                
+                CONTAINER
+                  CONTROL BUTTON
+                    PROPERTIES
+                      Name                #Refresh
+                      Text                #Refresh
+                    ENDPROPERTIES
+                    
+                    METHODS
+                      Version: 3
+                      SOURCE #clicked
+                        #void clicked()
+                        #{
+                        #    ;
+                        #    BenchmarkLog_ds.research();
+                        #}
+                      ENDSOURCE
+                    ENDMETHODS
+                  ENDCONTROL 
+                  
+                  CONTROL BUTTON
+                    PROPERTIES
+                      Name                #Clear
+                      Text                #Clear
+                    ENDPROPERTIES
+                    
+                    METHODS
+                      Version: 3
+                      SOURCE #clicked
+                        #void clicked()
+                        #{
+                        #    ;
+                        #    DEV_BenchmarkLog::clear();
+                        #    BenchmarkLog_ds.research();
+                        #
+                        #}
+                      ENDSOURCE
+                    ENDMETHODS
+                  ENDCONTROL 
+                  
+                ENDCONTAINER
+                
+              ENDCONTROL 
+              
+            ENDCONTAINER
+            
+          ENDCONTROL 
+          
+          CONTROL TABPAGE
+            PROPERTIES
+              Name                #ParmTabPage1
+              Width               #Column width
+              Height              #Column height
+              Caption             #Parameters
+              DataSource          #BenchmarkLogParameters
+            ENDPROPERTIES
+            
+            CONTAINER
+              CONTROL GROUP
+                PROPERTIES
+                  Name                #Parameters
+                  DataSource          #BenchmarkLogParameters
+                  DataGroup           #Parameters
+                  AutoDataGroup       #Yes
+                ENDPROPERTIES
+                
+                  CONTAINER
+                  ENDCONTAINER
+                  
+              ENDCONTROL 
+              
+            ENDCONTAINER
+            
+          ENDCONTROL 
+          
+        ENDCONTAINER
+        
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+ENDFORM
+
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : DEV_PerformanceLog unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #DEV_PerformanceLog
+   SHARED
+  PROPERTIES
+    Name                #DEV_PerformanceLog
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #Data_Dictionary
+      PROPERTIES
+        Name                #Data_Dictionary
+        ProjectGroupType    #DataDictionary
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      GROUP #Tables
+        PROPERTIES
+          Name                #Tables
+          ProjectGroupType    #Tables
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 44
+          UTILOBJECTID 50002
+          NODETYPE 204
+          NAME #DEV_BenchmarkLogParameters
+        ENDNODE
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 44
+          UTILOBJECTID 50001
+          NODETYPE 204
+          NAME #DEV_BenchmarkLog
+        ENDNODE
+        ENDGROUP
+        
+      GROUP #Base_Enums
+        PROPERTIES
+          Name                #Base_Enums
+          ProjectGroupType    #BaseEnums
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 40
+          UTILOBJECTID 50001
+          NODETYPE 209
+          NAME #DEV_BMLogOperation
+        ENDNODE
+        ENDGROUP
+        
+      ENDGROUP
+      
+    GROUP #Classes
+      PROPERTIES
+        Name                #Classes
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50001
+        NODETYPE 329
+        NAME #DEV_ProcMetrics
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50002
+        NODETYPE 329
+        NAME #DEV_SysTimer
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Jobs
+      PROPERTIES
+        Name                #Jobs
+        ProjectGroupType    #Jobs
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 5
+        UTILOBJECTID 0
+        NODETYPE 215
+        NAME #DEV_displayEnumValues
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Menus
+      PROPERTIES
+        Name                #Menus
+        ProjectGroupType    #Menus
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      ENDGROUP
+      
+    GROUP #Menu_Items
+      PROPERTIES
+        Name                #Menu_Items
+        ProjectGroupType    #MenuItems
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      GROUP #Display
+        PROPERTIES
+          Name                #Display
+          ProjectGroupType    #Display
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 1
+          UTILOBJECTID 0
+          NODETYPE 296
+          NAME #DEV_BenchmarkLog
+        ENDNODE
+        ENDGROUP
+        
+      ENDGROUP
+      
+    GROUP #Forms
+      PROPERTIES
+        Name                #Forms
+        ProjectGroupType    #Forms
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 11
+        UTILOBJECTID 0
+        NODETYPE 201
+        NAME #DEV_BenchmarkLog
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Macros
+      PROPERTIES
+        Name                #Macros
+        ProjectGroupType    #Macros
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END
