@@ -124,3 +124,9 @@ ON bs.media_set_id = bmf.media_set_id
 WHERE bs.database_name = DB_NAME(DB_ID())
 AND bs.[type] = 'D' -- Change to L if you want Log backups
 ORDER BY bs.backup_finish_date DESC OPTION (RECOMPILE);
+
+
+--analyse the size of BATCHHISTORY table
+SELECT sum( DATALENGTH(INFO)) as SizeInfo, sum(DATALENGTH(PARAMETERS)) as SizeParms, CAPTION from BATCHHISTORY
+group by CAPTION
+order by (SizeInfo) desc
