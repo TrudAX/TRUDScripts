@@ -2078,6 +2078,2015 @@ Formatversion: 1
 
 ***Element: DBT
 
+; Microsoft Dynamics AX Table : InventDimParm unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #InventDimParm
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #InventDimParm
+      Label               #@SYS54426
+      TableType           #InMemory
+      Origin              #{2C0D02C0-0000-1000-C884-FA48662C5569}
+      LegacyId            #704
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #ClosedFlag
+        ENUM
+        PROPERTIES
+          Name                #ClosedFlag
+          Table               #InventDimParm
+          Origin              #{BE13E1F0-22C9-40DC-A895-BAF7B4C85C49}
+          LegacyId            #8
+          ExtendedDataType    #ClosedFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #ClosedQtyFlag
+        ENUM
+        PROPERTIES
+          Name                #ClosedQtyFlag
+          Table               #InventDimParm
+          Origin              #{8550E804-317A-45A1-BD5D-DC919D1E4FB6}
+          LegacyId            #9
+          ExtendedDataType    #ClosedQtyFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #CompanyFlag
+        ENUM
+        PROPERTIES
+          Name                #CompanyFlag
+          Table               #InventDimParm
+          Origin              #{5791E532-4AED-481E-B952-BAB4B07D2B86}
+          LegacyId            #12
+          ExtendedDataType    #CompanyIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #ConfigIdFlag
+        ENUM
+        PROPERTIES
+          Name                #ConfigIdFlag
+          Table               #InventDimParm
+          Origin              #{B31E9897-AA90-4A47-A0F5-C6FD321B8180}
+          LegacyId            #6
+          ExtendedDataType    #EcoResConfigurationFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventBatchIdFlag
+        ENUM
+        PROPERTIES
+          Name                #InventBatchIdFlag
+          Table               #InventDimParm
+          Origin              #{96993ACB-CA50-4CD2-BF8B-A363F23180C0}
+          LegacyId            #4
+          ExtendedDataType    #InventBatchIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventColorIdFlag
+        ENUM
+        PROPERTIES
+          Name                #InventColorIdFlag
+          Table               #InventDimParm
+          Origin              #{6C6CB283-D6D5-4D9A-B4A1-84BA7A7671D6}
+          LegacyId            #10
+          ExtendedDataType    #EcoResColorFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventGTDIdFlag_RU
+        ENUM
+        PROPERTIES
+          Name                #InventGTDIdFlag_RU
+          Table               #InventDimParm
+          Origin              #{2A123E81-02C0-1000-1B02-3C2693390624}
+          LegacyId            #16001
+          ExtendedDataType    #InventGTDIdFlag_RU
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventLocationIdFlag
+        ENUM
+        PROPERTIES
+          Name                #InventLocationIdFlag
+          Table               #InventDimParm
+          Origin              #{8B92EA0C-3A51-41F9-B107-8FB7783D0DA8}
+          LegacyId            #5
+          ExtendedDataType    #InventLocationIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventOwnerIdFlag_RU
+        ENUM
+        PROPERTIES
+          Name                #InventOwnerIdFlag_RU
+          Table               #InventDimParm
+          Origin              #{2A141F41-02C0-1000-C0A3-331E3B35743C}
+          LegacyId            #8001
+          ExtendedDataType    #InventOwnerIdFlag_RU
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventProfileIdFlag_RU
+        ENUM
+        PROPERTIES
+          Name                #InventProfileIdFlag_RU
+          Table               #InventDimParm
+          Origin              #{2A161F40-02C0-1000-62DF-EDB2DD311B33}
+          LegacyId            #8000
+          ExtendedDataType    #InventProfileIdFlag_RU
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventSerialIdFlag
+        ENUM
+        PROPERTIES
+          Name                #InventSerialIdFlag
+          Table               #InventDimParm
+          Origin              #{1C370041-8688-49B5-AEB1-BFD1360DB3AC}
+          LegacyId            #1
+          ExtendedDataType    #InventSerialIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventSiteIdFlag
+        ENUM
+        PROPERTIES
+          Name                #InventSiteIdFlag
+          Table               #InventDimParm
+          Origin              #{642AAE9A-3B6F-4812-AF77-BB7CCFD0CFDA}
+          LegacyId            #16
+          ExtendedDataType    #InventSiteIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventSizeIdFlag
+        ENUM
+        PROPERTIES
+          Name                #InventSizeIdFlag
+          Table               #InventDimParm
+          Origin              #{F95D5C31-7791-4D7D-B843-67428CB3B24A}
+          LegacyId            #11
+          ExtendedDataType    #EcoResSizeFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventStatusFlag
+        ENUM
+        PROPERTIES
+          Name                #InventStatusFlag
+          Table               #InventDimParm
+          Origin              #{43531F0A-DD51-4A81-B4A0-03FF1738561A}
+          LegacyId            #20002
+          ExtendedDataType    #WHSInventStatusFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #InventStyleIdFlag
+        ENUM
+        PROPERTIES
+          Name                #InventStyleIdFlag
+          Table               #InventDimParm
+          Origin              #{6C7249FE-64EE-4B84-AA83-5B2AC9D10EBC}
+          ExtendedDataType    #EcoResStyleFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #ItemIdFlag
+        ENUM
+        PROPERTIES
+          Name                #ItemIdFlag
+          Table               #InventDimParm
+          Origin              #{BE1EC740-70F7-4F53-970A-5E5A7443952D}
+          LegacyId            #7
+          ExtendedDataType    #ItemIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #LicensePlateFlag
+        ENUM
+        PROPERTIES
+          Name                #LicensePlateFlag
+          Table               #InventDimParm
+          Origin              #{F82C79BD-52B5-4B73-A5A6-9DDCC4DEA0BB}
+          LegacyId            #20001
+          ExtendedDataType    #WHSLicensePlateFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #WMSLocationIdFlag
+        ENUM
+        PROPERTIES
+          Name                #WMSLocationIdFlag
+          Table               #InventDimParm
+          Origin              #{C1E19E69-F94B-4C4C-B3FA-7AF715E47B3B}
+          LegacyId            #3
+          ExtendedDataType    #WMSLocationIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #WMSPalletIdFlag
+        ENUM
+        PROPERTIES
+          Name                #WMSPalletIdFlag
+          Table               #InventDimParm
+          Origin              #{318B9B27-35BD-49F3-986F-BD72A62D8778}
+          LegacyId            #2
+          ExtendedDataType    #WMSPalletIdFlag
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #InventSerialIdFlag
+          #WMSPalletIdFlag
+          #WMSLocationIdFlag
+          #InventBatchIdFlag
+          #InventSiteIdFlag
+          #InventLocationIdFlag
+          #InventSizeIdFlag
+          #InventColorIdFlag
+          #InventStyleIdFlag
+          #ConfigIdFlag
+          #ItemIdFlag
+          #ClosedFlag
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #FixedView
+        PROPERTIES
+          Name                #FixedView
+          Label               #@SYS54197
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #ConfigIdFlag
+          #InventSizeIdFlag
+          #InventColorIdFlag
+          #InventStyleIdFlag
+          #InventSiteIdFlag
+          #InventLocationIdFlag
+          #InventStatusFlag
+          #WMSLocationIdFlag
+          #LicensePlateFlag
+          #WMSPalletIdFlag
+          #InventBatchIdFlag
+          #InventSerialIdFlag
+          #InventGTDIdFlag_RU
+          #InventOwnerIdFlag_RU
+          #InventProfileIdFlag_RU
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #View
+        PROPERTIES
+          Name                #View
+          Label               #@SYS53654
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #ItemIdFlag
+          #ConfigIdFlag
+          #InventSizeIdFlag
+          #InventColorIdFlag
+          #InventStyleIdFlag
+          #InventSiteIdFlag
+          #InventLocationIdFlag
+          #InventStatusFlag
+          #WMSLocationIdFlag
+          #LicensePlateFlag
+          #WMSPalletIdFlag
+          #InventBatchIdFlag
+          #InventSerialIdFlag
+          #ClosedFlag
+          #ClosedQtyFlag
+          #InventGTDIdFlag_RU
+          #InventOwnerIdFlag_RU
+          #InventProfileIdFlag_RU
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #addFieldsToDialog
+        #/// <summary>
+        #///    Adds fields from the <c>InventDimParm</c> table to the dialog box.
+        #/// </summary>
+        #/// <param name="_dialog">
+        #///    The dialog box where fields are added.
+        #/// </param>
+        #/// <param name="_caption">
+        #///    The caption for the group where fields are added; optional.
+        #/// </param>
+        #/// <param name="_newMainGroup">
+        #///    true if a new main group should be added; optional.
+        #/// </param>
+        #/// <param name="_addItem">
+        #///    true if an item check box should be added; optional.
+        #/// </param>
+        #/// <param name="_fieldHelpText">
+        #///    The help text for the field; optional.
+        #/// </param>
+        #/// <param name="_dimParmDisableFields">
+        #///    An <c>InventDimParm</c> table that specifies the fields that should not be enabled. By default all
+        #///    fields will be enabled; optional.
+        #/// </param>
+        #/// <returns>
+        #///    A new dialog group that has the fields added.
+        #/// </returns>
+        #/// <remarks>
+        #///    If the <c>InventSiteIdFlag</c> field should not be enabled so that it cannot be edited, the
+        #///    <c>dimParmDisableFields</c> values should be set to <c>NoYes::Yes</c>.
+        #/// </remarks>
+        #public client DialogGroup addFieldsToDialog(
+        #    Dialog          _dialog,
+        #    str             _caption                = "@SYS53627",
+        #    boolean         _newMainGroup           = false,
+        #    boolean         _addItem                = false,
+        #    str             _fieldHelpText          = '',
+        #    InventDimParm   _dimParmDisableFields   = null
+        #    )
+        #{
+        #    DialogGroup             mainDialogGroup;
+        #    DialogGroup             dialogGroup;
+        #    List                    fieldList       = InventDimParm::dimParmEnabledFieldList();
+        #    ListEnumerator          enumerator      = fieldList.getEnumerator();
+        #    FieldId                 dimParmFieldId;
+        #    DialogField             df;
+        #    str                     fieldHelp;
+        #
+        #    #define.columns(2)
+        #
+        #    if (_newMainGroup)
+        #    {
+        #        dialogGroup = _dialog.addGroup(identifierStr(parmAndDimGrp));
+        #        dialogGroup.frameType(FormFrameType::None);
+        #        dialogGroup.columns(#columns);
+        #        mainDialogGroup = _dialog.addGroup("@SYS7764", dialogGroup);
+        #        mainDialogGroup.columns(1);
+        #        dialogGroup = _dialog.addGroup(_caption,dialogGroup);
+        #    }
+        #    else
+        #    {
+        #        dialogGroup = _dialog.addGroup(_caption);
+        #    }
+        #
+        #    dialogGroup.trackFields(true);
+        #
+        #    if (_addItem)
+        #    {
+        #        fieldHelp =  _fieldHelpText ? _fieldHelpText : new SysDictField(tableNum(InventDimParm), fieldNum(InventDimParm, ItemIdFlag)).help();
+        #
+        #        df = _dialog.addField(
+        #            InventDimParm::fieldId2Typename(fieldNum(InventDimParm, ItemIdFlag)),
+        #            fieldId2pname(tableNum(InventDimParm),fieldNum(InventDimParm, ItemIdFlag)),
+        #            fieldHelp
+        #            );
+        #        df.value(this.(fieldNum(InventDimParm, ItemIdFlag)));
+        #    }
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimParmFieldId = enumerator.current();
+        #        fieldHelp =  _fieldHelpText ? _fieldHelpText : new SysDictField(tableNum(InventDimParm), dimParmFieldId).help();
+        #
+        #        df = _dialog.addField(
+        #            InventDimParm::fieldId2Typename(dimParmFieldId),
+        #            fieldId2pname(tableNum(InventDimParm),dimParmFieldId),
+        #            fieldHelp
+        #            );
+        #        df.value(this.(dimParmFieldId));
+        #        df.enabled(!_dimParmDisableFields.(dimParmFieldId));
+        #    }
+        #
+        #    if (_newMainGroup)
+        #    {
+        #        _dialog.curFormGroup(mainDialogGroup.formGroup());
+        #        _dialog.mainFormGroup(mainDialogGroup.formGroup());
+        #    }
+        #
+        #    return dialogGroup;
+        #}
+      ENDSOURCE
+      SOURCE #allProductDimensionFlagSet
+        #/// <summary>
+        #/// Indicates that all product dimension fields have been flagged.
+        #/// </summary>
+        #/// <returns>
+        #/// true if all product dimension are flagged; otherwise, false.
+        #/// </returns>
+        #public boolean allProductDimensionFlagSet()
+        #{
+        #    if (this.ConfigIdFlag
+        #     && this.InventSizeIdFlag
+        #     && this.InventColorIdFlag
+        #     && this.InventStyleIdFlag)
+        #    {
+        #        return true;
+        #    }
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #anyProductDimensionFlagSet
+        #/// <summary>
+        #/// Indicates that any product dimension fields have been flagged.
+        #/// </summary>
+        #/// <returns>
+        #/// true if any product dimension is flagged; otherwise, false.
+        #/// </returns>
+        #public boolean anyProductDimensionFlagSet()
+        #{
+        #    if (this.ConfigIdFlag
+        #     || this.InventSizeIdFlag
+        #     || this.InventColorIdFlag
+        #     || this.InventStyleIdFlag)
+        #    {
+        #        return true;
+        #    }
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #anyStorageDimensionFlagSet
+        #/// <summary>
+        #///    Checks if any storage dimension fields have been flagged.
+        #/// </summary>
+        #/// <returns>
+        #///    true if any storage dimension is flagged; otherwise, false
+        #/// </returns>
+        #public boolean anyStorageDimensionFlagSet()
+        #{
+        #    if (this.InventLocationIdFlag
+        #     || this.InventSiteIdFlag
+        #     || this.WMSLocationIdFlag
+        #     || this.WMSPalletIdFlag)
+        #    {
+        #        return true;
+        #    }
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #anyTrackingDimensionFlagSet
+        #/// <summary>
+        #///    Checks if any tracking dimension fields have been flagged.
+        #/// </summary>
+        #/// <returns>
+        #///    true if any tracking dimension is flagged; otherwise, false
+        #/// </returns>
+        #public boolean anyTrackingDimensionFlagSet()
+        #{
+        #    if (this.InventBatchIdFlag
+        #     || this.InventSerialIdFlag
+        #     || this.InventGTDIdFlag_RU
+        #     || this.InventOwnerIdFlag_RU
+        #     || this.InventProfileIdFlag_RU)
+        #    {
+        #        return true;
+        #    }
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #clearNonFinancialStorageDimensions
+        #/// <summary>
+        #///    Sets the non-financial storage dimensions as non-active parameters, depending on the dimensions group.
+        #/// </summary>
+        #/// <param name="_inventDimGroupSetup">
+        #///    An instance of the <c>InventDimGroupSetup</c> class that provides information about the dimensions
+        #///    setup.
+        #/// </param>
+        #public void clearNonFinancialStorageDimensions(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    ListEnumerator              enumerator = EcoResStorageDimensionGroup::dimEnabledFieldList().getEnumerator();
+        #    InventDimGroupFieldSetup    inventDimGroupFieldSetup;
+        #    FieldId                     inventDimFieldId;
+        #    FieldId                     dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        inventDimFieldId = enumerator.current();
+        #        inventDimGroupFieldSetup = _inventDimGroupSetup.getFieldSetup(inventDimFieldId);
+        #
+        #        if (inventDimGroupFieldSetup
+        #        && inventDimGroupFieldSetup.isActive()
+        #        && !inventDimGroupFieldSetup.isFinancialInventoryEnabled())
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(inventDimFieldId);
+        #            this.(dimParmFieldId) = NoYes::No;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #clearNonTransferReceiptMergeable
+        #/// <summary>
+        #///    Clears the dimensions flags for fields that are not typically synchronized with a transfers issue
+        #///    and a receipts inventory transaction.
+        #/// </summary>
+        #public void clearNonTransferReceiptMergeable()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (!InventDim::isFieldIdTransferReceiptMergeable(dimFieldId))
+        #        {
+        #            this.(dimParmFieldId) = NoYes::No;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #clearProductDimensions
+        #public void clearProductDimensions()
+        #{
+        #    this.ConfigIdFlag       = NoYes::No;
+        #    this.InventColorIdFlag  = NoYes::No;
+        #    this.InventSizeIdFlag   = NoYes::No;
+        #    this.InventStyleIdFlag  = NoYes::No;
+        #    #InventDimDevelop
+        #}
+      ENDSOURCE
+      SOURCE #clearStorageDimensions
+        #/// <summary>
+        #///    Clears the storage dimension flags.
+        #/// </summary>
+        #public void clearStorageDimensions()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimStorageDimFieldList().getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = NoYes::No;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #clearTrackingDimensions
+        #/// <summary>
+        #///    Clears the tracking dimension flags.
+        #/// </summary>
+        #public void clearTrackingDimensions()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimTrackingDimFieldList().getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = NoYes::No;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #getFromDialog
+        #public client void getFromDialog(
+        #    Dialog      _dialog,
+        #    DialogGroup _dialogGroup,
+        #    boolean     _hasItem = false)
+        #{
+        #    #Define.ControlNumItem(1)
+        #
+        #    List                    fieldList       = InventDimParm::dimParmEnabledFieldList();
+        #    ListEnumerator          enumerator      = fieldList.getEnumerator();
+        #    FieldId                 dimParmFieldId;
+        #    Integer                 h               = 0;
+        #    DialogField             df;
+        #    Integer                 dimOffset = (_hasItem) ? 1 : 0;
+        #
+        #    if (_hasItem)
+        #    {
+        #        df              = _dialog.getDialogClass(_dialogGroup.fieldnameNo(#ControlNumItem));
+        #        this.ItemIdFlag = df.value();
+        #    }
+        #
+        #    if (_dialogGroup.fieldnamesCount() < fieldList.elements())
+        #    {
+        #        throw(error(strFmt("@SYS19306", funcName())));
+        #    }
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        h++;
+        #        dimParmFieldId = enumerator.current();
+        #        df = _dialog.getDialogClass(_dialogGroup.fieldnameNo(h + dimOffset));
+        #        this.(dimParmFieldId) = df.value();
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initConsistentDimAllGrp
+        #public void initConsistentDimAllGrp()
+        #{
+        #    InventDimGroupSetup::inventDimParmInitAllConsistentDim(this);
+        #}
+      ENDSOURCE
+      SOURCE #initConsistentDimensionsGeneral
+        #public void initConsistentDimensionsGeneral()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    this.clear();
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        if (InventDim::isFieldIdConsistentDim(dimFieldId))
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+        #            this.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initCovDimAllGrp
+        #public void initCovDimAllGrp()
+        #{
+        #    InventDimGroupSetup::inventDimParmInitAllCoverageDim(this);
+        #}
+      ENDSOURCE
+      SOURCE #initCovPrDimension
+        #public void initCovPrDimension(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    #Req
+        #
+        #    _inventDimGroupSetup.inventDimParmActiveCoveragePlan(this);
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initCovReqItemTable
+        #public void initCovReqItemTable(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    #Req
+        #
+        #    _inventDimGroupSetup.inventDimParmActiveCoveragePlan(this);
+        #
+        #    this.InventBatchIdFlag  = NoYes::No;
+        #    this.InventSerialIdFlag = NoYes::No;
+        #    this.wmsPalletIdFlag    = NoYes::No;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initDimBOM
+        #//<GEERU>
+        ##ISOCountryRegionCodes
+        #//</GEERU>
+        #public void initDimBOM(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    EcoResProductDimGroupSetup  productDimGroupSetup = _inventDimGroupSetup.ecoResProductDimGroupSetup();
+        #    InventDimParm               inventDimParm;
+        #
+        #    inventDimParm = productDimGroupSetup.inventDimParmActiveDimensions();
+        #    inventDimParm.InventLocationIdFlag    = NoYes::Yes;
+        #    inventDimParm.InventSiteIdFlag        = NoYes::Yes;
+        #    // <GEERU>
+        #    if (SysCountryRegionCode::isLegalEntityInCountryRegion([ #isoRU ]))
+        #    {
+        #        inventDimParm.InventProfileIdFlag_RU  = NoYes::Yes;
+        #    }
+        #    // </GEERU>
+        #    this.data(inventDimParm);
+        #}
+      ENDSOURCE
+      SOURCE #initDimBOMAll
+        #//<GEERU>
+        ##ISOCountryRegionCodes
+        #//</GEERU>
+        #public void initDimBOMAll()
+        #{
+        #    this.initProductDimensionsAllGroups();
+        #    this.initSiteDimAllGrp();
+        #    this.InventLocationIdFlag = NoYes::Yes;
+        #    // <GEERU>
+        #    if (SysCountryRegionCode::isLegalEntityInCountryRegion([ #isoRU ]))
+        #    {
+        #        this.InventProfileIdFlag_RU = NoYes::Yes;
+        #    }
+        #    // </GEERU>
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initDimBOMCalc
+        #public void initDimBOMCalc(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    this.setActiveSiteAndProductDimensions(_inventDimGroupSetup);
+        #}
+      ENDSOURCE
+      SOURCE #initDimBOMEnable
+        #public /// <summary>
+        #///    Initializes the <c>inventDimParm</c> record in relation to which inventory dimensions are enabled
+        #///    for a bills of materials record.
+        #/// </summary>
+        #/// <param name="_inventDimGroupSetup">
+        #///    An <c>InventDimGroupSetup</c> instance that provides information about dimension setup.
+        #/// </param>
+        #/// <param name="_bom">
+        #///    A bills of materials record.
+        #/// </param>
+        #
+        #void initDimBOMEnable(
+        #    InventDimGroupSetup         _inventDimGroupSetup,
+        #    BOM                         _bom)
+        #{
+        #    InventDimParm bomInventDimParm = _inventDimGroupSetup.ecoResProductDimGroupSetup().inventDimParmActiveDimensions() as InventDimParm;
+        #    this.data(bomInventDimParm);
+        #
+        #    this.InventSiteIdFlag = NoYes::No; // Site can never be specified on bom lines
+        #
+        #    if (_bom.WrkCtrConsumption ||
+        #        (  _bom.bomId
+        #      && ! _bom.bomTable().SiteId))
+        #    {
+        #        this.InventLocationIdFlag = NoYes::No;
+        #    }
+        #    else
+        #    {
+        #        this.InventLocationIdFlag = NoYes::Yes;
+        #    }
+        #    // <GEERU>
+        #    if (_inventDimGroupSetup.isDimensionActive(fieldNum(InventDim, InventProfileId_RU)))
+        #    {
+        #         this.InventProfileIdFlag_RU = NoYes::Yes;
+        #    }
+        #   // </GEERU>
+        #}
+      ENDSOURCE
+      SOURCE #initDimBOMRouteVersion
+        #/// <summary>
+        #/// Initializes the <c>inventDimParm</c> record buffer relative to the BOM version or route version
+        #/// records.
+        #/// </summary>
+        #/// <param name="_inventDimGroupSetup">
+        #/// An instance of the <c>InventDimGroupSetup</c> class that provides information about the dimension
+        #/// setup.
+        #/// </param>
+        #
+        #public void initDimBOMRouteVersion(InventDimGroupSetup _inventDimGroupSetup = null)
+        #{
+        #    InventDimParm bomRouteVersionInventDimParm;
+        #
+        #    if (_inventDimGroupSetup)
+        #    {
+        #        bomRouteVersionInventDimParm = _inventDimGroupSetup.ecoResProductDimGroupSetup().inventDimParmActiveDimensions() as InventDimParm;
+        #        this.data(bomRouteVersionInventDimParm);
+        #    }
+        #    else
+        #    {
+        #        this.initProductDimensionsAllGroups();
+        #    }
+        #
+        #    this.InventSiteIdFlag = NoYes::Yes;  // siteId is always shown on the BOM / route versions
+        #}
+      ENDSOURCE
+      SOURCE #initDimBOMVersionEnable
+        #/// <summary>
+        #///    Initializes the <c>inventDimParm</c> record relative to which inventory dimensions are enabled for
+        #///    a bill of materials version record.
+        #/// </summary>
+        #/// <param name="_inventDimGroupSetup">
+        #///    An instance of the <c>InventDimGroupSetup</c> class that provides information about the dimension
+        #///    setup.
+        #/// </param>
+        #/// <param name="_bomVersion">
+        #///    A bill of materials version record.
+        #/// </param>
+        #public void initDimBOMVersionEnable(
+        #    InventDimGroupSetup             _inventDimGroupSetup,
+        #    BOMVersion                      _bomVersion)
+        #{
+        #    InventDimParm   bomVersionInventDimParm;
+        #    InventSiteId    siteIdBOMTable;
+        #    InventDim       inventDimJoin;
+        #    Common          joinTable;
+        #
+        #    if (! _bomVersion.allowEdit())
+        #    {
+        #        this.setAllInventDim();
+        #        this.toggleAllInventDim(); // all flags are set to NoYes::No.
+        #        return;
+        #    }
+        #
+        #    bomVersionInventDimParm = _inventDimGroupSetup.ecoResProductDimGroupSetup().inventDimParmActiveDimensions();
+        #    this.data(bomVersionInventDimParm);
+        #
+        #    if (_bomVersion.bomId)
+        #    {
+        #        siteIdBOMTable = _bomVersion.bomTable().SiteId;
+        #
+        #        if (siteIdBOMTable)
+        #        {
+        #            joinTable = _bomVersion.joinChildTable(tableNum(InventDim));
+        #
+        #            if (joinTable is InventDim)
+        #            {
+        #                inventDimJoin = joinTable as InventDim;
+        #            }
+        #            else
+        #            {
+        #                inventDimJoin = _bomVersion.inventDim();
+        #            }
+        #
+        #            this.InventSiteIdFlag = siteIdBOMTable == inventDimJoin.InventSiteId ? NoYes::No : NoYes::Yes;
+        #        }
+        #        else
+        #        {
+        #            this.InventSiteIdFlag = NoYes::Yes;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initDimForecast
+        #public void initDimForecast(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    InventDimParm forecastInventDimParm = _inventDimGroupSetup.ecoResProductDimGroupSetup().inventDimParmActiveDimensions();
+        #    this.data(forecastInventDimParm);
+        #
+        #    this.InventLocationIdFlag   = NoYes::Yes;
+        #    this.InventSiteIdFlag       = NoYes::Yes;
+        #}
+      ENDSOURCE
+      SOURCE #initDimForecastAll
+        #public void initDimForecastAll()
+        #{
+        #    this.initProductDimensionsAllGroups();
+        #    this.initSiteDimAllGrp();
+        #    this.InventLocationIdFlag = NoYes::Yes;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initDimLeanPickingList
+        #public void initDimLeanPickingList(InventDimGroupSetup _inventDimGroupSetup = null)
+        #{
+        #    InventDimParm   inventDimParm_1;
+        #    InventDimParm   inventDimParm_2;
+        #
+        #    inventDimParm_1.InventSiteIdFlag        = NoYes::Yes;
+        #    inventDimParm_1.InventLocationIdFlag    = NoYes::Yes;
+        #    inventDimParm_1.wmsLocationIdFlag       = NoYes::Yes;
+        #
+        #    if (_inventDimGroupSetup)
+        #    {
+        #        _inventDimGroupSetup.inventDimParmActive(inventDimParm_2);
+        #        this.data(InventDimParm::andParms(inventDimParm_1,inventDimParm_2));
+        #    }
+        #    else
+        #    {
+        #        this.data(inventDimParm_1);
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initDimTransferReceipt
+        #/**
+        #    Used for transfer orders to determine the dimensions that must correspond between a shipment and a receipt
+        #*/
+        #public void initDimTransferReceipt(InventDim _inventDim)
+        #{
+        #    this.initFromInventDim(_inventDim);
+        #
+        #    this.clearNonTransferReceiptMergeable();
+        #}
+      ENDSOURCE
+      SOURCE #initFromInventDim
+        #/// <summary>
+        #/// Sets flags for all the specified non-empty dimensions.
+        #/// </summary>
+        #/// <param name="_inventDim">
+        #/// The inventory dimensions.
+        #/// </param>
+        #/// <param name="_dimFieldList">
+        #/// The list of dimensions that need to be considered.
+        #/// </param>
+        #/// <remarks>
+        #/// By default all dimensions are considered.
+        #/// </remarks>
+        #public void initFromInventDim(InventDim _inventDim, List _dimFieldList = InventDim::dimFieldsList())
+        #{
+        #    ListEnumerator  enumerator  = _dimFieldList.getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = _inventDim.(dimFieldId) != InventDim::emptyDimField(dimFieldId);
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initFromInventDimCombination
+        #public void initFromInventDimCombination(InventDimCombination _inventDimCombination)
+        #{
+        #    this.clear();
+        #    this.initFromInventDim(_inventDimCombination.inventDim());
+        #}
+      ENDSOURCE
+      SOURCE #initFromInventDimFieldList
+        #/// <summary>
+        #/// Sets the fields that are included in the specified list to yes.
+        #/// </summary>
+        #/// <param name="_inventDimFieldIst">
+        #/// The list of the <c>InventDim</c> field IDs.
+        #/// </param>
+        #public void initFromInventDimFieldList(List _inventDimFieldIst)
+        #{
+        #    ListEnumerator  enumerator  = _inventDimFieldIst.getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = NoYes::Yes;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initFromInventDimFixed
+        #public void initFromInventDimFixed(InventDimFixed _inventDimFixed)
+        #{
+        #    InventDimFixedClass::inventDimFixed2InventDimParm(_inventDimFixed,this);
+        #}
+      ENDSOURCE
+      SOURCE #initFromInventDimParm
+        #public void initFromInventDimParm(InventDimParm _inventDimParm)
+        #{
+        #    this.data(_inventDimParm);
+        #}
+      ENDSOURCE
+      SOURCE #initFromInventDimParmCSS
+        #public void initFromInventDimParmCSS(InventDimParm _inventDimParm)
+        #{
+        #    InventDimParm   itemParm;
+        #
+        #    itemParm.initProductDimensionsAllGroups();
+        #    this.data(InventDimParm::andParms(_inventDimParm,itemParm));
+        #}
+      ENDSOURCE
+      SOURCE #initFromInventDimSetupGrid
+        #public void initFromInventDimSetupGrid(FieldId     _fieldId)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = InventDimSetupGrid::find(dimFieldId).(_fieldId);
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initFromQueryAutoSumFields
+        #public void initFromQueryAutoSumFields(QueryBuildDataSource _queryBuildDataSource)
+        #{
+        #    Counter     h;
+        #    FieldId     dimParmFieldId;
+        #
+        #    this.clear();
+        #    for (h=1; h <= _queryBuildDataSource.sortFieldCount(); h++)
+        #    {
+        #        if (_queryBuildDataSource.autoSum(h))
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(_queryBuildDataSource.sortField(h));
+        #            this.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initFromQueryBuildRange
+        #public void initFromQueryBuildRange(QueryBuildDataSource _queryBuildDataSource)
+        #{
+        #    int                  rangeCounter = 1;
+        #    FieldId              dimParmFieldId;
+        #    QueryBuildRange      queryBuildRange;
+        #
+        #    while (rangeCounter <= _queryBuildDataSource.rangeCount())
+        #    {
+        #        queryBuildRange = _queryBuildDataSource.range(rangeCounter);
+        #
+        #        if (queryBuildRange.value())
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(fieldName2id(tableNum(InventDim),queryBuildRange.name()));
+        #            this.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #        rangeCounter++;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initFromQueryCallerGroupBy
+        #public client void initFromQueryCallerGroupBy(Args _callerArgs)
+        #{
+        #    Counter                 h;
+        #    FormDataSource          callerDS;
+        #    Query                   callerQuery;
+        #    QueryGroupByField       queryGroupByField;
+        #    FieldId                 dimParmFieldId;
+        #
+        #    this.clear();
+        #
+        #    callerDS     = InventDim::callerInventDimDatasource(_callerArgs);
+        #    callerQuery  = callerDS.query();
+        #
+        #    for (h = callerQuery.groupByFieldCount(); h > 0 ; h--)
+        #    {
+        #        queryGroupByField = callerQuery.groupByField(h);
+        #        if (queryGroupByField.tableSelector() == tableNum(InventDim)
+        #         && queryGroupByField.fieldID() != fieldNum(InventDim, TableId))
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(queryGroupByField.fieldID());
+        #            this.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initLicensePlateInventory
+        #/// <summary>
+        #/// Initializes an inventDimParm with fields that are needed to select information license plate inventory.
+        #/// </summary>
+        #public void initLicensePlateInventory()
+        #{
+        #    this.InventLocationIdFlag = NoYes::Yes;
+        #    this.WMSLocationIdFlag = NoYes::Yes;
+        #    this.LicensePlateFlag = NoYes::Yes;
+        #}
+      ENDSOURCE
+      SOURCE #initMandatoryDimAllGrp
+        #public void initMandatoryDimAllGrp()
+        #{
+        #    InventDimGroupSetup::inventDimParmInitAllMandatoryDim(this);
+        #}
+      ENDSOURCE
+      SOURCE #initNonProductDimAllGroups
+        #/// <summary>
+        #/// Gets information about which storage and tracking dimensions are active.
+        #/// </summary>
+        #/// <remarks>
+        #/// Information is gathered from all dimension groups in the system. It is enough that a storage or
+        #/// tracking dimension is active in just one dimension group to be returned as active non-product
+        #/// dimension.
+        #/// </remarks>
+        #public void initNonProductDimAllGroups()
+        #{
+        #    InventDimGroupSetup::inventDimParmInitAllNonProductDim(this);
+        #}
+      ENDSOURCE
+      SOURCE #initPhysicalDimensionsFromInventDim
+        #/// <summary>
+        #/// Initializes an <c>InventDimParm</c> buffer from the physical inventory dimensions that are
+        #/// specified in the <c>_inventDim</c> parameter.
+        #/// </summary>
+        #/// <param name="_inventDimGroupSetup">
+        #/// An instance of the <c>InventDimGroupSetup</c> class.
+        #/// </param>
+        #/// <param name="_inventDim">
+        #/// An <c>InventDim</c> record to use for the initialization.
+        #/// </param>
+        #public void initPhysicalDimensionsFromInventDim(
+        #    InventDimGroupSetup             _inventDimGroupSetup,
+        #    InventDim                       _inventDim)
+        #{
+        #    List            dimFields   = _inventDimGroupSetup.activePhysicalInventoryFields();
+        #    ListEnumerator  enumerator  = dimFields.getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        if (_inventDim.(dimFieldId))
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+        #            this.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initPriceDiscDimAllGrp
+        #public void initPriceDiscDimAllGrp()
+        #{
+        #    InventDimGroupSetup::inventDimParmInitAllPriceDiscDim(this);
+        #}
+      ENDSOURCE
+      SOURCE #initPrimaryDimReservation
+        #public void initPrimaryDimReservation(
+        #    InventDimGroupSetup         _inventDimGroupSetup,
+        #    InventDim                   _inventDim)
+        #{
+        #    List            dimFields   = _inventDimGroupSetup.activePrimaryStockingFields();
+        #    ListEnumerator  enumerator  = dimFields.getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        if (_inventDim.(dimFieldId))
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+        #            this.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #initProductDimensionsAllGroups
+        #public void initProductDimensionsAllGroups()
+        #{
+        #    EcoResProductDimGroupSetupCache::inventDimParmInitAllActiveDim(this);
+        #}
+      ENDSOURCE
+      SOURCE #initSiteDimAllGrp
+        #public void initSiteDimAllGrp()
+        #{
+        #    this.InventSiteIdFlag = NoYes::Yes;     // Site is always an active dimension.
+        #}
+      ENDSOURCE
+      SOURCE #inventDimFixed
+        #public InventDimFixed inventDimFixed()
+        #{
+        #    InventDimFixedClass inventDimFixedClass = InventDimFixedClass::newInventDimParm(this);
+        #
+        #    return inventDimFixedClass.inventDimFixed();
+        #}
+      ENDSOURCE
+      SOURCE #isAllFlagNo
+        #public boolean isAllFlagNo()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId) == NoYes::Yes)
+        #        {
+        #            return false;
+        #        }
+        #    }
+        #
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #isAllFlagYes
+        #public boolean isAllFlagYes()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId) == NoYes::No)
+        #        {
+        #            return false;
+        #        }
+        #    }
+        #
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #isFieldIdEnabled
+        #public boolean isFieldIdEnabled(FieldId _inventDimFieldId)
+        #{
+        #    FieldId     dimParmFieldId = InventDim::dim2dimParm(_inventDimFieldId);
+        #    return this.(dimParmFieldId);
+        #}
+      ENDSOURCE
+      SOURCE #isFlagReqCalcOptimal
+        #public boolean isFlagReqCalcOptimal()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #
+        #        #InventDimDevelop
+        #        if (this.(dimParmFieldId) == NoYes::Yes
+        #         && !InventDim::isFieldIdProductDimension(dimFieldId)
+        #         && dimParmFieldId  != fieldNum(InventDimParm,InventLocationIdFlag))
+        #        {
+        #            return false;
+        #        }
+        #    }
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #isFlagSelective
+        #public boolean isFlagSelective()
+        #{
+        #    #inventDimDevelop
+        #    if (this.wmsPalletIdFlag || this.InventBatchIdFlag || this.InventSerialIdFlag
+        #    // Added License Plate & Inventory Status
+        #    || this.LicensePlateFlag || this.InventStatusFlag
+        #    )
+        #    {
+        #        return true;
+        #    }
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #isInventDimEqualInventDimParm
+        #public boolean isInventDimEqualInventDimParm(InventDim _inventDim)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if ((this.(dimParmFieldId) && !_inventDim.(dimFieldId))
+        #        || (!this.(dimParmFieldId) &&  _inventDim.(dimFieldId)))
+        #        {
+        #            return false;
+        #        }
+        #    }
+        #
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #queryAddDynalink
+        #public void queryAddDynalink(
+        #    QueryBuildDataSource    _qbS,
+        #    InventDim               _inventDim)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    _qbS.clearDynalinks();
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            _inventDim.(dimFieldId) = _inventDim.(dimFieldId);
+        #            _qbS.addDynalink(dimFieldId, _inventDim, dimFieldId);
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #queryAddGroupByField
+        #/// <summary>
+        #/// Adds clauses of the <c>Group By</c> enumeration type to the data source.
+        #/// </summary>
+        #/// <param name="_qbdsInventDim">
+        #/// The data source to have ranges of the <c>Group By</c> enumeration type added.
+        #/// </param>
+        #/// <returns>
+        #/// true if any clauses of the <c>Group By</c> enumeration type are added to the data source;
+        #/// otherwise, false.
+        #/// </returns>
+        #/// <remarks>
+        #/// The clauses are determined by the values of the <c>InventDimParm</c> records.The data source that
+        #/// underlies the table must be a <c>InventDim</c> table.
+        #/// </remarks>
+        #public boolean queryAddGroupByField(QueryBuildDataSource _qbdsInventDim)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #    boolean         doGroupBy;
+        #
+        #    boolean         isInventSumFilter;
+        #    FieldId         inventSumFieldId;
+        #
+        #    //DEV_InventSumFields, InventDim fields in InventSum, 11.06.2021 -->
+        #    if (_qbdsInventDim && _qbdsInventDim.table() == tableNum(InventSum) )
+        #    {
+        #        isInventSumFilter = true;
+        #    }
+        #    else
+        #    {
+        #    //DEV_InventSumFields, InventDim fields in InventSum, 11.06.2021 <--
+        #        if (!_qbdsInventDim || _qbdsInventDim.table() != tableNum(InventDim))
+        #        {
+        #            throw error(Error::wrongUseOfFunction(funcName()));
+        #        }
+        #    }
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            //DEV_InventSumFields, InventDim fields in InventSum, 11.06.2021 -->
+        #            if (isInventSumFilter)
+        #            {
+        #                inventSumFieldId = DEV_InventSumFields::dim2InventSumDim(dimFieldId, false);
+        #                if (inventSumFieldId)
+        #                {
+        #                    _qbdsInventDim.addGroupByField(inventSumFieldId);
+        #                }
+        #            }
+        #            else
+        #            //DEV_InventSumFields, InventDim fields in InventSum, 11.06.2021 <--
+        #            {
+        #            _qbdsInventDim.addGroupByField(dimFieldId);
+        #            }
+        #            doGroupBy = true;
+        #        }
+        #    }
+        #
+        #    return doGroupBy;
+        #}
+      ENDSOURCE
+      SOURCE #queryAddGroupByFieldInterCompany
+        #/// <summary>
+        #///    Adds clauses of the <c>Group By</c> enumeration type to the data source.
+        #/// </summary>
+        #/// <param name="_qbS">
+        #///    The data source to have ranges of the <c>Group By</c> enumeration type added.
+        #/// </param>
+        #/// <remarks>
+        #///    The clauses are determined by the values of the <c>InventDimParm</c> records.The data source that
+        #///    underlies the table must be an <c>InterCompanyInventDim</c> table.
+        #/// </remarks>
+        #public void queryAddGroupByFieldInterCompany(QueryBuildDataSource _qbS)
+        #{
+        #    List            dimFields       = InterCompanyInventDim::dimFieldList();
+        #    ListEnumerator  enumerator      = dimFields.getEnumerator();
+        #    FieldId         dimParmFieldId;
+        #    FieldId         interCompanyDimFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimParmFieldId = InterCompanyInventDim::dim2dimParm(enumerator.current());
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            interCompanyDimFieldId = InterCompanyInventDim::dimParm2dim(dimParmFieldId);
+        #            _qbS.addGroupByField(interCompanyDimFieldId);
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #queryAddGroupByFieldValue
+        #/// <summary>
+        #/// Adds clauses of the <c>Group By</c> enumeration type to the data source when the <c>InventDim</c>
+        #/// buffer has a value.
+        #/// </summary>
+        #/// <param name="_qbS">
+        #/// The data source to have ranges of the <c>Group By</c> enumeration type added.
+        #/// </param>
+        #/// <param name="_inventDim">
+        #/// The <c>InventDim</c> record which is checked for values.
+        #/// </param>
+        #/// <remarks>
+        #/// The clauses are determined by the values of both the <c>InventDimParm</c> and <c>InventDim</c>
+        #/// records.The data source that underlies the table must be an <c>InventDim</c> table.
+        #/// </remarks>
+        #public void queryAddGroupByFieldValue(
+        #    QueryBuildDataSource    _qbS,
+        #    InventDim               _inventDim)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        if (_inventDim.(dimFieldId))
+        #        {
+        #            dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #            if (this.(dimParmFieldId))
+        #            {
+        #                _qbS.addGroupByField(dimFieldId);
+        #            }
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #queryAddOrderByField
+        #/// <summary>
+        #///    Adds clauses of the <c>Order By</c> enumeration type to the data source.
+        #/// </summary>
+        #/// <param name="_qbdsInventDim">
+        #///    The data source to have ranges of the <c>Order By</c> enumeration type added.
+        #/// </param>
+        #/// <returns>
+        #///    true if any clauses of the <c>Order By</c> enumeration type where added to the data source;
+        #///    otherwise, false.
+        #/// </returns>
+        #/// <remarks>
+        #///    The clauses are determined by the values of the <c>InventDimParm</c> records.The data source that
+        #///    underlies the table must be an <c>InventDim</c> table.
+        #/// </remarks>
+        #public boolean queryAddOrderByField(QueryBuildDataSource _qbdsInventDim)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #    boolean         anyOrderBy;
+        #
+        #    if (!_qbdsInventDim || _qbdsInventDim.table() != tableNum(InventDim))
+        #    {
+        #        throw error(Error::wrongUseOfFunction(funcName()));
+        #    }
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            _qbdsInventDim.addOrderByField(dimFieldId);
+        #            anyOrderBy = true;
+        #        }
+        #    }
+        #
+        #    return anyOrderBy;
+        #}
+      ENDSOURCE
+      SOURCE #queryAddRange
+        #public void queryAddRange(
+        #    QueryBuildDataSource    _qbS,
+        #    InventDim               _inventDim)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            _qbS.addRange(dimFieldId).value(queryValue(_inventDim.(dimFieldId)));
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #queryAddRangeNoValue
+        #public void queryAddRangeNoValue(QueryBuildDataSource _qbS)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    _qbS.clearRanges();
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            SysQuery::findOrCreateRange(_qbS, dimFieldId);
+        #        }
+        #    }
+        #}
+        #
+      ENDSOURCE
+      SOURCE #queryAddRangeValue
+        #public void queryAddRangeValue(
+        #    QueryBuildDataSource    _qbS,
+        #    InventDim               _inventDim)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    _qbS.clearRanges();
+        #
+        #    // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        #    _inventDim.checkInvalidFieldAccess(false);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        if (_inventDim.(dimFieldId))
+        #        {
+        #            dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #            if (this.(dimParmFieldId))
+        #            {
+        #                _qbS.addRange(dimFieldId).value(queryValue(_inventDim.(dimFieldId)));
+        #            }
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #queryAddSortField
+        #public boolean queryAddSortField(QueryBuildDataSource _qbS)
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #    boolean         doGroupBy;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            _qbS.addSortField(dimFieldId);
+        #            doGroupBy = true;
+        #        }
+        #    }
+        #
+        #    if (doGroupBy)
+        #    {
+        #        _qbS.orderMode(OrderMode::GroupBy);
+        #    }
+        #
+        #    return doGroupBy;
+        #}
+      ENDSOURCE
+      SOURCE #selectedDimFields
+        #public List selectedDimFields()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #    List            res = new List(Types::Integer);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (this.(dimParmFieldId) == NoYes::Yes)
+        #        {
+        #            res.addEnd(dimFieldId);
+        #        }
+        #    }
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #setActiveProductDim
+        #public void setActiveProductDim(EcoResProductDimGroupSetup _productDimGroupSetup)
+        #{
+        #    InventDimGroupFieldSetupEnumerator      enumerator = _productDimGroupSetup.getFieldSetupEnumerator();
+        #    InventDimGroupFieldSetup                inventDimGroupFieldSetup;
+        #    FieldId                                 inventDimFieldId;
+        #    FieldId                                 dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        inventDimGroupFieldSetup = enumerator.current();
+        #        inventDimFieldId = inventDimGroupFieldSetup.dimFieldId();
+        #
+        #        if (inventDimGroupFieldSetup.isProductDimension())
+        #        {
+        #            dimParmFieldId = InventDim::dim2dimParm(inventDimFieldId);
+        #            this.(dimParmFieldId) = inventDimGroupFieldSetup.isActive() ? NoYes::Yes : NoYes::No;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #setActiveSiteAndProductDimensions
+        #/// <summary>
+        #///    Sets the product dimensions and site as active parameters, depending on the dimension group.
+        #/// </summary>
+        #/// <param name="_inventDimGroupSetup">
+        #///    An instance of the <c>InventDimGroupSetup</c> class that provides information about the dimension
+        #///    setup.
+        #/// </param>
+        #public void setActiveSiteAndProductDimensions(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    this.clear();
+        #    this.setActiveProductDim(_inventDimGroupSetup.ecoResProductDimGroupSetup());
+        #    this.InventSiteIdFlag = NoYes::Yes;
+        #}
+      ENDSOURCE
+      SOURCE #setActiveSiteAndWarehouseDimensions
+        #/// <summary>
+        #///    Marks the <c>InventSite</c> dimension and the <c>InventLocation</c> dimension as active parameters.
+        #/// </summary>
+        #public void setActiveSiteAndWarehouseDimensions()
+        #{
+        #    this.InventSiteIdFlag       = NoYes::Yes;
+        #    this.InventLocationIdFlag   = NoYes::Yes;
+        #}
+      ENDSOURCE
+      SOURCE #setAllInventDim
+        #public void setAllInventDim()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = NoYes::Yes;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #setAllProductDimensions
+        #public void setAllProductDimensions()
+        #{
+        #    List            list        = InventDim::dimProductDimFieldList();
+        #    ListEnumerator  enumerator  = (list) ? list.getEnumerator() : null;
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    if (!enumerator)
+        #    {
+        #        return;
+        #    }
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = NoYes::Yes;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #setAllTrackingDimensions
+        #/// <summary>
+        #/// Makes all the tracking dimensions active.
+        #/// </summary>
+        #public void setAllTrackingDimensions()
+        #{
+        #    List            list        = InventDim::dimTrackingDimFieldList();
+        #    ListEnumerator  enumerator  = (list) ? list.getEnumerator() : null;
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    if (!enumerator)
+        #    {
+        #        return;
+        #    }
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = NoYes::Yes;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #toggleAllInventDim
+        #public void toggleAllInventDim()
+        #{
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        this.(dimParmFieldId) = this.(dimParmFieldId) ? NoYes::No : NoYes::Yes;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #toggleAllInventDimLargeGrp
+        #public void toggleAllInventDimLargeGrp()
+        #{
+        #    List            dimFieldsLarge  = InventDimMetaDataCache::dimParmFieldListLarge();
+        #    ListEnumerator  enumerator  = dimFieldsLarge.getEnumerator();
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimParmFieldId = enumerator.current();
+        #        this.(dimParmFieldId) = this.(dimParmFieldId) ? NoYes::No : NoYes::Yes;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #toString
+        #public str toString()
+        #{
+        #    str                     ret;
+        #    List                    fieldList       = InventDimParm::dimParmEnabledFieldList();
+        #    ListEnumerator          enumerator      = fieldList.getEnumerator();
+        #    FieldId                 dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimParmFieldId = enumerator.current();
+        #        if (this.(dimParmFieldId))
+        #        {
+        #            ret = (ret ? ret + ', ' : '') + new DictField(tableNum(InventDimParm),dimParmFieldId).label();
+        #        }
+        #    }
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #activeDimFlag
+        #public static InventDimParm activeDimFlag(InventDimGroupSetup _inventDimGroupSetup)
+        #{
+        #    InventDimParm inventDimParm;
+        #
+        #    _inventDimGroupSetup.inventDimParmActive(inventDimParm);
+        #    inventDimParm.ItemIdFlag      = NoYes::Yes;
+        #
+        #    return inventDimParm;
+        #}
+      ENDSOURCE
+      SOURCE #allInventDim
+        #/// <summary>
+        #/// Provides an <c>InventDimParm</c> buffer with all dimensions checked.
+        #/// </summary>
+        #/// <returns>
+        #/// An <c>InventDimParm</c> buffer with all dimensions checked.
+        #/// </returns>
+        #public static InventDimParm allInventDim()
+        #{
+        #    InventDimParm dimParmAll;
+        #
+        #    dimParmAll.setAllInventDim();
+        #
+        #    return dimParmAll;
+        #}
+      ENDSOURCE
+      SOURCE #andParms
+        #public static InventDimParm andParms(
+        #    InventDimParm   _inventDimParm1,
+        #    InventDimParm   _inventDimParm2)
+        #{
+        #    InventDimParm   inventDimParm;
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (_inventDimParm1.(dimParmFieldId) && _inventDimParm2.(dimParmFieldId))
+        #        {
+        #            inventDimParm.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #    return inventDimParm;
+        #}
+      ENDSOURCE
+      SOURCE #dimParmEnabledFieldList
+        #public static List dimParmEnabledFieldList()
+        #{
+        #    int                     h;
+        #    List                    fieldList = new List(Types::Integer);
+        #    DictFieldGroup          dictFieldGroup;
+        #    DictField               dictField;
+        #    DictConfigurationKey    dictConfigurationKey;
+        #
+        #    dictFieldGroup = new DictFieldGroup(tableNum(InventDimParm), tableFieldgroupStr(InventDimParm, FixedView));
+        #
+        #    if (!dictFieldGroup)
+        #    {
+        #        return fieldList;
+        #    }
+        #
+        #    for (h=1; h <= dictFieldGroup.numberOfFields(); h++)
+        #    {
+        #        dictField  = new DictField(tableNum(InventDimParm), dictFieldGroup.field(h));
+        #        dictConfigurationKey = new DictConfigurationKey(dictField.configurationKeyId());
+        #        if (!dictField.configurationKeyId() || dictConfigurationKey.enabled())
+        #        {
+        #            fieldList.addEnd(dictField.id());
+        #        }
+        #    }
+        #    return fieldList;
+        #}
+      ENDSOURCE
+      SOURCE #fieldId2Typename
+        #// Returns typeId of the fieldId
+        #public static UtilElementName fieldId2Typename(FieldId _fieldId)
+        #{
+        #    SysDictField df = new SysDictField(tableNum(InventDimParm), _fieldId);
+        #
+        #    return df.typeName();
+        #}
+      ENDSOURCE
+      SOURCE #findAllDimIdCombinations
+        #public static server container findAllDimIdCombinations(
+        #    ItemId          _itemId,
+        #    InventDimParm   _inventDimParm)
+        #{
+        #    InventLocation       inventLocation;
+        #    InventDimCombination inventDimCombination;
+        #    InventDim            inventDimFromInventDimCombination;
+        #
+        #    Set                  setInventDimOld;
+        #    Set                  setInventDimNew;
+        #    InventDim            inventDim;
+        #
+        #
+        #    Set addCombination(int  _inventDimFieldId, str _value)
+        #    {
+        #        SetEnumerator   itInventDim;
+        #
+        #        itInventDim = setInventDimOld.getEnumerator();
+        #        if (setInventDimOld.elements())
+        #        {
+        #            while (itInventDim.moveNext())
+        #            {
+        #                inventDim = InventDim::find(itInventDim.current());
+        #                inventDim.(_inventDimFieldId) = _value;
+        #                setInventDimNew.add(InventDim::findOrCreate(inventDim).InventDimId);
+        #            }
+        #        }
+        #        else
+        #        {
+        #            inventDim = null;
+        #            inventDim.(_inventDimFieldId) = _value;
+        #            setInventDimNew.add(InventDim::findOrCreate(inventDim).InventDimId);
+        #        }
+        #
+        #        return setInventDimNew;
+        #    }
+        #
+        #    #InventDimDevelop
+        #
+        #    setInventDimOld = new Set(Types::String);
+        #    setInventDimNew = new Set(Types::String);
+        #
+        #    // Item dimensions are added first according to records in InventDimCombination
+        #    if (_inventDimParm.anyProductDimensionFlagSet())
+        #    {
+        #        while select    inventDimFromInventDimCombination
+        #            exists join inventDimCombination
+        #                where   inventDimFromInventDimCombination.InventDimId   == inventDimCombination.InventDimId
+        #                     && inventDimCombination.ItemId                     == _itemId
+        #        {
+        #            inventDim = null;
+        #            inventDim.ConfigId      = _inventDimParm.ConfigIdFlag      ? inventDimFromInventDimCombination.ConfigId      : '';
+        #            inventDim.InventSizeId  = _inventDimParm.InventSizeIdFlag  ? inventDimFromInventDimCombination.InventSizeId  : '';
+        #            inventDim.InventColorId = _inventDimParm.InventColorIdFlag ? inventDimFromInventDimCombination.InventColorId : '';
+        #            inventDim.InventStyleId = _inventDimParm.InventStyleIdFlag ? inventDimFromInventDimCombination.InventStyleId : '';
+        #            setInventDimNew.add(InventDim::findOrCreate(inventDim).InventDimId);
+        #        }
+        #        setInventDimOld = setInventDimNew;
+        #        setInventDimNew = new Set(Types::String);
+        #    }
+        #
+        #    // InventLocation are added
+        #    if (_inventDimParm.InventLocationIdFlag)
+        #    {
+        #        while select InventLocationId from inventLocation
+        #        {
+        #            setInventDimNew = addCombination(fieldNum(InventDim,InventLocationId), inventLocation.InventLocationId);
+        #        }
+        #        setInventDimOld = setInventDimNew;
+        #        setInventDimNew = new Set(Types::String);
+        #    }
+        #
+        #    return setInventDimOld.pack();
+        #}
+      ENDSOURCE
+      SOURCE #inventDimFormRightClick
+        #public static boolean inventDimFormRightClick(Object implementingObject)
+        #{
+        #    FormRun formRun;
+        #    ListPageInteraction listPageInteraction;
+        #    SysDictClass dictClass;
+        #
+        #    if (implementingObject is FormRun)
+        #    {
+        #        formRun = implementingObject as FormRun;
+        #        return formHasMethod(formRun, InventDimCtrl_Frm::inventDimSetupObjectMethod());
+        #    }
+        #    else if (implementingObject is ListPageInteraction)
+        #    {
+        #        listPageInteraction = implementingObject as ListPageInteraction;
+        #        dictClass = new SysDictClass(classIdGet(listPageInteraction));
+        #
+        #        return dictClass.hasObjectMethod(InventDimCtrl_Frm::inventDimSetupObjectMethod());
+        #    }
+        #
+        #    throw error(Error::wrongUseOfFunction(funcName()));
+        #
+        #}
+      ENDSOURCE
+      SOURCE #isInventDimParmEqual
+        #public static boolean isInventDimParmEqual(
+        #    InventDimParm   _inventDimParm1,
+        #    InventDimParm   _inventDimParm2,
+        #    List            _dimFields = InventDim::dimFieldsList())
+        #{
+        #    ListEnumerator  enumerator  = _dimFields ? _dimFields.getEnumerator() : null;
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    if (enumerator)
+        #    {
+        #        while (enumerator.moveNext())
+        #        {
+        #            dimFieldId = enumerator.current();
+        #            dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+        #            if (_inventDimParm1.(dimParmFieldId) != _inventDimParm2.(dimParmFieldId))
+        #            {
+        #                return false;
+        #            }
+        #        }
+        #    }
+        #
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #orParms
+        #public static InventDimParm orParms(
+        #    InventDimParm   _inventDimParm1,
+        #    InventDimParm   _inventDimParm2)
+        #{
+        #    InventDimParm   inventDimParm;
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (_inventDimParm1.(dimParmFieldId) || _inventDimParm2.(dimParmFieldId))
+        #        {
+        #            inventDimParm.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #    return inventDimParm;
+        #}
+      ENDSOURCE
+      SOURCE #xorParms
+        #public static InventDimParm xorParms(
+        #    InventDimParm   _inventDimParm1,
+        #    InventDimParm   _inventDimParm2)
+        #{
+        #    InventDimParm   inventDimParm;
+        #    ListEnumerator  enumerator  = InventDim::dimFieldListEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId  = InventDim::dim2dimParm(dimFieldId);
+        #        if (_inventDimParm1.(dimParmFieldId) != _inventDimParm2.(dimParmFieldId))
+        #        {
+        #            inventDimParm.(dimParmFieldId) = NoYes::Yes;
+        #        }
+        #    }
+        #    return inventDimParm;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+***Element: DBT
+
 ; Microsoft Dynamics AX Table : InventSumDelta unloaded
 ; --------------------------------------------------------------------------------
   TABLEVERSION 1
@@ -8496,6 +10505,954 @@ ENDFORM
 
 ***Element: CLS
 
+; Microsoft Dynamics AX Class: InventDimCtrl_Frm unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #InventDimCtrl_Frm
+    PROPERTIES
+      Name                #InventDimCtrl_Frm
+      Extends             #InventDimCtrl
+      Origin              #{2D1105FE-0000-1000-47CC-0F2E4E0A3A2F}
+      LegacyId            #1534
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #allowResizeOfFormControls
+        #/// <summary>
+        #/// Indicates whether to resize the form controls.
+        #/// </summary>
+        #/// <returns>
+        #/// Always returns true.
+        #/// </returns>
+        #public boolean allowResizeOfFormControls()
+        #{
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #buildToggleLists
+        #protected boolean buildToggleLists()
+        #{
+        #    InventDimFormControlInterface  fc;
+        #    boolean test;
+        #    boolean testMandatory;
+        #
+        #    boolean willBeEnabled()
+        #    {
+        #        return ((fc.allowEdit() && !enabledToggle.in(fc)) || (!fc.allowEdit() && enabledToggle.in(fc)));
+        #    }
+        #
+        #    visibleToggle = new Set(Types::Class);
+        #    enabledToggle = new Set(Types::Class);
+        #    mandatoryToggle = new Set(Types::Class);
+        #
+        #    for (fc=inventDimControls.first();fc;fc=inventDimControls.next())
+        #    {
+        #        test = !this.mustEnableControl(fc);
+        #        if ((test && fc.allowEdit()) || (!test && !fc.allowEdit()))
+        #        {
+        #            enabledToggle.add(fc);
+        #        }
+        #
+        #        if (!fc.isInGrid()     // currently the mandatory property affects all rows in the grid so don't set it for grid controls.
+        #         && fc.supportsMandatory())       // currently X++ web controls don't have the mandatory property
+        #        {
+        #            testMandatory = !this.mustMarkControlAsMandatory(fc);
+        #            if ((testMandatory && fc.mandatory()) || (!testMandatory && !fc.mandatory()))
+        #            {
+        #                mandatoryToggle.add(fc);
+        #            }
+        #        }
+        #
+        #        test = this.mustShowControl(fc);
+        #
+        #        if (test && fc.visible() && dontShowDisabled && !willBeEnabled())
+        #        {
+        #            visibleToggle.add(fc);
+        #        }
+        #        else if ((test && !fc.visible()) || (!test && fc.visible()))
+        #        {
+        #            if (!fc.visible() && dontShowDisabled && !willBeEnabled())
+        #            {
+        #                continue;
+        #            }
+        #            visibleToggle.add(fc);
+        #        }
+        #    }
+        #    return visibleToggle.elements() + enabledToggle.elements() + mandatoryToggle.elements();
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #public class InventDimCtrl_Frm extends InventDimCtrl implements SysPackable
+        #{
+        #    InventDimFormInterface             callingElement;
+        #
+        #    InventDimParm       dimParmEnabled;
+        #    InventDimParm       dimParmVisibleGrid;
+        #    InventDimParm       dimParmLockedRightClick;
+        #
+        #    Set                 visibleToggle;
+        #    Set                 enabledToggle;
+        #    Set                 mandatoryToggle;
+        #
+        #    boolean             dontShowDisabled;
+        #    boolean             rightClickActive;
+        #    boolean             largeRightClickForm;
+        #
+        #    boolean             lastValueRead;
+        #    boolean             overRideUserSetup;
+        #    boolean             skipOnHandLookUp;
+        #
+        #    UnknownNoYes        formHasMethodUpdateControls;
+        #    UnknownNoYes        formHasMethodUpdatedControls;
+        #
+        #    InventDimControlIdCollectionEnumerator  controlIdCollectionEnumerator;
+        #
+        #    //DEV_InventSumFields, InventDim fields in InventSum, 11.06.2021 -->
+        #    boolean   isInventSumDimension;
+        #    //DEV_InventSumFields, InventDim fields in InventSum, 11.06.2021 <--
+        #
+        #    #DEFINE.FixedDimensions(2)
+        #    #DEFINE.ItemIdFlag(3)
+        #    #DEFINE.ClosedFlag(4)
+        #    #DEFINE.ClosedQtyFlag(5)
+        #
+        #    #define.CurrentVersion(1)
+        #}
+      ENDSOURCE
+      SOURCE #clearInvisibleRanges
+        #/// <summary>
+        #/// Clears the ranges on fields that are not selected.
+        #/// </summary>
+        #/// <param name="_query">
+        #/// The query in which ranges are checked and potentially cleared.
+        #/// </param>
+        #protected void clearInvisibleRanges(Query _query)
+        #{
+        #    int             qbrIdx;
+        #    QueryBuildRange qbr;
+        #    FieldId         inventDimFieldId;
+        #    FieldId         inventDimParmFieldId;
+        #    DictTable       dictTable;
+        #    QueryFilter     queryFilter;
+        #    QueryBuildDataSource queryFilterDatasource;
+        #
+        #    dictTable = new DictTable(tableNum(InventDim));
+        #    // If there is a range for an invisible field, clear it
+        #    for (qbrIdx = 1; qbrIdx <= _query.dataSourceTable(tableNum(InventDim)).rangeCount(); qbrIdx++)
+        #    {
+        #        qbr = _query.dataSourceTable(tableNum(InventDim)).range(qbrIdx);
+        #        if (qbr.value() != '')
+        #        {
+        #            // We have to use the fieldName(), because field() returns an invalid value
+        #            inventDimFieldId = dictTable.fieldName2Id(qbr.fieldName());
+        #            inventDimParmFieldId = this.dim2dimParm(inventDimFieldId);
+        #            if (!dimParmVisibleGrid.(inventDimParmFieldId))
+        #            {
+        #                qbr.value('');
+        #            }
+        #        }
+        #    }
+        #
+        #    // If there is a query filter for an invisible field, clear it
+        #    for (qbrIdx = 1; qbrIdx <= _query.queryFilterCount(); qbrIdx++)
+        #    {
+        #        queryFilter = _query.queryFilter(qbrIdx);
+        #        if (queryFilter && queryFilter.value() != '')
+        #        {
+        #            queryFilterDatasource = queryFilter.dataSource();
+        #            if (queryFilterDatasource.table() == tableNum(InventDim))
+        #            {
+        #                inventDimFieldId = dictTable.fieldName2Id(queryFilter.field());
+        #                inventDimParmFieldId = this.dim2dimParm(inventDimFieldId);
+        #                if (!dimParmVisibleGrid.(inventDimParmFieldId))
+        #                {
+        #                    queryFilter.value('');
+        #                }
+        #            }
+        #        }
+        #    }
+        #
+        #
+        #
+        #
+        #}
+      ENDSOURCE
+      SOURCE #collectControls
+        #protected void collectControls(Set _validDataSources = null)
+        #{
+        #    inventDimControls = InventDimControlsCollect_Frm::newFromFormInterfaceValidDataSources(callingElement,_validDataSources
+        #    , controlIdCollectionEnumerator
+        #    );
+        #}
+      ENDSOURCE
+      SOURCE #delLast
+        #public void delLast()
+        #{
+        #    xSysLastValue::deleteLast(this);
+        #}
+      ENDSOURCE
+      SOURCE #dim2dimParm
+        #/// <summary>
+        #///    Converts an <c>InventDim</c> field ID to an <c>InventDimParm</c> field ID.
+        #/// </summary>
+        #/// <param name="_fieldId">
+        #///    The <c>InventDim</c> field ID.
+        #/// </param>
+        #/// <returns>
+        #///   A field ID.
+        #/// </returns>
+        #protected FieldId dim2dimParm(FieldId _fieldId)
+        #{
+        #    if (_fieldId == fieldNum(InventDim, TableId))
+        #    {
+        #        return _fieldId;
+        #    }
+        #    return InventDim::dim2dimParm(_fieldId);
+        #}
+      ENDSOURCE
+      SOURCE #formActiveSetup
+        #/// <summary>
+        #///    Makes sure that the appropriate dimension fields are enabled.
+        #/// </summary>
+        #/// <param name="_inventDimGroupSetup">
+        #///    An instance of the <c>InventDimGroupSetup</c> class that provides information about the dimension
+        #///    setup.
+        #/// </param>
+        #/// <remarks>
+        #///    Call this method when the active record in the form has changed
+        #/// </remarks>
+        #public void formActiveSetup(InventDimGroupSetup _inventDimGroupSetup = null)
+        #{
+        #    this.parmInventDimGroupSetup(_inventDimGroupSetup);
+        #
+        #    this.initDimParmEnabled();
+        #}
+      ENDSOURCE
+      SOURCE #formSetControls
+        #public void formSetControls(
+        #    boolean _lockForm,
+        #    boolean _resizeGrid = false)
+        #{
+        #    boolean makeChanges = this.buildToggleLists() || _resizeGrid;
+        #
+        #    if (makeChanges && _lockForm)
+        #    {
+        #        callingElement.lock();
+        #    }
+        #
+        #    this.updateControls();
+        #
+        #    if (makeChanges && _lockForm)
+        #    {
+        #        callingElement.unLock();
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #formSetControlsRightClick
+        #public void formSetControlsRightClick(
+        #    boolean _lockForm,
+        #    boolean _resizeGrid = false,
+        #    Args    _args = null)
+        #{
+        #    this.formSetControls(_lockForm, _resizeGrid);
+        #}
+      ENDSOURCE
+      SOURCE #getLast
+        #public void getLast(boolean _forUpdate = false)
+        #{
+        #    xSysLastValue::getLast(this);
+        #
+        #    lastValueRead = true;
+        #}
+      ENDSOURCE
+      SOURCE #init
+        #/// <summary>
+        #///    Initializes this class.
+        #/// </summary>
+        #/// <remarks>
+        #///    This method is called from the constructing new method.
+        #/// </remarks>
+        #public void init()
+        #{
+        #    Object                              dummy;
+        #    InventDimAxFormAdapter              desktopFormAdapter;
+        #    InventDimListPageInteractionAdapter listPageAdapter;
+        #
+        #    if (!callingElement)
+        #    {
+        #        throw error(strFmt("@SYS54101", funcName()));
+        #    }
+        #
+        #    super();
+        #
+        #    visibleToggle = new Set(Types::Class);
+        #    enabledToggle = new Set(Types::Class);
+        #    mandatoryToggle = new Set(Types::Class);
+        #
+        #    this.collectControls(validDataSources);
+        #
+        #    //right-click is only supported for desktop forms
+        #    if (callingElement is InventDimAxFormAdapter)
+        #    {
+        #        //work around the compiler bug
+        #        dummy = callingElement;
+        #        desktopFormAdapter = dummy;
+        #
+        #        rightClickActive  = InventDimParm::inventDimFormRightClick(desktopFormAdapter.parmFormObject());
+        #        InventDimCtrl_Frm::setFormDataSourceMaxAccessRight(desktopFormAdapter.formObject());
+        #    }
+        #    else if (callingElement is InventDimListPageInteractionAdapter)
+        #    {
+        #        listPageAdapter = callingElement as InventDimListPageInteractionAdapter;
+        #
+        #        rightClickActive = InventDimParm::inventDimFormRightClick(listPageAdapter.parmListPageInteractionObject());
+        #    }
+        #
+        #    this.initDimParmVisible();
+        #    this.initDimParmVisibleGrid();
+        #    if (rightClickActive)
+        #    {
+        #        this.initDimParmLockedRightClick();
+        #    }
+        #
+        #    this.initDimParmEnabled();
+        #    this.initUserSetup();
+        #}
+      ENDSOURCE
+      SOURCE #initDimParmEnabled
+        #public InventDimParm initDimParmEnabled()
+        #{
+        #    List            dimActiveFields     = this.inventDimGroupSetup().activeFields();
+        #    ListEnumerator  enumerator          = dimActiveFields.getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    this.clearDimParmBuffer(dimParmEnabled);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId = enumerator.current();
+        #        dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+        #        dimParmEnabled.(dimParmFieldId) = this.mustEnableField(dimFieldId);
+        #    }
+        #    return dimParmEnabled;
+        #}
+      ENDSOURCE
+      SOURCE #initDimParmLockedRightClick
+        #protected InventDimParm initDimParmLockedRightClick()
+        #{
+        #    dimParmLockedRightClick.clear();
+        #    return dimParmLockedRightClick;
+        #}
+      ENDSOURCE
+      SOURCE #initDimParmVisibleGrid
+        #protected InventDimParm initDimParmVisibleGrid()
+        #{
+        #    ListEnumerator  enumerator      = this.dimFields().getEnumerator();
+        #    FieldId         dimFieldId;
+        #    FieldId         dimParmFieldId;
+        #
+        #    this.clearDimParmBuffer(dimParmVisibleGrid);
+        #
+        #    while (enumerator.moveNext())
+        #    {
+        #        dimFieldId      = enumerator.current();
+        #        dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+        #        dimParmVisibleGrid.(dimParmFieldId) = this.mustShowGridField(dimFieldId);
+        #    }
+        #    return dimParmVisibleGrid;
+        #}
+      ENDSOURCE
+      SOURCE #initParmDefault
+        #public void initParmDefault()
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #initUserSetup
+        #protected void initUserSetup()
+        #{
+        #    if (!rightClickActive) // No rightClick form available
+        #    {
+        #        return;
+        #    }
+        #
+        #    if (!this.useSysLastValue()) // setup can not be saved
+        #    {
+        #        return;
+        #    }
+        #
+        #    if (! lastValueRead )
+        #    {
+        #        this.getLast();
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #lastValueDataAreaId
+        #public DataAreaId lastValueDataAreaId()
+        #{
+        #    return curext();
+        #}
+      ENDSOURCE
+      SOURCE #lastValueDesignName
+        #public IdentifierName lastValueDesignName()
+        #{
+        #    str nameExtension = 'I_Dim';
+        #
+        #    if (inventDimControls)
+        #    {
+        #        nameExtension += inventDimControls.validDataSourceNames();
+        #    }
+        #
+        #    if (callingElement && callingElement.args() && callingElement.args().caller() && SysDictClass::isEqualOrSuperclass(classIdGet(callingElement.args().caller()),classNum(FormRun)))
+        #    {
+        #        nameExtension += callingElement.args().caller().name();
+        #    }
+        #
+        #    return int2str(str2HashKey(nameExtension));
+        #}
+      ENDSOURCE
+      SOURCE #lastValueElementName
+        #public IdentifierName lastValueElementName()
+        #{
+        #    return callingElement.name();
+        #}
+      ENDSOURCE
+      SOURCE #lastValueType
+        #public UtilElementType lastValueType()
+        #{
+        #    return UtilElementType::Form;
+        #}
+      ENDSOURCE
+      SOURCE #lastValueUserId
+        #public UserId lastValueUserId()
+        #{
+        #    return curUserId();
+        #}
+      ENDSOURCE
+      SOURCE #mustEnableControl
+        #/// <summary>
+        #/// Determines whether to enable a form control.
+        #/// </summary>
+        #/// <param name="_fc">
+        #/// A form control to check.
+        #/// </param>
+        #/// <param name="_dimParmEnabled">
+        #/// <c>InventDimParm</c> buffer for enabled inventory dimension fields.
+        #/// </param>
+        #/// <returns>
+        #/// true if a control should be enabled; otherwise false.
+        #/// </returns>
+        #protected boolean mustEnableControl(
+        #    InventDimFormControlInterface   _fc,
+        #    InventDimParm                   _dimParmEnabled = dimParmEnabled)
+        #{
+        #    FieldId dimParmFieldId = InventDim::dim2dimParm(inventDimControls.fieldId(_fc));
+        #    return _dimParmEnabled.(dimParmFieldId);
+        #}
+      ENDSOURCE
+      SOURCE #mustEnableField
+        #/// <summary>
+        #/// Determines if the specified dimension field should be enabled in the grid.
+        #/// </summary>
+        #/// <param name="_dimFieldId">
+        #/// Dimension field ID.
+        #/// </param>
+        #/// <returns>
+        #/// NoYes::Yes if the field should be enabled in the grid; otherwise, NoYes::No.
+        #/// </returns>
+        #protected NoYes mustEnableField(FieldId  _dimFieldId)
+        #{
+        #    return NoYes::No;
+        #}
+      ENDSOURCE
+      SOURCE #mustMarkControlAsMandatory
+        #/// <summary>
+        #/// Determines whether to make a form control mandatory.
+        #/// </summary>
+        #/// <param name="_fc">
+        #/// A form control to check.
+        #/// </param>
+        #/// <param name="_dimParmEnabled">
+        #/// <c>InventDimParm</c> buffer for enabled inventory dimension fields.
+        #/// </param>
+        #/// <returns>
+        #/// true if a control should be mandatory; otherwise false.
+        #/// </returns>
+        #protected boolean mustMarkControlAsMandatory(
+        #    InventDimFormControlInterface   _fc,
+        #    InventDimParm                   _dimParmEnabled = dimParmEnabled)
+        #{
+        #    FieldId dimParmFieldId = InventDim::dim2dimParm(inventDimControls.fieldId(_fc));
+        #    if (!_dimParmEnabled.(dimParmFieldId))
+        #    {
+        #        return false;
+        #    }
+        #    return this.mustMarkFieldAsMandatory(inventDimControls.fieldId(_fc));
+        #}
+      ENDSOURCE
+      SOURCE #mustMarkFieldAsMandatory
+        #protected NoYes mustMarkFieldAsMandatory(FieldId  _dimFieldId)
+        #{
+        #    return NoYes::No;
+        #}
+      ENDSOURCE
+      SOURCE #mustShowControl
+        #protected boolean mustShowControl(
+        #    InventDimControlInterface   _fc,
+        #    InventDimParm               _dimParmVisibleGrid = dimParmVisibleGrid)
+        #{
+        #    FieldId dimParmFieldId = InventDim::dim2dimParm(inventDimControls.fieldId(_fc));
+        #    return _fc.isInGrid() ? _dimParmVisibleGrid.(dimParmFieldId) : dimParmVisible.(dimParmFieldId);
+        #}
+      ENDSOURCE
+      SOURCE #mustShowGridField
+        #/// <summary>
+        #/// Determines if the specified dimension field should be shown in the grid.
+        #/// </summary>
+        #/// <param name="_dimFieldId">
+        #/// Dimension field ID.
+        #/// </param>
+        #/// <returns>
+        #/// NoYes::Yes if the field should be shown in the grid; otherwise, NoYes::No.
+        #/// </returns>
+        #protected NoYes mustShowGridField(FieldId _dimFieldId)
+        #{
+        #    return NoYes::No;
+        #}
+      ENDSOURCE
+      SOURCE #new
+        #protected void new()
+        #{
+        #    super();
+        #}
+      ENDSOURCE
+      SOURCE #pack
+        #public container pack()
+        #{
+        #    return [#currentVersion,InventDimCtrl_Frm::packDimParm(dimParmVisibleGrid)];
+        #}
+      ENDSOURCE
+      SOURCE #parmCallingElement
+        #public InventDimFormInterface parmCallingElement(InventDimFormInterface _callingElement = callingElement)
+        #{
+        #    callingElement = _callingElement;
+        #    return callingElement;
+        #}
+      ENDSOURCE
+      SOURCE #parmControlIdCollectionEnumerator
+        #public InventDimControlIdCollectionEnumerator parmControlIdCollectionEnumerator(InventDimControlIdCollectionEnumerator _controlIdCollectionEnumerator = controlIdCollectionEnumerator)
+        #{
+        #    controlIdCollectionEnumerator = _controlIdCollectionEnumerator;
+        #    return controlIdCollectionEnumerator;
+        #}
+      ENDSOURCE
+      SOURCE #parmDimParmEnabled
+        #public InventDimParm parmDimParmEnabled(InventDimParm _dimParmEnabled = dimParmEnabled)
+        #{
+        #    dimParmEnabled = _dimParmEnabled;
+        #    return dimParmEnabled;
+        #}
+      ENDSOURCE
+      SOURCE #parmDimParmLockedRightClick
+        #public InventDimParm parmDimParmLockedRightClick(InventDimParm _dimParmLockedRightClick = dimParmLockedRightClick)
+        #{
+        #    dimParmLockedRightClick = _dimParmLockedRightClick;
+        #    return dimParmLockedRightClick;
+        #}
+      ENDSOURCE
+      SOURCE #parmDimParmVisibleGrid
+        #public InventDimParm parmDimParmVisibleGrid(
+        #    InventDimParm   _dimParmVisibleGrid = dimParmVisibleGrid,
+        #    boolean         _overRideUserSetup  = false)
+        #{
+        #    overRideUserSetup = _overRideUserSetup;
+        #
+        #    if (this.sysLastValueExist() && !overRideUserSetup)
+        #    {
+        #        return dimParmVisibleGrid;
+        #    }
+        #
+        #    dimParmVisibleGrid = _dimParmVisibleGrid;
+        #    return dimParmVisibleGrid;
+        #}
+      ENDSOURCE
+      SOURCE #parmDontShowDisabled
+        #public boolean parmDontShowDisabled(boolean _dontShowDisabled = dontShowDisabled)
+        #{
+        #    dontShowDisabled = _dontShowDisabled;
+        #    return dontShowDisabled;
+        #}
+      ENDSOURCE
+      SOURCE #parmLargeRightClickForm
+        #public NoYes parmLargeRightClickForm(NoYes _largeRightClickForm = largeRightClickForm)
+        #{
+        #    largeRightClickForm = _largeRightClickForm;
+        #    return largeRightClickForm;
+        #}
+      ENDSOURCE
+      SOURCE #parmOverRideUserSetup
+        #public boolean parmOverRideUserSetup(boolean _overRideUserSetup = overRideUserSetup)
+        #{
+        #    overRideUserSetup = _overRideUserSetup;
+        #    return overRideUserSetup;
+        #}
+      ENDSOURCE
+      SOURCE #parmSkipOnHandLookUp
+        #public boolean parmSkipOnHandLookUp(boolean _skipOnHandLookUp = skipOnHandLookUp)
+        #{
+        #    skipOnHandLookUp = _skipOnHandLookUp;
+        #    return skipOnHandLookUp;
+        #}
+      ENDSOURCE
+      SOURCE #resizeGrid
+        #[SysObsoleteAttribute('Grids are automatically resized, so no need to do it explicitly', true)]
+        #protected void resizeGrid()
+        #{
+        #    callingElement.resetSize();
+        #}
+      ENDSOURCE
+      SOURCE #rightClickModifyQueryGroupBy
+        #/// <summary>
+        #/// Makes sure that ranges are preserved and that ranges on fields no longer visible are removed.
+        #/// </summary>
+        #/// <param name="_topFormDS">
+        #/// The form data source in top of the form query.
+        #/// </param>
+        #public void rightClickModifyQueryGroupBy(FormDataSource _topFormDS)
+        #{
+        #    container       packedRangeAndSortorder;
+        #
+        #    // Save the ranges from the queryRun before
+        #    if (_topFormDS.queryRun() != null && _topFormDS.queryRun().query() != null)
+        #    {
+        #        packedRangeAndSortorder = SysQuery::packRangeAndSortorder(_topFormDS.queryRun().query());
+        #    }
+        #
+        #    // Apply the saved ranges to the query created from the activated dimensions
+        #    SysQuery::unpackRangeAndSortorder(_topFormDS.query(), packedRangeAndSortorder);
+        #
+        #    // Clear the ranges for fields which became invisible
+        #    this.clearInvisibleRanges(_topFormDS.query());
+        #    this.clearInvisibleRanges(_topFormDS.queryRun().query());
+        #}
+      ENDSOURCE
+      SOURCE #saveLast
+        #public void saveLast()
+        #{
+        #    xSysLastValue::saveLast(this);
+        #}
+      ENDSOURCE
+      SOURCE #setupLargeGroupCaption
+        #/// <summary>
+        #///    Specifies the label of the <c>LargeGrp</c> group control in the dimension setup form.
+        #/// </summary>
+        #/// <returns>
+        #///    The View/Total label.
+        #/// </returns>
+        #public LabelString setupLargeGroupCaption()
+        #{
+        #    return "@SYS54651";
+        #}
+      ENDSOURCE
+      SOURCE #setupShowAllProductDimensions
+        #/// <summary>
+        #///    Shows only the product dimensions on the dimension setup form.
+        #/// </summary>
+        #/// <returns>
+        #///    Always returns true.
+        #/// </returns>
+        #public boolean setupShowAllProductDimensions()
+        #{
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #setupShowClosed
+        #/// <summary>
+        #///    Determines whether closed transactions should be visible on the dimension setup form.
+        #/// </summary>
+        #/// <returns>
+        #///    Always returns false.
+        #/// </returns>
+        #public boolean setupShowClosed()
+        #{
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #setupShowClosedQty
+        #/// <summary>
+        #///    Determines whether the sum without values should be shown.
+        #/// </summary>
+        #/// <returns>
+        #///    Always returns false.
+        #/// </returns>
+        #public boolean setupShowClosedQty()
+        #{
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #setupShowItemId
+        #/// <summary>
+        #///    Determines whether the item number should be visible in the dimension setup form.
+        #/// </summary>
+        #/// <returns>
+        #///    Always returns true.
+        #/// </returns>
+        #public boolean setupShowItemId()
+        #{
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #sysLastValueExist
+        #public boolean sysLastValueExist()
+        #{
+        #    return xSysLastValue::existLast(this);
+        #}
+      ENDSOURCE
+      SOURCE #unpack
+        #public boolean unpack(container _packedClass)
+        #{
+        #    int         version;
+        #    container   c;
+        #
+        #    if (overRideUserSetup)
+        #    {
+        #        return false;
+        #    }
+        #
+        #    if (! _packedClass)
+        #    {
+        #        return false;
+        #    }
+        #
+        #    // Is 5 for version 2.5 and earlier
+        #    if (conLen(_packedClass) == 5)
+        #    {
+        #        if (InventDimFixedClass::inventDimParm2InventDimFixed(dimParmVisibleGrid) == conPeek(_packedClass,1))
+        #        {
+        #            return false;
+        #        }
+        #
+        #        InventDimFixedClass::inventDimFixed2InventDimParm(conPeek(_packedClass,1),dimParmVisibleGrid);
+        #        dimParmVisibleGrid.ConfigIdFlag     = conPeek(_packedClass,2);
+        #        dimParmVisibleGrid.ItemIdFlag       = conPeek(_packedClass,#ItemIdFlag);
+        #        dimParmVisibleGrid.ClosedFlag       = conPeek(_packedClass,#ClosedFlag);
+        #        dimParmVisibleGrid.ClosedQtyFlag    = conPeek(_packedClass,#ClosedQtyFlag);
+        #        return true;
+        #    }
+        #
+        #    version = RunBase::getVersion(_packedClass);
+        #
+        #    switch (version)
+        #    {
+        #        case #CurrentVersion:
+        #            [version,c] = _packedClass;
+        #            if (! c)
+        #            {
+        #                return false;
+        #            }
+        #
+        #            InventDimCtrl_Frm::unpackDimParm(dimParmVisibleGrid,c);
+        #            break;
+        #
+        #        default:
+        #            return false;
+        #    }
+        #
+        #    return false;
+        #}
+      ENDSOURCE
+      SOURCE #updateControls
+        #/// <summary>
+        #///    Updates the controls in the user interface, such as a form or report, by using the current
+        #///    parameter values.
+        #/// </summary>
+        #/// <remarks>
+        #///    This method hides or shows controls. It is also responsible for enabling and disabling controls.
+        #/// </remarks>
+        #public void updateControls()
+        #{
+        #    InventDimFormControlInterface fc;
+        #
+        #    if (formHasMethodUpdateControls == UnknownNoYes::Unknown)
+        #    {
+        #        formHasMethodUpdateControls = callingElement.hasMethod(identifierStr(updateControls)) ? UnknownNoYes::Yes : UnknownNoYes::No;
+        #    }
+        #
+        #    if (formHasMethodUpdateControls == UnknownNoYes::Yes)
+        #    {
+        #        callingElement.formObject().updateControls();
+        #    }
+        #
+        #    if (enabledToggle.empty() && visibleToggle.empty() && mandatoryToggle.empty())
+        #    {
+        #        return;
+        #    }
+        #
+        #    for (fc = inventDimControls.first(); fc; fc = inventDimControls.next())
+        #    {
+        #        if (enabledToggle.in(fc))
+        #        {
+        #            fc.allowEdit(!fc.allowEdit());
+        #        }
+        #
+        #        if (visibleToggle.in(fc))
+        #        {
+        #            fc.visible(!fc.visible());
+        #        }
+        #
+        #        if (mandatoryToggle.in(fc))
+        #        {
+        #            fc.mandatory(!fc.mandatory());
+        #        }
+        #    }
+        #
+        #    if (formHasMethodUpdatedControls == UnknownNoYes::Unknown)
+        #    {
+        #        formHasMethodUpdatedControls = callingElement.hasMethod(identifierStr(inventDimCtrl_UpdatedControls)) ? UnknownNoYes::Yes : UnknownNoYes::No;
+        #    }
+        #
+        #    if (formHasMethodUpdatedControls == UnknownNoYes::Yes)
+        #    {
+        #        callingElement.formObject().inventDimCtrl_UpdatedControls();
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #useSysLastValue
+        #public boolean useSysLastValue()
+        #{
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #construct
+        #public static InventDimCtrl_Frm construct()
+        #{
+        #    return new InventDimCtrl_Frm();
+        #}
+      ENDSOURCE
+      SOURCE #inventDimSetupObjectMethod
+        #public static IdentifierName inventDimSetupObjectMethod()
+        #{
+        #    return identifierStr(inventDimSetupObject);  // this is a method name
+        #}
+      ENDSOURCE
+      SOURCE #newFromASPWebForm
+        #/// <summary>
+        #///    Creates and returns an instance of the <c>InventDimCtrl_Frm</c> class based on a ASP.NET control.
+        #/// </summary>
+        #/// <param name="_rootControlUniqueId">
+        #///    The unique ID of the ASP.NET user control.
+        #/// </param>
+        #/// <param name="_dataSourceControlId">
+        #///    The ID of an ASP.NET data source.
+        #/// </param>
+        #/// <param name="_dataSetRun">
+        #///    The <c>DataSetRun</c> instance that provides data to the controls.
+        #/// </param>
+        #/// <returns>
+        #///    An instance of this class that will be used in an ASP.NET user control.
+        #/// </returns>
+        #public static InventDimCtrl_Frm newFromASPWebForm(
+        #    WebControlId    _rootControlUniqueId,
+        #    WebControlId    _dataSourceControlId,
+        #    DataSetRun      _dataSetRun)
+        #{
+        #    InventDimCtrl_Frm   inventDimCtrl = InventDimCtrl_Frm::construct();
+        #    InventDimASPWebFormAdapter adapter = InventDimASPWebFormAdapter::newFromASPWebForm(
+        #        _rootControlUniqueId,
+        #        _dataSourceControlId,
+        #        _dataSetRun
+        #        );
+        #
+        #    inventDimCtrl.parmCallingElement(adapter);
+        #    inventDimCtrl.init();
+        #
+        #    return inventDimCtrl;
+        #}
+      ENDSOURCE
+      SOURCE #packDimParm
+        #static public container packDimParm(InventDimParm _dimParmVisibleGrid)
+        #{
+        #    return [#currentVersion,InventDimFixedClass::inventDimParm2InventDimFixed(_dimParmVisibleGrid),
+        #            _dimParmVisibleGrid.ItemIdFlag,
+        #            _dimParmVisibleGrid.ClosedFlag,
+        #            _dimParmVisibleGrid.ClosedQtyFlag
+        #            ];
+        #}
+      ENDSOURCE
+      SOURCE #setFormDataSourceMaxAccessRight
+        #/// <summary>
+        #/// Sets the access rights on form data sources.
+        #/// </summary>
+        #/// <param name="_formRun">
+        #/// The form instance.
+        #/// </param>
+        #/// <remarks>
+        #/// Only data sources that are based on the <c>InventDim</c> table are changed.
+        #/// </remarks>
+        #public static void setFormDataSourceMaxAccessRight(FormRun _formRun)
+        #{
+        #    SecurityRights      sr;
+        #    Form                form;
+        #    FormBuildDataSource fbds;
+        #    int                 formDataSourceCount;
+        #    AccessRight         accessRight = AccessRight::NoAccess;
+        #    Map                 tablePermissions;
+        #
+        #    sr = SecurityRights::construct();
+        #
+        #    if (_formRun.args().menuItemName())
+        #    {
+        #        //get table access rights for menu item
+        #        switch(_formRun.args().menuItemType())
+        #        {
+        #            case MenuItemType::Action:
+        #                accessRight = sr.menuItemAccessRight(SecurableType::MenuItemAction, _formRun.args().menuItemName());
+        #                break;
+        #            case MenuItemType::Display:
+        #                accessRight = sr.menuItemAccessRight(SecurableType::MenuItemDisplay, _formRun.args().menuItemName());
+        #                break;
+        #            case MenuItemType::Output:
+        #                accessRight = sr.menuItemAccessRight(SecurableType::MenuItemOutput, _formRun.args().menuItemName());
+        #                break;
+        #            default:
+        #                return;
+        #        }
+        #
+        #        //find the form data source and set the maxAccessRight
+        #        form = _formRun.form();
+        #        tablePermissions = FormSecurity::getTablePermissions(form, accessRight);
+        #
+        #        for (formDataSourceCount = 1; formDataSourceCount <= form.dataSourceCount(); formDataSourceCount++)
+        #        {
+        #            fbds = form.dataSource(formDataSourceCount);
+        #            if (fbds.table() == tableNum(InventDim))
+        #            {
+        #                if (tablePermissions.exists(tableStr(InventDim)))
+        #                {
+        #                    fbds.maxAccessRight(min(fbds.maxAccessRight(), enum2int(tablePermissions.lookup(tableStr(InventDim)))));
+        #                }
+        #            }
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #unpackDimParm
+        #static public void unpackDimParm(
+        #    InventDimParm   _dimParmVisibleGrid,
+        #    container       _c)
+        #{
+        #    InventDimFixedClass::inventDimFixed2InventDimParm(conPeek(_c,#FixedDimensions),_dimParmVisibleGrid);
+        #    _dimParmVisibleGrid.ItemIdFlag      = conPeek(_c,#ItemIdFlag);
+        #    _dimParmVisibleGrid.ClosedFlag      = conPeek(_c,#ClosedFlag);
+        #    _dimParmVisibleGrid.ClosedQtyFlag   = conPeek(_c,#ClosedQtyFlag);
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
 ; Microsoft Dynamics AX Class: DEV_InventSumFields unloaded
 ; --------------------------------------------------------------------------------
   CLSVERSION 1
@@ -8726,6 +11683,50 @@ ENDFORM
         #            _inventSum.WMSPalletId      = inventDim.WMSPalletId;
         #        }
         #    }
+        #
+        #}
+      ENDSOURCE
+      SOURCE #dim2InventSumDim
+        #static public FieldId dim2InventSumDim(FieldId _dimField, boolean _isThrowError = true)
+        #{
+        #    #InventDimDevelop
+        #
+        #    switch (fieldExt2Id(_dimField))
+        #    {
+        #        //case (fieldNum(InventDim,ConfigId))         : return fieldNum(InventDimParm,ConfigIdFlag);
+        #        //case (fieldNum(InventDim,InventSizeId))     : return fieldNum(InventDimParm,InventSizeIdFlag);
+        #        //case (fieldNum(InventDim,InventColorId))    : return fieldNum(InventDimParm,InventColorIdFlag);
+        #        //case (fieldNum(InventDim,InventStyleId))    : return fieldNum(InventDimParm,InventStyleIdFlag);
+        #        case (fieldNum(InventDim,InventSiteId))     : return fieldNum(InventSum, InventSiteId);
+        #        case (fieldNum(InventDim,InventLocationId)) : return fieldNum(InventSum, InventLocationId);
+        #        case (fieldNum(InventDim,InventBatchId))    : return fieldNum(InventSum, InventBatchId);
+        #        case (fieldNum(InventDim,wmsLocationId))    : return fieldNum(InventSum, wmsLocationId);
+        #        case (fieldNum(InventDim,wmsPalletId))      : return fieldNum(InventSum, wmsPalletId);
+        #        //case (fieldNum(InventDim,InventSerialId))   : return fieldNum(InventDimParm,InventSerialIdFlag);
+        #        //case (fieldNum(InventDim,LicensePlateId)): return fieldNum(InventDimParm,LicensePlateFlag);
+        #        //case (fieldNum(InventDim,InventStatusId)): return fieldNum(InventDimParm,InventStatusFlag);
+        #        //case (fieldNum(InventDim,InventGtdId_RU))   : return fieldNum(InventDimParm,InventGTDIdFlag_RU);
+        #        //case (fieldNum(InventDim,InventProfileId_RU)): return fieldNum(InventDimParm,InventProfileIdFlag_RU);
+        #        case (fieldNum(InventDim,InventOwnerId_RU))  : return fieldNum(InventSum,InventOwnerId_RU);
+        #        // </GEERU>
+        #    }
+        #    if (_isThrowError)
+        #    {
+        #        throw error(strFmt("@SYS54431",funcName()));
+        #    }
+        #    return 0;
+        #}
+      ENDSOURCE
+      SOURCE #setInventSumDimFieldsVisible
+        #static public void setInventSumDimFieldsVisible(FormDataSource  _inventSumDS,  InventDimParm  _inventDimParm)
+        #{
+        #    ;
+        #    _inventSumDS.object(fieldNum(InventSum, InventSiteId)).visible(_inventDimParm.InventSiteIdFlag);
+        #    _inventSumDS.object(fieldNum(InventSum, InventLocationId)).visible(_inventDimParm.InventLocationIdFlag);
+        #    _inventSumDS.object(fieldNum(InventSum, InventBatchId)).visible(_inventDimParm.InventBatchIdFlag);
+        #    _inventSumDS.object(fieldNum(InventSum, wmsLocationId)).visible(_inventDimParm.wmsLocationIdFlag);
+        #    _inventSumDS.object(fieldNum(InventSum, wmsPalletId)).visible(_inventDimParm.wmsPalletIdFlag);
+        #    _inventSumDS.object(fieldNum(InventSum, InventOwnerId_RU)).visible(_inventDimParm.InventOwnerIdFlag_RU);
         #
         #}
       ENDSOURCE
@@ -11031,6 +14032,13 @@ ENDFORM
         BEGINNODE
           FILETYPE 0
           UTILTYPE 44
+          UTILOBJECTID 704
+          NODETYPE 204
+          NAME #InventDimParm
+        ENDNODE
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 44
           UTILOBJECTID 2397
           NODETYPE 204
           NAME #InventSumDelta
@@ -11088,6 +14096,13 @@ ENDFORM
         PreventEditProperties #No
       ENDPROPERTIES
       
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1534
+        NODETYPE 329
+        NAME #InventDimCtrl_Frm
+      ENDNODE
       BEGINNODE
         FILETYPE 0
         UTILTYPE 45
