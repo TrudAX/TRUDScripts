@@ -17,6 +17,13 @@ https://devblog.sertanyaman.com/2020/08/21/how-to-integrate-with-d365-for-financ
 
 https://denistrunin.com/performance-audit/
 
+## BUILD pipeline 
+
+[Build automation through Azure Pipeline using Microsoft hosted Agent](https://community.dynamics.com/ax/b/axinthefield/posts/build-automation-through-azure-pipeline-using-microsoft-hosted-agent)
+
+[Build automation that uses Microsoft-hosted agents and Azure Pipelines](https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/dev-tools/hosted-build-automation)
+
+[My first D365FO Build pipeline with Microsoft-hosted agent](http://alexvoy.blogspot.com/2021/06/my-first-d365fo-build-pipeline-with.html)
 
 
 ## Trace parcer on a Onebox VM
@@ -37,3 +44,7 @@ http://d365tour.com/en/microsoft-dynamics-d365o/task-recorder-with-screenshot/
 ## Import/Export Container Data Fields Using D365FO Data Management
 
 https://ax.docentric.com/import-export-container-data-fields-using-d365fo-data-management/
+
+## D365 F&SCM Custom services
+
+https://zaorfr.hashnode.dev/d365-fo-custom-services
