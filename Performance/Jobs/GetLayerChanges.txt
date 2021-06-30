@@ -1,0 +1,45 @@
+static void GetLayerChanges(Args _args)
+{
+    TextBuffer          tb = new TextBuffer();
+    UtilElements        utilElements;
+    UtilElements        utilElementsEx;
+    
+    UtilEntryLevel      currentLevel = UtilEntryLevel::usr;
+    ;
+
+    tb.appendText(strFmt("New elements in %1\n", currentLevel));
+    tb.appendText(strFmt("%1\t%2\t%3\n", "Layer", "Type", "Count"));
+
+    while select count(RecId) from utilElements
+        group by utilLevel, recordType
+        where utilElements.utilLevel == currentLevel &&
+              (utilElements.recordType == UtilElementType::Class ||
+              utilElements.recordType == UtilElementType::Table ||
+              utilElements.recordType == UtilElementType::SSRSReport ||
+              utilElements.recordType == UtilElementType::Form)
+     //   && utilElements.name like 'aa*'
+    notexists join utilElementsEx
+        where utilElementsEx.recordType == utilElements.recordType &&
+              utilElementsEx.name       == utilElements.name &&
+              utilElementsEx.utilLevel < utilElements.utilLevel
+    {
+        tb.appendText(strFmt("%1\t%2\t%3\n", utilElements.utilLevel, utilElements.recordType, utilElements.RecId));
+    }
+    tb.appendText(strFmt("Modified elements in %1\n", currentLevel));
+    while select count(RecId) from utilElements
+        group by utilLevel, recordType
+        where utilElements.utilLevel == currentLevel &&
+              (utilElements.recordType == UtilElementType::Class ||
+              utilElements.recordType == UtilElementType::Table ||
+              utilElements.recordType == UtilElementType::SSRSReport ||
+              utilElements.recordType == UtilElementType::Form)
+    exists join utilElementsEx
+        where utilElementsEx.recordType == utilElements.recordType &&
+              utilElementsEx.name       == utilElements.name &&
+              utilElementsEx.utilLevel < utilElements.utilLevel
+    {
+        tb.appendText(strFmt("%1\t%2\t%3\n", utilElements.utilLevel, utilElements.recordType, utilElements.RecId));
+    }
+    BOX::info('Press OK to copy to clipboard');
+    tb.toClipboard();
+}
