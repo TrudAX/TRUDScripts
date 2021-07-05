@@ -1,0 +1,56 @@
+static void GetLayerChangesByModelByElement(Args _args)
+{
+    TextBuffer          tb = new TextBuffer();
+
+    UtilEntryLevel      currentLevel = UtilEntryLevel::usr;
+
+    SysModelElement element, parentElement;
+    SysModelElementData elementData, childElementData;
+    SysModelElementType elementType, elementTypeParent;
+    SysModelLayer layer;
+    SysModelManifest manifest;
+    Set elementsLowerSet = new Set(Types::String);
+    Set elementsLowerRootSet = new Set(Types::String);
+    
+    ;
+    //elements in lower layer
+    while select Name from element
+       // where element.ParentId == 0
+    join ModelElement from elementData
+        where elementData.ModelElement == element.RecId
+    join Layer from  layer
+        where layer.RecId == elementData.Layer &&
+              layer.Layer < currentLevel
+    join  Name from  parentElement    
+        group by Name, ElementType
+        where parentElement.RecId == element.RootModelElement
+    {
+        elementsLowerRootSet.add(strFmt("%1,%2", parentElement.ElementType, parentElement.Name));
+    }
+    
+    tb.appendText(strFmt("All elements in %1\n", currentLevel));
+    tb.appendText(strFmt("%1\t%2\t%3\t%4\t%5\t%6\t%7\n", "Layer", "Model", "Type", "Name", "Root type", "Root name", "Root new in current layer"));
+    while select Name from element
+    join ModelElement from elementData
+        where elementData.ModelElement == element.RecId
+    join Name from elementType
+       
+        where elementType.RecId == element.ElementType
+    join Name from manifest
+        where manifest.RecId == elementData.ModelId
+    join Layer from  layer
+        where layer.RecId == elementData.Layer &&
+              layer.Layer == currentLevel
+    join  Name, ElementType from  parentElement    
+        where parentElement.RecId == element.RootModelElement
+    join  Name from  elementTypeParent    
+        where elementTypeParent.RecId == parentElement.ElementType
+         
+    {
+        tb.appendText(strFmt("%1\t%2\t%3\t%4\t%5\t%6\t%7\n", layer.Layer, manifest.Name, elementType.Name, element.Name, 
+                    elementTypeParent.Name, parentElement.Name, elementsLowerRootSet.in(strFmt("%1,%2", parentElement.ElementType, parentElement.Name)) ? "No" : "Yes"));
+    }
+    
+    BOX::info('Press OK to copy to clipboard');
+    tb.toClipboard();
+}
