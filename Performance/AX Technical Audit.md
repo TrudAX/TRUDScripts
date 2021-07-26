@@ -268,8 +268,9 @@ FROM sys.dm_db_index_physical_stats(
 ## Missing indexes
 
 ```sql
-SELECT    object_name(d.object_id) as tabname, database_id, equality_columns, inequality_columns, avg_user_impact, included_columns,
-  unique_compiles, user_seeks, user_scans, last_user_seek, last_user_scan,p.rows AS [Table Rows]
+SELECT    object_name(d.object_id, d.database_id) as tabname, DB_NAME(database_id) AS DatabaseName, equality_columns, inequality_columns, avg_user_impact, included_columns,
+  unique_compiles, user_seeks, user_scans, last_user_seek, last_user_scan
+  ,p.rows AS [Table Rows]
 FROM    sys.dm_db_missing_index_details d
 INNER JOIN sys.dm_db_missing_index_groups g
     ON    d.index_handle = g.index_handle

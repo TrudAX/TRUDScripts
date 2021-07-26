@@ -1,20 +1,27 @@
-/****** Object:  StoredProcedure [dbo].[AXMissingIndexesMonitor]    Script Date: 7/8/2021 8:52:44 AM ******/
+﻿/****** Object:  StoredProcedure [dbo].[AXMissingIndexesMonitor]    Script Date: 26.07.2021 17:52:41 ******/
 DROP PROCEDURE IF EXISTS [dbo].[AXMissingIndexesMonitor]
 GO
-/****** Object:  StoredProcedure [dbo].[AXMissingIndexesMonitor]    Script Date: 7/8/2021 8:52:44 AM ******/
-SET ANSI_NULLS ON
+/****** Object:  StoredProcedure [dbo].[AXMissingIndexesMonitor]    Script Date: 26.07.2021 17:52:41 ******/
+SET ANSI_NULLS OFF
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AXMissingIndexesMonitor]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[AXMissingIndexesMonitor] AS' 
+END
+GO
 --SELECT * FROM AXTopMissingIndexesLog
-CREATE PROCEDURE [dbo].[AXMissingIndexesMonitor]
-@DBName nvarchar(60) = 'AxDB',
+ALTER PROCEDURE [dbo].[AXMissingIndexesMonitor]
+@DBName nvarchar(60) = 'AX63_WMS_PROD',
 @SendEmailOperator nvarchar(60) = '',
+@DisplayOnlyNewRecommendation int = 0,
 @Debug int = 0
 AS
 BEGIN
 
 	SET NOCOUNT ON;
+	SET ANSI_NULLS OFF;
 
 	DECLARE @DBID int = db_id(@DBName);
 
@@ -46,14 +53,27 @@ BEGIN
 
 
 	--Delete the previous recomendations
-	DELETE FROM curLog
-	from   @NewMissingIndexesTbl as curLog
-	WHERE EXISTS (SELECT * FROM dbo.AXTopMissingIndexesLog prevLog
-				  WHERE prevLog.[tabname]               = curLog.[tabname]
-					AND prevLog.[DatabaseName]          = curLog.[DatabaseName]
-					AND prevLog.[equality_columns]      = curLog.[equality_columns]
-					AND COALESCE(prevLog.[inequality_columns], '')    = COALESCE(curLog.[inequality_columns], ''));
-
+	IF (@DisplayOnlyNewRecommendation = 1)
+	BEGIN
+		DELETE FROM curLog
+		from   @NewMissingIndexesTbl as curLog
+		WHERE EXISTS (SELECT * FROM dbo.AXTopMissingIndexesLog prevLog
+					  WHERE prevLog.[tabname]               = curLog.[tabname]
+						AND prevLog.[DatabaseName]          = curLog.[DatabaseName]
+						AND prevLog.[equality_columns]      = curLog.[equality_columns]
+						AND COALESCE(prevLog.[inequality_columns], '')    = COALESCE(curLog.[inequality_columns], ''));
+	END
+	IF (@DisplayOnlyNewRecommendation = 0)
+	BEGIN
+		DELETE FROM curLog
+		from   @NewMissingIndexesTbl as curLog
+		WHERE EXISTS (SELECT * FROM dbo.AXTopMissingIndexesLog prevLog
+					  WHERE prevLog.[tabname]               = curLog.[tabname]
+						AND prevLog.[DatabaseName]          = curLog.[DatabaseName]
+						AND prevLog.[equality_columns]      = curLog.[equality_columns]
+						AND prevLog.IsApproved              = 1 
+						AND COALESCE(prevLog.[inequality_columns], '')    = COALESCE(curLog.[inequality_columns], ''));
+	END
 
 	INSERT INTO [dbo].[AXTopMissingIndexesLog]
 			   ([LogDateTime]
@@ -92,7 +112,6 @@ BEGIN
 
 			DECLARE @oper_email NVARCHAR(100)
 			SET @oper_email = (SELECT email_address from msdb.dbo.sysoperators WHERE name = @SendEmailOperator)
-
 			DECLARE @body NVARCHAR(MAX)
 			SET     @body = N'<table>'
 				+ N'<tr><th>TABLE</th><th>Database</th><th>Equality columns</th><th>Inequality_columns</th><th>Avg. impact</th><th>Included columns</th></tr>'
@@ -115,7 +134,8 @@ BEGIN
 				SELECT @HTMLStr  --DEBUG
 			--SET @oper_email = 'trud81@gmail.com'  --DEBUG
 			ELSE
-				EXEC msdb.dbo.sp_send_dbmail  @recipients = @oper_email, @subject = @Msg,  @body = @HTMLStr,  @body_format = 'HTML' ;
+				EXEC msdb.dbo.sp_send_dbmail  @profile_name = N'Main', @recipients = @oper_email, @subject = @Msg,  @body = @HTMLStr,  @body_format = 'HTML' ;
 	END;
 END
+
 GO
