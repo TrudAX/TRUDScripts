@@ -134,6 +134,7 @@ FROM AXTopQueryLogApproved c
         ON c.query_plan_hash = t.query_plan_hash AND c.query_hash = t.query_hash; 
 
 --DELETE prev records
+
 DELETE FROM o1
 from   @NewInsertedTbl as o1
 WHERE EXISTS (SELECT * FROM AXTopQueryLogApproved la
@@ -170,7 +171,41 @@ BEGIN
         SET @body = REPLACE(@body, '<tdc>', '<td class="center">');
         SET @body = REPLACE(@body, '</tdc>', '</td>');
 
-        SET @HTMLStr = N'<html><body>' + @Msg + N'<br><br>' + @body + N'</body></html>';
+		--get CPU usage history
+		DECLARE @ts_now bigint = (SELECT cpu_ticks/(cpu_ticks/ms_ticks)FROM sys.dm_os_sys_info); 
+
+        DECLARE @body2 NVARCHAR(MAX)
+        SET     @body2 = N'<table>'
+            + N'<tr><th>SQL Server CPU Utilization</th><th>System Idle</th><th>Other Process CPU</th><th>Event Time</th></tr>'
+            + CAST((
+			SELECT TOP(20) SQLProcessUtilization AS td, 
+               SystemIdle AS td, 
+               100 - SystemIdle - SQLProcessUtilization AS td, 
+               DATEADD(ms, -1 * (@ts_now - [timestamp]), GETDATE()) AS td
+			FROM ( 
+				  SELECT record.value('(./Record/@id)[1]', 'int') AS record_id, 
+						record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') 
+						AS [SystemIdle], 
+						record.value('(./Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 
+						'int') 
+						AS [SQLProcessUtilization], [timestamp] 
+				  FROM ( 
+						SELECT [timestamp], CONVERT(xml, record) AS [record] 
+						FROM sys.dm_os_ring_buffers 
+						WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR' 
+						AND record LIKE '%<SystemHealth>%') AS x 
+				  ) AS y 
+			ORDER BY record_id DESC
+                    FOR XML RAW('tr'), ELEMENTS
+            ) AS NVARCHAR(MAX))
+            + N'</table>'
+
+        SET @body2 = REPLACE(@body2, '<tdc>', '<td class="center">');
+        SET @body2 = REPLACE(@body2, '</tdc>', '</td>');
+
+
+        SET @HTMLStr = N'<html><body>' + @Msg + N'<br><br>' + @body  + N'<br><b>CPU Usage</b><br>' + @body2 + N'</body></html>';
+
 
         --SELECT @HTMLStr  --DEBUG
         --SET @oper_email = 'trud81@gmail.com'  --DEBUG
