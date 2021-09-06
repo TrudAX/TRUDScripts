@@ -561,6 +561,9 @@ ORDER BY qs.total_logical_reads DESC -- logical reads
 --ORDER BY qs.total_physical_reads desc
 
 -- DBCC FREEPROCCACHE to reset the counter
+-- For Azure SQL - remove qpa from the query
+-- ALTER DATABASE SCOPED CONFIGURATION CLEAR PROCEDURE_CACHE  
+
 ```
 
 # Database changes
