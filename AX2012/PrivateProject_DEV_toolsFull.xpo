@@ -51779,7 +51779,7 @@ ENDFORM
     #    Set             tableSet = new Set(Types::Integer),
     #                    fieldSet = new Set(Types::container);
     #    boolean         forAllTables, forAllFields;
-    #    FieldId         lastDataId = 1000000; //?????? ???? ?? ?????? ??????
+    #    FieldId         lastDataId = 1000000;
     #
     #    boolean checkField(DictTable dictTable, DictField dictField, boolean _silent = false)
     #    {
