@@ -1,0 +1,1463 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class EditorScripts
+{
+    int     sdsindentLevel;//trud
+    Source  sdssource;
+
+    public void addIns_OpenNewWindow(Editor e)
+    {
+        TreeNode treeNode = TreeNode::findNode(e.path());
+        ;
+        treeNode = TreeNode::findNode(xUtilElements::getNodePathRough(xUtilElements::parentElement(xUtilElements::findTreeNode(treeNode))));
+        if (treeNode)
+            treeNode.AOTnewWindow();
+    }
+
+    #TreeNodeSysNodeType
+    #TokenTypes
+    #AOT
+    void addIns_OpenNewWindowSelected(Editor e)
+    {
+        TreeNode            treeNode;
+        TreeNode            treeNodeNew;
+        str                 fieldName;
+        DictField           df;
+        xRefTmpReferences   tmpxRefReferences;
+        int   selStartCol = e.selectionStartCol(), selStartLine = e.selectionStartLine();
+
+        ;
+        fieldName = substr(e.currentLine(), e.selectionStartCol(), e.selectionEndCol() - e.selectionStartCol());
+
+        treeNode = TreeNode::findNode(e.path());
+
+        treeNode.AOTmakeXref(1);
+        tmpxRefReferences = xRefCreate::makeTmp(appl.lastxRef());
+
+        xppScanner::populateXRefTmpReferenceWithSymbols(tmpxRefReferences,treeNode.AOTgetSource());//,[#SymbolClassSYMBOL]);
+
+        tmpxRefReferences.clear();
+        select tmpxRefReferences
+            where tmpxRefReferences.Column   == selStartCol
+            &&  tmpxRefReferences.line       == selStartLine;
+
+        switch (tmpxRefReferences.Kind)
+        {
+            case xRefKind::Table:
+                treeNodeNew = TreeNode::findNode(#TablesPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name) );
+                if (! treeNodeNew)
+                {
+                    treeNodeNew = TreeNode::findNode(#ViewsPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name) );
+                }
+                break;
+            case xRefKind::TableField:
+                df = new DictField(tmpxRefReferences.parentId,  fieldname2id(tmpxRefReferences.parentId, tmpxRefReferences.name));
+                if (df.baseType() == Types::Enum)
+                {
+                    treeNodeNew = TreeNode::findNode(#BaseEnumsPath + #AOTDelimiter + enumid2name(df.enumId()));
+                }
+                else
+                {
+                    treeNodeNew = TreeNode::findNode(#ExtendedDataTypesPath + #AOTDelimiter + extendedTypeId2name(df.typeId()) );
+                }
+                break;
+            case xRefKind::Class:
+                treeNodeNew = TreeNode::findNode(#ClassesPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name));
+
+                break;
+            case xRefKind::Enum:
+                treeNodeNew = TreeNode::findNode(#BaseEnumsPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name));
+
+                break;
+            case xRefKind::ExtendedType:
+                treeNodeNew = TreeNode::findNode(#ExtendedDataTypesPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name));
+
+                break;
+            case xRefKind::Form:
+                treeNodeNew = TreeNode::findNode(#FormsPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name));
+
+                break;
+            case xRefKind::Report:
+                treeNodeNew = TreeNode::findNode(#ReportsPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name));
+
+                break;
+            case xRefKind::Map:
+                treeNodeNew = TreeNode::findNode(#TableMapsPath + #AOTDelimiter + (tmpxRefReferences.ParentName ?
+                                                        tmpxRefReferences.ParentName : tmpxRefReferences.name));
+
+                break;
+
+        }
+        if (treeNodeNew)
+        {
+            treeNodeNew.AOTnewWindow();
+        }
+    }
+
+
+    void comments_Addtrud(Editor _e)
+    {
+        int         startLine = _e.selectionStartLine();
+        int         endLine   = _e.selectionEndLine();
+        str         spaces;
+
+        str         modifCode;
+        int         pos, curPos;
+
+        container   c;
+
+        str  projId, projDescription, projName;
+
+
+        void insertLine(int _line, str _mess)
+
+        {
+            _e.gotoLine(_line);
+            _e.gotoCol(1);
+            _e.insertLines('\r\n');
+            _e.gotoLine(_line);
+            _e.gotoCol(1);
+            _e.insertLines(_mess);
+
+        }
+        ;
+
+        //info("ok");
+
+        c = DEVCommentsTool::getCurrent();
+
+        projId             = conpeek(c, 1);
+        projDescription    = conpeek(c, 2);
+        projName           = conpeek(c, 3);
+
+        modifCode = strFmt('%1, %2',  projId, projDescription);
+
+
+        modifCode = '//' + (modifCode ? (modifCode + ', ') : '') +
+                //curuserid()
+                'dtrunin'
+                + ', ' + date2str(today(), 123, 2, 2, 2, 2, 4, DateFlags::FormatAll);
+
+        if (_e.markMode() == MarkMode::NoMark ||
+          (_e.selectionEndCol() == _e.selectionStartCol() &&
+           _e.selectionEndLine() == _e.selectionStartLine() &&
+           _e.selectionEndCol() != 1  ))
+        {
+            startLine = _e.currentLineNo() + 1;
+            endLine   = startLine;
+
+            _e.unmark();
+            curPos = _e.columnNo();
+            _e.insertString( (pos ? '' : '') + modifCode);
+            _e.gotoCol( curPos + 1);
+
+
+        }
+        else
+        {
+            if (endLine > startLine && _e.selectionEndCol() == 1)
+                endLine --;
+            _e.unmark();
+            _e.gotoLine(startLine);
+            _e.gotoCol(1);
+            spaces = strRep(' ', strLen(_e.currentLine()) - strLen(strLTrim(_e.currentLine())));
+            insertLine(startLine, spaces + modifCode + ' -->');
+            insertLine(endLine + 2, spaces + modifCode + ' <--');
+            _e.gotoLine(startLine);
+            _e.gotoCol(strlen(spaces) + 1);
+        }
+
+        DEVCommentsTool::add2Project(_e.path(), projName);
+
+
+    }
+
+
+    // Changed on 21 Apr 2010 at 10:37:52 by Rayso
+    public void comments_InsertBPDeviationTag(Editor _editor)
+    {
+        ;
+
+        _editor.unmark();
+        _editor.insertLines('//BP Deviation Documented');
+    }
+
+    void comments_OpenCommentSetup(Editor _e)
+    {
+        ;
+        DEVCommentsTool::openCommentSetup();
+
+
+    }
+
+    void comments_OpenCurProject(Editor _e)
+    {
+        ;
+        DEVCommentsTool::openCurProject();
+
+
+    }
+
+    private void dev_simpleLineNoSemicolum(str _simpleStr)
+    {
+        ;
+        sdssource += strRep(' ',sdsindentLevel) + _simpleStr + '\n';
+    }
+
+    //AOSRunmode::Client
+    public void documentation_HeaderTemplate(Editor _editor)
+    {
+        #TokenTypes
+        #AOT
+        #SysBPCheck
+        #SysCompilerOutput
+
+        #define.startLine(2)
+        #define.startColumn(5)
+        #define.maxDialogString(800)
+
+        str source;
+        str text;
+        MemberFunction memberFunction = TreeNode::findNode(_editor.path());
+        TreeNode parent = TreeNode::findNode(SysTreeNode::pathParent(_editor.path()));
+        SysDictMethod sysDictMethod;
+        int i;
+        int symbol;
+        SysScannerClass scanner;
+        TreeNode exceptionNode;
+        TreeNode exceptionValueNode;
+        xRefTmpReferences tmpxRefReferences;       // the source, as the xRef sees it
+        DictClass dictClass;
+        ListEnumerator listEnum;
+        str existingDoc;
+
+    str formatXML(XML _xml)
+    {
+        _xml = strReplace(_xml, '>', '>\n');
+        _xml = strReplace(_xml, '<', '\n<');
+
+        _xml = strReplace(_xml, '\n<c>\n', '<c>');
+        _xml = strReplace(_xml, '\n</c>\n', '</c>');
+        _xml = strReplace(_xml, '\n\n', '\n');
+
+        return '\n'+_xml+'\n';
+    }
+
+        if (parent)
+        {
+            // Save to get latest source.
+            parent.AOTsave();
+
+            source = memberFunction.AOTgetSource();
+
+            if (!strLen(source))
+                return;
+
+            // Mark the memberfunction as dirty
+            memberFunction.AOTsetSource(source);
+        }
+
+        sysDictMethod = SysDictMethod::newMemberFunction(memberFunction);
+
+        if (sysDictMethod.compiledOk())
+        {
+            if (sysDictMethod.xmlDocumentationCanBeAutomated())
+            {
+                //
+                // Truncate to max length
+                //
+                existingDoc = formatXml(sysDictMethod.xmlDocumentationAutomated());
+                if (strLen(existingDoc) > #maxDialogString)
+                {
+                    existingDoc = subStr(existingDoc, 1, #maxDialogString)+'\n...\n';
+                }
+
+                if (Box::yesNo(strFmt("@SYS107202", existingDoc+'\n')+"@SYS107204", DialogButton::No, "@SYS107109") == DialogButton::No)
+                {
+                    return;
+                }
+            }
+            existingDoc = sysDictMethod.xmlDocumentationInherited();
+
+            if (existingDoc &&
+                Box::yesNo(strFmt("@SYS327437", '\n'+existingDoc+'\n')+"@SYS107204", DialogButton::No, "@SYS107109") == DialogButton::No)
+            {
+                return;
+            }
+
+            scanner = new SysScannerClass(memberFunction);
+            appl.updatexRefSet(true);
+            memberFunction.aoTmakeXref(1);
+            tmpxRefReferences = xRefCreate::makeTmp(appl.lastxRef(), memberFunction.treeNodePath());
+            appl.updatexRefSet(false);
+
+            //
+            // Insert summary
+            //
+            text = '/// <summary>\n/// \n/// </summary>\n';
+
+            //
+            // Insert parameters
+            //
+            for (i=1; i<=sysDictMethod.parameterCnt(); i++)
+            {
+                if (!sysDictMethod.parameterName(i))
+                {
+                    // BP Deviation documented
+                    throw error("@SYS107108", '', SysInfoAction_Formrun::newFormnameControlnameDesc(formStr(SysUserSetup), identifierStr(DebuggerPopupCombo), "@SYS321"));
+                }
+                text += strFmt('/// <param name="%1">\n/// \n/// </param>\n', sysDictMethod.parameterName(i));
+            }
+
+            //
+            // Insert returns
+            //
+            if (sysDictMethod.returnType() != Types::void &&
+                sysDictMethod.name() != #MethodNameClassDeclaration)
+            {
+                text += '/// <returns>\n/// \n/// </returns>\n';
+            }
+
+            //
+            // Insert remarks
+            //
+            text += '/// <remarks>\n/// \n/// </remarks>\n';
+
+            //
+            // Insert exceptions
+            //
+            if (scanner.symbolExists(#Throw_sym))
+            {
+                exceptionNode  = TreeNode::findNode(#SystemEnumsPath+'\\'+enumStr(Exception));
+                scanner.firstSymbol();
+                symbol = scanner.nextSymbol();
+                while (symbol)
+                {
+                    while (symbol && symbol != #Throw_sym)
+                    {
+                        symbol = scanner.nextSymbol();
+                    }
+                    if (symbol)
+                    {
+                        symbol = scanner.nextSymbol();
+                        if (scanner.string() == enumStr(Exception))
+                        {
+                            scanner.nextSymbol();
+                            scanner.nextSymbol();
+                        }
+                        //
+                        // Get right casing
+                        //
+                        exceptionValueNode = exceptionNode.AOTfindChild(scanner.string());
+                        if (exceptionValueNode)
+                        {
+                            text += strFmt('/// <exception cref="Exception::%1">\n/// \n/// </exception>\n', exceptionValueNode.treeNodeName());
+                        }
+                    }
+                }
+            }
+
+            //
+            // Insert permission
+            //
+            dictClass = new DictClass(classNum(CodeAccessPermission));
+            listEnum = dictClass.extendedBy().getEnumerator();
+            while (listEnum.moveNext())
+            {
+                while select tmpxRefReferences
+                    where tmpxRefReferences.ParentId == listEnum.current()
+                      && tmpxRefReferences.Name == methodStr(CodeAccessPermission, demand)
+                      && tmpxRefReferences.Kind == xRefKind::ClassInstanceMethod
+                {
+                    text += strFmt('/// <permission cref="%1">\n/// \n/// </permission>\n', classId2Name(listEnum.current()));
+
+                    //
+                    // Only add each permission class once
+                    //
+                    break;
+                }
+            }
+
+            _editor.unmark();
+            _editor.gotoLine(1);
+            _editor.gotoCol(1);
+            _editor.insertLines(text);
+            _editor.gotoLine(#startLine);
+            _editor.gotoCol(#startColumn);
+        }
+        else
+        {
+            throw error(strFmt("@SYS97041", 1, memberFunction.treeNodePath()));
+        }
+    }
+
+    //
+    // System entry point
+    //
+    public container getApplicableScripts(Editor _editor)
+    {
+        TreeNode aotNode = EditorScripts::getApplObjectNode(_editor);
+        DictClass dictClass = new DictClass(classNum(EditorScripts));
+        DictMethod dictMethod;
+        int i;
+        container scripts;
+
+        //
+        // Insert menu items
+        //
+        for (i = 1; i <= dictClass.objectMethodCnt(); i++)
+        {
+            dictMethod = dictClass.objectMethodObject(i);
+            if (this.isApplicableMethod(dictMethod, aotNode))
+            {
+                scripts += dictMethod.name();
+            }
+        }
+
+        return scripts;
+    }
+
+    //
+    // Use this method to control what scripts are shown on the scripts popup menu in the editor
+    //
+    protected boolean isApplicableMethod(DictMethod _dictMethod, TreeNode _aotNode)
+    {
+        #TreenodeSysNodeType
+        //
+        // Only one parameter of type Editor
+        // Must be public
+        // Must return void
+        //
+        if (_dictMethod.parameterCnt() != 1 ||
+            _dictMethod.parameterType(1) != Types::Class ||
+            _dictMethod.parameterId(1) != classNum(Editor) ||
+            _dictMethod.accessSpecifier() != AccessSpecifier::public ||
+            _dictMethod.returnType() != Types::void)
+        {
+            return false;
+        }
+
+        switch (_dictMethod.name())
+        {
+            //
+            // Editor scripts that does not apply to Macros
+            //
+            case methodStr(EditorScripts, template_database_whileSelect):
+            case methodStr(EditorScripts, template_flow_do):
+            case methodStr(EditorScripts, template_flow_if):
+            case methodStr(EditorScripts, template_flow_ifElse):
+            case methodStr(EditorScripts, template_flow_else):
+            case methodStr(EditorScripts, template_flow_switch):
+            case methodStr(EditorScripts, template_flow_try):
+            case methodStr(EditorScripts, template_flow_for):
+            case methodStr(EditorScripts, template_flow_while):
+                if (_aotNode &&
+                    _aotNode.treeNodeType().id() != #NT_MCRCODE)
+                {
+                    return true;
+                }
+                return false;
+
+            //
+            // Editor scripts that does not apply to Macros and Jobs
+            //
+            case methodStr(EditorScripts, template_method_construct):
+            case methodStr(EditorScripts, template_method_edit):
+            case methodStr(EditorScripts, template_method_editWithClass):
+            case methodStr(EditorScripts, template_method_main):
+            case methodStr(EditorScripts, template_method_parm):
+            case methodStr(EditorScripts, documentation_HeaderTemplate):
+                if (_aotNode &&
+                    _aotNode.treeNodeType().id() != #NT_MCRCODE &&
+                    _aotNode.treeNodeType().id() != #NT_XALCODE)
+                {
+                    return true;
+                }
+                return false;
+        }
+
+        return true;
+    }
+
+
+    void last_classHeader(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        Source template = xppSource.classHeader();
+        ;
+        editor.insertLines(template);
+    }
+
+    void last_comment(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        Source template = xppSource.comment();
+        ;
+        editor.insertLines(template);
+    }
+
+    void last_functionHeader(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        Source template = xppSource.functionHeader();
+        ;
+        editor.insertLines(template);
+    }
+
+
+    public void sendTo_file(Editor  e)
+    {
+        Filename filename;
+        TextIo io;
+        int i = strFind(e.path(), '\\', strLen(e.path()), -strLen(e.path()));
+        str defaultName = subStr(e.path(), i+1, strLen(e.path()));
+        ;
+        filename = WinAPI::getSaveFileName(0, ['Text','*.txt'], '', "@SYS56237", 'txt', defaultName );
+        if (filename)
+        {
+            // BP deviation documented
+            io = new TextIo(filename, 'W', 65001); // Write the file in UTF8
+            io.write(EditorScripts::getSelectedText(e));
+        }
+    }
+
+    public void sendTo_mailRecipient(Editor e)
+    {
+        SysINetMail mail = new SysINetMail();
+        mail.sendMail('',e.path(),EditorScripts::getSelectedText(e),true);
+    }
+
+    void tableBrowser(Editor _e)
+    {
+        str                 fieldName;
+        ;
+
+        fieldName = substr(_e.currentLine(), _e.selectionStartCol(), _e.selectionEndCol() - _e.selectionStartCol());
+
+        new SysTableBrowser().run(tablename2id(fieldName));
+    }
+
+    public void template_database_whileSelect(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+
+        editor.insertLines(xppSource.whileSelect());
+
+        editor.gotoLine(currentLine+1);
+        editor.gotoCol(currentCol+15);
+
+    }
+
+    public void template_flow_do(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+
+        editor.insertLines(xppSource.doWhile());
+
+        editor.gotoLine(currentLine+3);
+        editor.insertString(strRep(' ', 4+currentCol));
+    }
+
+
+    public void template_flow_else(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+        Source template = xppSource.elseBlock();
+
+        editor.insertLines(template);
+        editor.gotoLine(currentLine+3);
+        editor.gotoCol(currentCol+5);
+    }
+
+    public void template_flow_for(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+
+        editor.insertLines(xppSource.for());
+        editor.gotoLine(currentLine+1);
+        editor.gotoCol(currentCol+6);
+    }
+
+
+    public void template_flow_if(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+        Source template = xppSource.if();
+
+        editor.insertLines(template);
+        editor.gotoLine(currentLine+1);
+        editor.gotoCol(currentCol+5);
+    }
+
+    public void template_flow_ifElse(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+
+        editor.insertLines(xppSource.ifElse());
+
+        editor.gotoLine(currentLine+1);
+        editor.gotoCol(currentCol+5);
+    }
+
+    public void template_flow_switch(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+
+        editor.insertLines(xppSource.switch());
+        editor.gotoLine(currentLine+1);
+        editor.gotoCol(currentCol+9);
+
+    }
+
+
+    public void template_flow_try(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+
+        editor.insertLines(xppSource.tryCatch());
+        editor.gotoLine(currentLine+3);
+        editor.insertString(strRep(' ', 4+currentCol));
+    }
+
+
+    public void template_flow_while(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+        int currentLine = editor.currentLineNo();
+        int currentCol = editor.columnNo();
+
+        editor.insertLines(xppSource.while());
+
+        editor.gotoLine(currentLine+1);
+        editor.gotoCol(currentCol+8);
+    }
+
+
+    public void template_method_construct(Editor editor)
+    {
+        xppSource       xppSource         = new xppSource();
+        Dialog          dialog;
+        DialogField     dlgClassTypeName;
+        Source          template;
+        str             path = editor.path();
+        TreeNode        treeNode = path ? TreeNode::findNode(path) : null;
+        ClassName       className;
+        #TreeNodeSysNodeType
+
+        if (treeNode)
+        {
+            treeNode = treeNode.AOTparent();
+            if (treeNode && treeNode.treeNodeType().id() == #NT_CLASS)
+            {
+                className = treeNode.treeNodeName();
+            }
+        }
+
+        if (!className)
+        {
+            dialog = new Dialog("@SYS73363");
+            dlgClassTypeName = dialog.addField(extendedTypeStr(ClassName));
+            if (!dialog.run())
+            {
+                return;
+            }
+            className = dlgClassTypeName.value();
+        }
+
+        if (className)
+        {
+            template = xppSource.constructMethod(className);
+
+            editor.insertLines(template);
+        }
+    }
+
+    public void template_method_edit(Editor editor)
+    {
+        xppSource       xppSource       = new xppSource();
+        Dialog          dialog          = new Dialog("@SYS69534");
+        DialogField     dlgExtTypeName  = dialog.addField(extendedTypeStr(ExtendedDataTypeName));
+        DialogField     dlgTablename    = dialog.addField(extendedTypeStr(TableName));
+        DialogField     dlgName         = dialog.addField(extendedTypeStr(SysElementName),"@SYS62312","@SYS62313");
+        Source          template;
+    ;
+        if (dialog.run())
+        {
+            template = xppSource.editMethod(dlgExtTypeName.value(),dlgTablename.value(),dlgName.value());
+
+            editor.insertLines(template);
+        }
+    }
+
+    public void template_method_editWithClass(Editor editor)
+    {
+        xppSource       xppSource       = new xppSource(4);
+        Dialog          dialog          = new Dialog("@SYS63066");
+        DialogField     dlgExtTypeName  = dialog.addField(extendedTypeStr(ExtendedDataTypeName));
+        DialogField     dlgName         = dialog.addField(extendedTypeStr(SysElementName),"@SYS62312","@SYS63067");
+        DialogField     dlgClassname    = dialog.addField(extendedTypeStr(ClassName),"@SYS24724","@SYS63068");
+        DialogField     dlgMethod       = dialog.addField(extendedTypeStr(SysElementName),"@SYS26958","@SYS63070");
+        Source          template;
+    ;
+        if (dialog.run())
+        {
+            template = xppSource.editMethodWithClass(dlgExtTypeName.value(),dlgName.value(),dlgClassname.value(),dlgMethod.value());
+
+            editor.insertLines(template);
+        }
+
+    }
+
+    #DictField
+    void template_method_exists(Editor _e)
+    {
+        DictTable dt;
+        DictIndex di;
+        DictField df;
+        Dialog dialog;
+        DialogField dialogField;
+
+        int i;
+        int longestTypeLength;
+        int longestNameLength;
+        FieldId fieldId;
+        str mandatoryFields;
+
+        str methodText;
+        str indent;
+        //TextBuffer tb;
+        str             path = _e.path();
+        TreeNode        treeNode = path ? TreeNode::findNode(path) : null;
+
+        str strTypeOf(DictField _df, int _padTo = 0)
+        {
+            str res;
+            if(df.typeId())
+                res = new DictType(df.typeId()).name();
+            else if(df.enumId())
+                res = new DictEnum(df.enumId()).name();
+            else
+                res = '?UNKNOWN?';
+            if(_padTo)
+            {
+                res += strrep(' ', _padTo - strlen(res));
+            }
+            return res;
+        }
+
+        str prettyName(str _name)
+        {
+            return strlwr(substr(_name,1,1)) + substr(_name, 2, strlen(_name)-1);
+        }
+        ;
+        dialog = new Dialog();
+        dialog.caption('Table name');
+        dialogField = dialog.addField(extendedTypeStr(TableName));
+        if (treeNode)
+        {
+            treeNode = treeNode.AOTparent();
+            if(treeNode)
+            {
+                treeNode = treeNode.AOTparent();
+            }
+
+            dialogField.value(treeNode.treeNodeName());
+        }
+
+        if(! dialog.run())
+        {
+            return;
+        }
+
+        dt = new DictTable(tablename2id(dialogField.value()));
+        if(!dt)
+            throw error('Table name is incorrect');
+
+        di = new DictIndex(dt.id(), dt.primaryIndex());
+
+        dialog = new Dialog();
+        dialog.caption('Index name');
+        dialogField = dialog.addFieldValue(extendedTypeStr(IndexName), di ?  di.name() : '');
+        if(! dialog.run())
+        {
+            return;
+        }
+
+        di = new DictIndex(dt.id() , dt.indexName2Id(dialogField.value()));
+        if(! di)
+            throw error('Incorrect index');
+
+        methodText = strfmt('public static boolean exist(',  dt.name());
+        indent     = strrep(' ', strlen(methodText));
+
+
+        // find longest type name
+        for(i = 1; i <= di.numberOfFields(); ++i)
+        {
+            df = new DictField(dt.id(), di.field(i));
+            longestTypeLength = max(longestTypeLength, strlen(strTypeOf(df)));
+            longestNameLength = max(longestNameLength, strlen(df.name()));
+        }
+
+
+        // build args and mandatory fields list
+        for(i = 1; i <= di.numberOfFields(); ++i)
+        {
+            fieldId = di.field(i);
+            df = new DictField(dt.id(), fieldId);
+            if(df.flags() & #DBF_MANDATORY == #DBF_MANDATORY
+             || di.name() == 'RecId')
+            {
+                if(mandatoryFields)
+                {
+                    mandatoryFields += ' && ';
+                }
+                mandatoryFields += '_' + prettyName(df.name());
+            }
+
+            if(i != 1)
+            {
+                methodText += strfmt(',\n%1', indent);
+            }
+
+            methodText += strfmt('%1 _%2', strTypeOf(df, longestTypeLength), prettyName(df.name()));
+        }
+
+        //build method header
+        methodText += strfmt(')\n{\n', indent, strrep(' ', 1+longestTypeLength - strlen('boolean')));
+        indent = '    ';
+        methodText += indent + 'return';
+
+        //check for mandatory fields
+        if(mandatoryFields)
+        {
+            methodText += ' ' + mandatoryFields + '\n    '+indent+'&& ';
+            indent += '        ';
+        }
+
+        //build select query
+        methodText += '(select firstonly RecId from ' + dt.name() + '\n';
+        methodText += indent + '    where ';
+        for(i = 1; i <= di.numberOfFields(); ++i)
+        {
+            df = new DictField(dt.id(), di.field(i));
+            if(i != 1)
+            {
+                methodText += '\n' + indent + '       && ';
+            }
+            methodText += dt.name() + '.' + df.name() + strrep(' ', longestNameLength - strlen(df.name())) + ' == _' + prettyName(df.name());
+        }
+        methodText += ').RecId != 0;\n';
+
+        methodText += '}';
+        _e.insertLines(methodText);
+
+    }
+
+    #DictField
+    void template_method_find(Editor _e)
+    {
+        DictTable       dt;
+        DictIndex       di;
+        DictField       df;
+        Dialog          dialog;
+        DialogField     dialogField;
+
+        int             i;
+        int             longestTypeLength = strlen('boolean'); //for forupdate
+        int             longestNameLength;
+        FieldId         fieldId;
+        str             mandatoryFields;
+
+        str             methodText;
+        str             indent;
+        str             varName;
+        //TextBuffer      tb;
+        str             path = _e.path();
+        TreeNode        treeNode = path ? TreeNode::findNode(path) : null;
+
+        str strTypeOf(DictField _df, int _padTo = 0)
+        {
+            str res;
+            if(df.typeId())
+                res = new DictType(df.typeId()).name();
+            else if(df.enumId())
+                res = new DictEnum(df.enumId()).name();
+            else
+                res = '?UNKNOWN?';
+            if(_padTo)
+            {
+                res += strrep(' ', _padTo - strlen(res));
+            }
+            return res;
+        }
+
+        str prettyName(str _name)
+        {
+            return strlwr(substr(_name,1,1)) + substr(_name, 2, strlen(_name)-1);
+        }
+        ;
+        dialog = new Dialog();
+        dialog.caption('table name');
+
+        dialogField = dialog.addField(extendedTypeStr(TableName));
+        if (treeNode)
+        {
+            treeNode = treeNode.AOTparent();
+            if(treeNode)
+            {
+                treeNode = treeNode.AOTparent();
+            }
+
+            dialogField.value(treeNode.treeNodeName());
+        }
+
+        if(! dialog.run())
+        {
+            return;
+        }
+
+        dt = new DictTable(tablename2id(dialogField.value()));
+
+        if(!dt)
+            throw error('Table name is incorrect');
+
+        di = new DictIndex(dt.id(), dt.primaryIndex());
+
+        dialog = new Dialog();
+        dialog.caption('Index name');
+        dialogField = dialog.addFieldValue(extendedTypeStr(IndexName), di ?  di.name() : '');
+        if(! dialog.run())
+        {
+            return;
+        }
+
+        di = new DictIndex(dt.id() , dt.indexName2Id(dialogField.value()));
+        if(! di)
+            throw error('Incorrect index');
+
+        methodText = strfmt('public static %1 find(',  dt.name());
+        indent     = strrep(' ', strlen(methodText));
+        varName    = prettyName(dt.name());
+
+
+        // find longest type name
+        longestTypeLength = strlen('boolean');
+        //longestNameLength = strlen('_forUpdate');
+        for(i = 1; i <= di.numberOfFields(); ++i)
+        {
+            df = new DictField(dt.id(), di.field(i));
+            longestTypeLength = max(longestTypeLength, strlen(strTypeOf(df)));
+            longestNameLength = max(longestNameLength, strlen(df.name()));
+        }
+
+
+        // build args and mandatory fields list
+        for(i = 1; i <= di.numberOfFields(); ++i)
+        {
+            fieldId = di.field(i);
+            df = new DictField(dt.id(), fieldId);
+            if(df.flags() & #DBF_MANDATORY == #DBF_MANDATORY
+             || di.name() == 'RecId')
+            {
+                if(mandatoryFields)
+                {
+                    mandatoryFields += ' && ';
+                }
+                mandatoryFields += '_' + prettyName(df.name());
+            }
+
+            if(i != 1)
+            {
+                methodText += strfmt(',\n%1', indent);
+            }
+
+            methodText += strfmt('%1 _%2', strTypeOf(df, longestTypeLength), prettyName(df.name()));
+        }
+
+        //build method header
+        methodText += strfmt(',\n%1boolean%2_forUpdate = false)\n{\n', indent, strrep(' ', 1+longestTypeLength - strlen('boolean')));
+        indent = '    ';
+        methodText += indent + dt.name() + ' ' + varName + ';\n';
+        methodText += indent + '\n';
+
+        //check for mandatory fields
+        if(mandatoryFields)
+        {
+            methodText += indent + 'if (' + mandatoryFields + ')\n';
+            methodText += indent + '{\n';
+            indent += '    ';
+        }
+
+        //selectForUpdate
+        methodText += indent + varName+'.selectForUpdate(_forUpdate);\n\n';
+
+        //build select query
+        methodText += indent + 'select firstonly ' + varname + '\n';
+        methodText += indent + '    where ';
+        for(i = 1; i <= di.numberOfFields(); ++i)
+        {
+            df = new DictField(dt.id(), di.field(i));
+            if(i != 1)
+            {
+                methodText += '\n' + indent + '       && ';
+            }
+            methodText += varName + '.' + df.name() + strrep(' ', longestNameLength - strlen(df.name())) + ' == _' + prettyName(df.name());
+        }
+        methodText += ';\n';
+
+        //footer
+        if(mandatoryFields)
+        {
+            indent = substr(indent, 1, strlen(indent) - 4);
+            methodText += indent + '}\n';
+        }
+        methodText += '\n';
+        methodText += indent + 'return '+varName+';\n';
+
+        methodText += '}';
+        _e.insertLines(methodText);
+    }
+
+    public void template_method_findRecId(Editor _e)
+    {
+
+        Source      templateSource;
+        DEVCommentsTool  commentsTool = new DEVCommentsTool();
+        ;
+        templateSource = commentsTool.getFindRecIdSource(_e.path());
+
+        _e.insertLines(templateSource);
+
+        //DEVCommentsTool::add2Project(_e.path(), projName, false);
+    }
+
+    public void template_method_main(Editor editor)
+    {
+        xppSource       xppSource = new xppSource(editor.columnNo());
+        Source          template;
+        int             currentLine = editor.currentLineNo();
+        int             currentCol = editor.columnNo();
+
+        template = xppSource.mainMethod();
+        editor.insertLines(template);
+        editor.gotoLine(currentLine+3);
+        editor.insertString(strRep(' ', 4+currentCol));
+    }
+
+    public void template_method_parm(Editor editor)
+    {
+        xppSource       xppSource       = new xppSource();
+        Dialog          dialog          = new Dialog("@SYS62311");
+        DialogField     dlgExtTypeName  = dialog.addField(extendedTypeStr(SysXppType),'','',false /* ignoreEDTConstraints */);
+        DialogField     dlgName         = dialog.addField(extendedTypeStr(NotesLine),"@SYS62312","@SYS62313");
+        Source          template;
+
+        extendedDataTypeName    typeName;
+        SysElementName          name;
+        container               con;
+
+        if (dialog.run())
+        {
+            if (dlgExtTypeName.value())
+            {
+                template = xppSource.parmMethod(dlgExtTypeName.value(),dlgName.value());
+            }
+            else
+            {
+                con = str2con_RU(dlgName.value(), ' ', true);
+                typeName = conPeek(con, 1);
+                name = conPeek(con, 2);
+                if (subStr(name, strLen(name), 1) == ';')
+                {
+                    name = subStr(name, 1, strLen(name) - 1);
+                }
+
+                template = xppSource.parmMethod(typeName, name);
+            }
+            editor.insertLines(template);
+        }
+    }
+
+    /// <summary>
+    /// Editor script for test methods
+    /// </summary>
+    /// <param name="editor">
+    /// The <c>Editor</c> class to insert the test method to.
+    /// </param>
+    public void template_method_test(Editor editor)
+    {
+        xppSource       xppSource = new xppSource();
+        Source          template;
+
+        template = @'[SysTestCheckInTestAttribute]
+    public void test()
+    {
+        // Arrange
+
+        // Act
+
+        // Assert
+
+    }';
+        editor.insertLines(template);
+
+        editor.gotoLine(2);
+        editor.gotoCol(17);
+    }
+
+
+    void template_processDS(Editor editor)
+    {
+        Dialog          dialog          = new Dialog('Process DS');
+        DialogField     dlgDSName       = dialog.addField(extendedtypestr(SysElementName), 'DS Name');
+        DialogField     dlgVarName      = dialog.addField(extendedtypestr(SysElementName), "@SYS11906");
+
+        Source dev_processDS(str _dsName, str _varName)
+        {
+
+            ;
+
+            this.dev_simpleLineNoSemicolum(strFmt('for(%1 = %2.getFirst(true) ? %2.getFirst(true) : %2.cursor();', _varName, _dsName));
+            this.dev_simpleLineNoSemicolum(strFmt('    %1.RecId;', _varName));
+            this.dev_simpleLineNoSemicolum(strFmt('    %1 = %2.getNext())', _varName, _dsName));
+            this.dev_simpleLineNoSemicolum('{');
+
+            this.dev_simpleLineNoSemicolum('');
+
+            this.dev_simpleLineNoSemicolum('}');
+
+            return sdssource;
+
+        }
+    ;
+        sdssource = '';
+        sdsindentLevel = editor.columnNo() ;
+        if (dialog.run())
+        {
+            editor.gotoCol(1);
+            editor.insertLines(dev_processDS(dlgDSName.value(),dlgVarName.value()));
+
+        }
+    }
+
+    void template_SelectForUpdate(Editor editor)
+    {
+        Dialog          dialog          = new Dialog('select for update');
+        DialogField     dlgExtTypeName  = dialog.addField(extendedtypestr(TableName));
+        DialogField     dlgName         = dialog.addField(extendedtypestr(SysElementName),"@SYS62312","@SYS62313");
+
+        Source dev_selectForUpdate(str _typeName, str _varName)
+        {
+
+            ;
+
+            this.dev_simpleLineNoSemicolum(strFmt('%1   %2', _typeName, _varName));
+
+            this.dev_simpleLineNoSemicolum(';');
+
+            this.dev_simpleLineNoSemicolum('ttsbegin;');
+
+            this.dev_simpleLineNoSemicolum('');
+
+            this.dev_simpleLineNoSemicolum(strFmt('while select forupdate %1', _varName));
+
+            this.dev_simpleLineNoSemicolum('{');
+            this.dev_simpleLineNoSemicolum('');
+
+            this.dev_simpleLineNoSemicolum(strFmt('    %1.update();', _varName));
+            this.dev_simpleLineNoSemicolum('}');
+
+            this.dev_simpleLineNoSemicolum('ttscommit;');
+
+            return sdssource;
+        }
+
+        ;
+        sdssource = '';
+        sdsindentLevel = editor.columnNo() ;
+
+        if (dialog.run())
+        {
+            editor.gotoCol(1);
+            editor.insertLines(dev_selectForUpdate(dlgExtTypeName.value(),dlgName.value()));
+
+        }
+    }
+
+    void template_SelectQuery(Editor editor)
+    {
+        Dialog          dialog          = new Dialog('select query');
+        DialogField     dlgExtTypeName  = dialog.addField(extendedtypestr(TableName));
+        DialogField     dlgName         = dialog.addField(extendedtypestr(SysElementName),"@SYS62312","@SYS62313");
+
+        Source dev_selectQuery(str _typeName, str _varName)
+        {
+
+            ;
+
+            this.dev_simpleLineNoSemicolum(strFmt('Query                query = new Query();'));
+            this.dev_simpleLineNoSemicolum(strFmt('QueryBuildDataSource qBDS;'));
+            this.dev_simpleLineNoSemicolum(strFmt('QueryRun             queryRun;'));
+            this.dev_simpleLineNoSemicolum(strFmt('%1%3 %2;', _typeName, _varName, strrep(' ', strlen('QueryBuildDataSource') - strlen(_typeName))));
+
+            this.dev_simpleLineNoSemicolum(';');
+
+            this.dev_simpleLineNoSemicolum('');
+
+            this.dev_simpleLineNoSemicolum(strFmt('qBDS     = query.addDataSource(tablenum(%1));', _typeName));
+            this.dev_simpleLineNoSemicolum(strFmt('queryRun = new QueryRun(query);'));
+
+            this.dev_simpleLineNoSemicolum('');
+            this.dev_simpleLineNoSemicolum('while (queryRun.next())');
+            this.dev_simpleLineNoSemicolum('{');
+
+            this.dev_simpleLineNoSemicolum(strFmt('    %1 = queryRun.get(tablenum(%2));', _varName, _typeName));
+            this.dev_simpleLineNoSemicolum('}');
+
+            return sdssource;
+        }
+
+        ;
+        sdssource = '';
+        sdsindentLevel = editor.columnNo() ;
+        if (dialog.run())
+        {
+            editor.gotoCol(1);
+            editor.insertLines(dev_selectQuery(dlgExtTypeName.value(),dlgName.value()));
+
+        }
+    }
+
+    void template_switch(Editor editor)
+    {
+        xppSource xppSource = new xppSource(editor.columnNo());
+
+        Dialog          dialog              = new Dialog('Switch');
+        DialogField     dlgEnumName         = dialog.addField(extendedtypestr(SysElementName), 'Enum Name');
+        DialogField     dlgEnumVarName      = dialog.addField(extendedtypestr(SysElementName), 'Enum variable');
+
+    Source switchS(Source _condition = '',
+                  identifierName _enumName = '') //TRUD
+    {
+        DictEnum    dictEnum;
+        int         i;
+        ;
+        //indentLevel = 1;
+
+        this.dev_simpleLineNoSemicolum(strFmt('switch (%1)',_condition));
+
+        this.dev_simpleLineNoSemicolum('{');
+        sdsindentLevel += 4;
+
+        if (_enumName)
+        {
+            dictEnum = new DictEnum(enumName2Id(_enumName));
+            for (i = 0; i < dictEnum.values(); i++)
+            {
+                this.dev_simpleLineNoSemicolum(strFmt('case %1::%2:', _enumName, dictEnum.index2Symbol(i)));
+
+                this.dev_simpleLineNoSemicolum('');
+
+                this.dev_simpleLineNoSemicolum('    break;');
+
+            }
+
+        }
+        else
+        {
+            this.dev_simpleLineNoSemicolum('case :');
+
+            this.dev_simpleLineNoSemicolum('');
+
+            this.dev_simpleLineNoSemicolum('    break;');
+
+            this.dev_simpleLineNoSemicolum('case :');
+
+            this.dev_simpleLineNoSemicolum('');
+
+            this.dev_simpleLineNoSemicolum('    break;');
+        }
+
+        this.dev_simpleLineNoSemicolum('default :');
+
+        this.dev_simpleLineNoSemicolum('    throw error(Error::wrongUseOfFunction(funcName()));');
+        sdsindentLevel -= 4;
+        this.dev_simpleLineNoSemicolum('}');
+
+
+        return sdssource;
+    }
+
+        ;
+        sdssource = '';
+        sdsindentLevel = editor.columnNo() ;
+
+        if (dialog.run())
+        {
+            editor.gotoCol(1);
+            editor.insertLines(switchs(dlgEnumVarName.value(), dlgEnumName.value()));
+        }
+    }
+
+
+    void template_throw(Editor e)
+    {
+        e.insertString('throw error(strFmt(""));');
+    }
+
+    private void transformSelection(Editor _editor, IdentifierName _transformation)
+    {
+        str line;
+        int i;
+        int startLine = _editor.selectionStartLine();
+        int endLine   = _editor.selectionEndLine();
+        int startCol  = _editor.selectionStartCol(); //points at the first selected char
+        int endCol    = _editor.selectionEndCol()-1; //points at the last selected char
+        MarkMode markMode = _editor.markMode();
+        #define.maxLineLength(300)
+
+    str transform(str data)
+    {
+        switch (_transformation)
+        {
+            case identifierStr('strlwr'):
+                return strLwr(data);
+
+            case identifierStr('strupr'):
+                return strUpr(data);
+        }
+        return data;
+    }
+
+    void transformLine(int lineNo, int start, int end)
+    {
+        _editor.gotoCol(0);
+        _editor.gotoLine(lineNo);
+        line = _editor.currentLine();
+        line = subStr(line, 1, start-1) +
+               transform(subStr(line, start, end-start+1)) +
+               subStr(line, end+1, #maxLineLength);
+
+        _editor.deleteLines(1);
+        _editor.insertLines(line+'\n');
+        return;
+    }
+    ;
+        _editor.unmark();
+
+        switch (markMode)
+        {
+            case MarkMode::LineMark:
+                _editor.gotoCol(1);
+                for (i=startLine; i<=endLine; i++)
+                {
+                    transformLine(i, 1, #maxLineLength);
+                }
+                break;
+
+            case MarkMode::ColMark:
+                for (i=startLine; i<=endLine; i++)
+                {
+                    transformLine(i, startCol, endCol);
+                }
+                break;
+
+            case MarkMode::AreaMark:
+                if (startLine == endLine)
+                {
+                    transformLine(startLine, startCol, endCol);
+                }
+                else
+                {
+                    //convert first line
+                    transformLine(startLine, startCol, #maxLineLength);
+
+                    //convert full lines
+                    for (i=startLine+1; i<endLine; i++)
+                    {
+                        transformLine(i, 1, #maxLineLength);
+                    }
+
+                    //convert last line
+                    transformLine(endLine, 1, endCol);
+                }
+                break;
+        }
+    }
+
+    protected static TreeNode getApplObjectNode(Editor _editor)
+    {
+        TreeNode aotNode = TreeNode::findNode(_editor.path());
+        return SysTreeNode::getRootElement(aotNode);
+    }
+
+    public static str getSelectedText(Editor e)
+    {
+        int i;
+        str text;
+        str line;
+        int startLine = e.selectionStartLine()+1;
+        int endLine   = e.selectionEndLine()+1;
+        int startCol  = e.selectionStartCol();
+        int endCol    = e.selectionEndCol();
+
+        if (startLine == endLine && startCol == endCol)
+        {
+            e.firstLine();
+            while (e.moreLines())
+            {
+                text += e.getLine()+'\r\n';
+                e.nextLine();
+            }
+        }
+        else
+        {
+            e.firstSelectedLine();
+            for (i = startLine; i <= endLine; i++)
+            {
+                line = e.getLine();
+                if (i == startLine && i == endLine)
+                {
+                    line = subStr(line, startcol, endCol-startCol);
+                }
+                else
+                if (i == endLine)
+                {
+                    line = subStr(line, 1, endCol-1);
+                }
+                else
+                if (i == startLine)
+                {
+                    line = strRep(' ', startCol-1)+subStr(line, startCol, strLen(line));
+                }
+
+                text += line + '\r\n';
+                e.nextSelectedLine();
+            }
+        }
+        return text;
+    }
+}

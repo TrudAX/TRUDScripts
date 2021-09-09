@@ -1,0 +1,345 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+MNU
+
+; Microsoft Dynamics AX Menu : DevelopmentTools unloaded
+; --------------------------------------------------------------------------------
+  MNUVERSION 5
+  
+  MENU #DevelopmentTools
+    PROPERTIES
+      Name                #DevelopmentTools
+      Label               #@SYS68878
+      ConfigurationKey    #SysDevelopmentMorphX
+      SecurityKey         #SysDevelopment
+      Origin              #{10100000-0000-1000-EB6C-8F0A0826DA1E}
+    ENDPROPERTIES
+    
+    MENUREFERENCE
+      PROPERTIES
+        Name                #xRef
+      ENDPROPERTIES
+      
+    ENDMENUREFERENCE
+    SEPARATOR
+    MENU #@SYS333686
+      PROPERTIES
+        Name                #Model
+        Label               #@SYS333686
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Change current model
+          MenuItemName        #SysModelChangeCurrentModel
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Create project from model
+          MenuItemType        #Action
+          MenuItemName        #SysModelCreateProject
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Create model
+          MenuItemType        #Action
+          MenuItemName        #SysModelCreateModel
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Model elements
+          MenuItemName        #SysModelElements
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Models installed
+          MenuItemName        #SysModelsInstalled
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    MENU #@SYS94883
+      PROPERTIES
+        Name                #UnitTest
+        Label               #@SYS94883
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Show toolbar
+          MenuItemName        #SysTestToolbar
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Test jobs
+          MenuItemName        #SysTestJobTable
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Parameters
+          MenuItemName        #SysTestParameters
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    SEPARATOR
+    MENU #@SYS4001376
+      PROPERTIES
+        Name                #VersionUpdate
+        Label               #@SYS4001376
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Import AOD file
+          MenuItemName        #sysaodImport
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Model elements (baseline)
+          MenuItemName        #SysModelElementsBaseLine
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Export baseline element IDs
+          MenuItemType        #Action
+          MenuItemName        #SysCheckListItem_SysUpgradeExportIds
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Configure rules for code upgrade
+          MenuItemName        #SysCheckListItem_SysUpgradeRuleConfig
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Detect code upgrade conflicts
+          MenuItemType        #Action
+          MenuItemName        #SysUpgradeDetectConflicts
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Compare layers
+          MenuItemType        #Action
+          MenuItemName        #SysCompareCreateProject
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #EDT relation migration tool
+          MenuItemName        #SysEDTMigration
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENU #@SYS334719
+        PROPERTIES
+          Name                #ConvertSecKeyAssociations
+          Label               #@SYS334719
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #Update mode
+            MenuItemType        #Action
+            MenuItemName        #SysSecurityKeysConvertUpdateMode
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #Report only mode
+            MenuItemType        #Action
+            MenuItemName        #SysSecurityKeysConvertReportOnlyMode
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENUITEM
+        PROPERTIES
+          Name                #Estimation report
+          MenuItemName        #SysUpgradeEstimate
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Parameters
+          MenuItemName        #SysUpgradeParameters
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Code profiler
+        MenuItemName        #SysCodeProfilerStartStop
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Debugger
+        MenuItemType        #Action
+        MenuItemName        #SysDebugger
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Tracing cockpit
+        MenuItemName        #SysTraceCockpit
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Reverse engineer
+        MenuItemName        #SysVisioAddIn
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Number of records
+        MenuItemName        #SysTableRowCount
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Type hierarchy browser
+        MenuItemName        #SysTypeHierarchyBrowser
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Type hierarchy context
+        MenuItemName        #SysTypeHierarchyContext
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENUREFERENCE
+      PROPERTIES
+        Name                #AIFDevelopmentTools
+      ENDPROPERTIES
+      
+    ENDMENUREFERENCE
+    MENUREFERENCE
+      PROPERTIES
+        Name                #WebDevelopment
+      ENDPROPERTIES
+      
+    ENDMENUREFERENCE
+    MENUREFERENCE
+      PROPERTIES
+        Name                #Wizards
+      ENDPROPERTIES
+      
+    ENDMENUREFERENCE
+    MENUREFERENCE
+      PROPERTIES
+        Name                #LabelTools
+      ENDPROPERTIES
+      
+    ENDMENUREFERENCE
+    MENUREFERENCE
+      PROPERTIES
+        Name                #SRSReportingToolsMenu
+      ENDPROPERTIES
+      
+    ENDMENUREFERENCE
+    SEPARATOR
+    MENU #@SYS340555
+      PROPERTIES
+        Name                #Caches
+        Label               #@SYS340555
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Refresh dictionary
+          MenuItemType        #Action
+          MenuItemName        #SysFlushDictionary
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Refresh data
+          MenuItemType        #Action
+          MenuItemName        #SysFlushData
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Refresh elements
+          MenuItemType        #Action
+          MenuItemName        #SysFlushAOD
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Refresh report server
+          MenuItemType        #Action
+          MenuItemName        #SysFlushReportServer
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Embedded resources
+        MenuItemName        #SysImageResources
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Customize
+        MenuItemName        #SysUserSetupToolbar
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Options
+        MenuItemName        #SysUserSetup
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+  ENDMENU
+  
+
+END

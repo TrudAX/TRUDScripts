@@ -1,0 +1,22 @@
+static void trud_postPO(Args _args)
+{
+    PurchFormLetter                 purchFormLetter;
+
+    //PurchTable _purchTable = PurchTable::find("000592");
+    PurchTable _purchTable = PurchTable::find("001330");
+
+    ttsBegin;
+    // Confirm order
+    //purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+    //purchFormLetter.update(_purchTable,'');
+
+    // Invoice order
+    purchFormLetter = purchFormLetter::construct(DocumentStatus::Invoice);
+    //purchFormLetter.parmLoadFromSysLastValue(false);
+    purchFormLetter.update(_purchTable,
+                           "001330",
+                           systemDateGet(), PurchUpdate::PackingSlip);
+
+    //ttsAbort;
+    //ttscommit;
+}

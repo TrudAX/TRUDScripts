@@ -1,0 +1,46 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysTreeNodeVirtualVCS extends SysTreeNodeVirtual
+{
+    SysVersionControlTmpItem vcsItem;
+
+    public str comparableName()
+    {
+        if (vcsItem.ChangeNumber &&
+            vcsItem.ChangeNumber != vcsItem.Version)
+        {
+            return strfmt('%1 (Version %2 - %3) %4', vcsItem.itemPathUsingObjectName(), vcsItem.Version, vcsItem.ChangeNumber, vcsItem.VCSDate);
+        }
+        return strfmt('%1 (Version %2) %3', vcsItem.itemPathUsingObjectName(), vcsItem.Version, vcsItem.VCSDate);
+    }
+
+    public void onComparableSelected()
+    {
+    ;
+        treeNode = vcsItem.getVirtualTreenode();
+    }
+
+    public SysVersionControlTmpItem parmVCSItem(SysVersionControlTmpItem _vcsItem = vcsItem)
+    {
+        ;
+        vcsItem.data(_vcsItem);
+
+        return vcsItem;
+    }
+
+
+    public static SysTreeNodeVirtualVCS construct()
+    {
+        return new SysTreeNodeVirtualVCS();
+    }
+
+
+    public static SysTreeNodeVirtualVCS newVCSItem(SysVersionControlTmpItem _item)
+    {
+        SysTreeNodeVirtualVCS sysTreeNodeVirtual = SysTreeNodeVirtualVCS::construct();
+        ;
+        sysTreeNodeVirtual.parmVCSItem(_item);
+
+        return sysTreeNodeVirtual;
+    }
+
+}

@@ -1,0 +1,95 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysSecEntryPointManagerSetup
+{
+
+    public static void main(Args _args)
+    {
+        #AOT
+        #Properties
+        TreeNode mainMenuItemNode = TreeNode::findNode(#MenuItemsDisplayPath).AOTfindChild('SysSecRoleEntryPoint');
+        TreeNode devMenuItemNode = TreeNode::findNode(#MenuItemsDisplayPath).AOTfindChild('SysSecRoleEntryPointDeveloper');
+        TreeNode menuNode, node;
+        TreeNode systemAdministrationNode = TreeNode::findNode(strFmt('%1\\%2', #MenusPath, 'SystemAdministration'));
+        TreeNode sysContextMenuNode = TreeNode::findNode(strFmt('%1\\%2', #MenusPath, 'SysContextMenu'));
+
+        TreeNode findMenuItemNode(TreeNode _menuNode, str _menuItemType, str _menuItemName)
+        {
+            TreeNodeIterator tIterator = _menuNode.AOTiterator();
+            TreeNode menuItemNode = tIterator.next();
+
+            while(menuItemNode != null)
+            {
+                if(findProperty(menuItemNode.AOTgetProperties(), #PropertyMenuItemType) == _menuItemType &&
+                    findProperty(menuItemNode.AOTgetProperties(), #PropertyMenuItemName) == _menuItemName)
+                {
+                    return menuItemNode;
+                }
+
+                menuItemNode = tIterator.next();
+            }
+            return null;
+        }
+
+        if(systemAdministrationNode != null)
+        {
+            if(versionControl && versionControl.parmSysVersionControlSystem())
+            {
+                if(!versionControl.allowEdit(systemAdministrationNode))
+                {
+                    error(strFmt("@SDT70", systemAdministrationNode.treeNodePath()));
+                }
+            }
+
+            menuNode = systemAdministrationNode.AOTfindChild('Setup');
+            if(menuNode != null)
+            {
+                menuNode = menuNode.AOTfindChild('Security');
+                if(menuNode != null)
+                {
+                    node = findMenuItemNode(menuNode, 'Display', 'SysSecRoleEntryPoint');
+
+                    if(node == null)
+                    {
+                        menuNode.AOTDrop(mainMenuItemNode, findMenuItemNode(menuNode, 'Display', 'SysSecRolesEditTasks'));
+                        systemAdministrationNode.AOTsave();
+
+                        node = findMenuItemNode(menuNode, 'Display', 'SysSecRoleEntryPoint');
+                        if(node)
+                        {
+                            info(strFmt("@SDT71", node.AOTname(), menuNode.treeNodePath()));
+                        }
+                    }
+                }
+            }
+        }
+
+        if(sysContextMenuNode != null)
+        {
+            if(versionControl && versionControl.parmSysVersionControlSystem())
+            {
+                if(!versionControl.allowEdit(sysContextMenuNode))
+                {
+                    error(strFmt("@SDT70", sysContextMenuNode.treeNodePath()));
+                }
+            }
+
+            menuNode = sysContextMenuNode.AOTfindChild('Security tools');
+            if(menuNode)
+            {
+                node = findMenuItemNode(menuNode, 'Display', 'SysSecRoleEntryPointDeveloper');
+                if(node == null)
+                {
+                    menuNode.AOTDrop(devMenuItemNode);
+                    sysContextMenuNode.AOTsave();
+
+                    node = findMenuItemNode(menuNode, 'Display', 'SysSecRoleEntryPointDeveloper');
+                    if(node)
+                    {
+                        info(strFmt("@SDT71", node.AOTname(), menuNode.treeNodePath()));
+                    }
+                }
+            }
+        }
+        info(strFmt("@SDT72"));
+    }
+}

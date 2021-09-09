@@ -1,0 +1,301 @@
+#define.lang('EN-US')
+class DEVLabelsCreateHelper
+{
+
+
+    void createLabelsInFile()
+    {
+        DEVLabelsCreateInfo     labelsCreateInfo, labelsCreateInfo2;
+        Label                   label = new Label(#lang);
+        container               value;
+        str                     defaultModule;
+        Dialog                  d = new Dialog('Insert labels in file');
+        DialogField             df;
+        int                     num;
+        ;
+
+        value = classfactory.lastValueGet("",
+                                        curuserid(),
+                                        UtilElementType::Form,
+                                        identifierstr(SysLabelSearch),
+                                        'Advanced');
+        if (value)
+        {
+            defaultModule = conPeek(value, 7);
+        }
+        df = d.addFieldValue(extendedTypeStr(Num), defaultModule, 'Label file');
+        d.addText(strFmt('Create labels for %1 language', #lang), 100);
+        if (! d.run())
+        {
+            return;
+        }
+        defaultModule = df.value();
+
+        if (! defaultModule)
+        {
+            throw error('Default Module not found');
+        }
+
+        ttsBegin;
+        while select forUpdate labelsCreateInfo
+            order by recid
+            where labelsCreateInfo.IsProcessed == false &&
+                  labelsCreateInfo.LabelActionType == DEVLabelActionType::CreateNewLabel &&
+                ! labelsCreateInfo.NewLabel
+        {
+            //BP Deviation Documented
+            select labelsCreateInfo2
+                where labelsCreateInfo2.IsProcessed     == false &&
+                      labelsCreateInfo2.LabelActionType == DEVLabelActionType::CreateNewLabel &&
+                      labelsCreateInfo2.RecId           <  labelsCreateInfo.RecId &&
+                      labelsCreateInfo2.TextValue       == labelsCreateInfo.TextValue &&
+                      labelsCreateInfo2.NewLabel ;
+            if (labelsCreateInfo2.RecId)
+            {
+                labelsCreateInfo.NewLabel = labelsCreateInfo2.NewLabel;
+            }
+            else
+            {
+                labelsCreateInfo.NewLabel = label.insert(labelsCreateInfo.TextValue, '', defaultModule);
+                num++;
+            }
+            labelsCreateInfo.update();
+
+
+        }
+        ttsCommit;
+
+        info(strFmt('%1 labels created', num));
+    }
+
+    void processLabels()
+    {
+        DEVLabelsCreateInfo     labelsCreateInfo, labelsCreateInfoGroup;
+        DEVLabelsCreateInfo     labelsCreateInfoPrev;
+        TreeNode                treeNode;
+        str                     source;
+        int                     newPos;
+        int                     prevOffset;
+        int                     numProcessed;
+        str                     sTmp;
+
+        int getPosInSource(str  _source, int _row, int _column)
+        {
+            int pos;
+            int line;
+            int i;
+            str posText;
+            ;
+            for (i = 1; i <= _row - 1; i++)
+            {
+                pos = strFind(_source, '\n', pos + 1, maxInt());
+                if (! pos)
+                {
+                    break;
+                }
+            }
+            if (! pos && _row != 1)
+            {
+                throw error(strFmt('Position not found. Path %1, Row %2, Col %3', labelsCreateInfo.ElementPath, _row, _column));
+            }
+
+            pos = pos + _column + 1 - prevOffset;
+
+            posText = subStr(_source, pos, strLen(labelsCreateInfo.TextValue));
+            if (posText != labelsCreateInfo.TextValue)
+            {
+                throw error(strFmt('Text is not equal. Path %1, Row %2, Col %3, Source text %4, Expected %5',
+                                    labelsCreateInfo.ElementPath, _row, _column, posText, labelsCreateInfo.TextValue));
+            }
+
+            return pos;
+        }
+        ;
+        while select labelsCreateInfoGroup
+            group by ElementPath
+            where labelsCreateInfoGroup.IsProcessed == false &&
+                 ! labelsCreateInfoGroup.PropertyName &&
+                   labelsCreateInfoGroup.NewLabel
+        {
+            treeNode = TreeNode::findNode(labelsCreateInfoGroup.ElementPath);
+            source = treeNode.AOTgetSource();
+
+            labelsCreateInfoPrev = null;
+            ttsBegin;
+            while select forUpdate labelsCreateInfo
+                    order by Line, Column
+                where labelsCreateInfo.IsProcessed == false &&
+                      labelsCreateInfo.NewLabel &&
+                      labelsCreateInfo.ElementPath == labelsCreateInfoGroup.ElementPath
+            {
+                if (labelsCreateInfoPrev.RecId &&
+                    labelsCreateInfoPrev.Line == labelsCreateInfo.Line)
+                {
+                    prevOffset += strLen(labelsCreateInfoPrev.TextValue) + labelsCreateInfoPrev.SpacesOnEnd - strLen(labelsCreateInfoPrev.NewLabel);
+                }
+                else
+                {
+                    prevOffset = 0;
+                }
+                newPos = getPosInSource(source, labelsCreateInfo.Line, labelsCreateInfo.Column);
+
+                source = strDel(source, newPos, strLen(labelsCreateInfo.TextValue) + labelsCreateInfo.SpacesOnEnd);
+                source = strIns(source, labelsCreateInfo.NewLabel, newPos);
+
+
+                labelsCreateInfoPrev.data(labelsCreateInfo);
+
+                labelsCreateInfo.IsProcessed = true;
+                labelsCreateInfo.update();
+            }
+            numProcessed++;
+            treeNode.AOTsetSource(source);
+            treeNode.AOTsave();
+            treeNode.AOTcompile();
+
+            ttsCommit;
+            //info(source);
+        }
+        info(strFmt('%1 methods processed', numProcessed));
+
+        numProcessed = 0;
+        while select labelsCreateInfoGroup
+            group by ElementPath
+            where labelsCreateInfoGroup.IsProcessed == false &&
+                  labelsCreateInfoGroup.PropertyName &&
+                  labelsCreateInfoGroup.NewLabel
+        {
+            treeNode = TreeNode::findNode(labelsCreateInfoGroup.ElementPath);
+
+            ttsBegin;
+            while select forUpdate labelsCreateInfo
+            //        order by Line, Column
+                where labelsCreateInfo.IsProcessed == false &&
+                      labelsCreateInfo.ElementPath == labelsCreateInfoGroup.ElementPath &&
+                      labelsCreateInfo.NewLabel
+            {
+                sTmp = treeNode.AOTgetProperties(false, false, false);
+                if (strScan(sTmp, labelsCreateInfo.PropertyName, 1, 5000) &&  treeNode.AOTgetProperty(labelsCreateInfo.PropertyName))
+                {
+                    treeNode.AOTsetProperty(labelsCreateInfo.PropertyName, labelsCreateInfo.NewLabel);
+                }
+                else
+                {
+                    warning(strFmt('%1 property on element %2 is empty. Element skipped',
+                                    labelsCreateInfo.PropertyName,
+                                    labelsCreateInfo.ElementPath));
+                }
+                labelsCreateInfo.IsProcessed = true;
+                labelsCreateInfo.update();
+            }
+            numProcessed++;
+            treeNode.AOTsave();
+            treeNode.AOTcompile();
+
+            ttsCommit;
+
+
+        }
+        info(strFmt('%1 elements processed', numProcessed));
+
+    }
+
+    void setLabelAction()
+    {
+        DEVLabelsCreateInfo  labelsCreateInfoLocal;
+        Label                label = new Label(#lang);
+        str                  text, labelTxt;
+        ;
+        ttsBegin;
+        while select forUpdate labelsCreateInfoLocal
+        {
+            labelsCreateInfoLocal.NewLabel      = "";
+            labelsCreateInfoLocal.NewLabelValue = "";
+            labelsCreateInfoLocal.LabelActionType = DEVLabelActionType::Skip;
+
+            text        = SysLabel::seachStringBuildExactStr(labelsCreateInfoLocal.TextValue);
+            labelTxt    = label.searchFirst(text);
+            if (! labelTxt && SysLabel::searchStringHasSpecialChars(labelsCreateInfoLocal.TextValue))
+
+            {
+                text = SysLabel::searchStringBuildSpecialCharString(labelsCreateInfoLocal.TextValue);
+                text = SysLabel::seachStringBuildExactStr(text);
+                labelTxt  = label.searchFirst(text);
+            }
+            if (labelTxt)
+            {
+                labelsCreateInfoLocal.NewLabel      = labelTxt;
+                labelsCreateInfoLocal.NewLabelValue = label.extractString(labelTxt);
+                labelsCreateInfoLocal.LabelActionType = DEVLabelActionType::UseExisting;
+            }
+            else
+            {
+                labelsCreateInfoLocal.LabelActionType = DEVLabelActionType::CreateNewLabel;
+            }
+            labelsCreateInfoLocal.update();
+        }
+        ttsCommit;
+
+    }
+
+    //trud, labels create
+    #SysBPCheck
+    static void DEVhandleLabelError(int            _errorCode,
+                                     int            _line,
+                                     int            _col,
+                                     str            _errorMessage,
+                                     str            _propertyName ,
+                                     TreeNodePath   _treeNodePath )
+    {
+        DEVLabelsCreateInfo     labelsCreateInfo;
+        str                     textVal;
+        str                     prefixValue;
+        ;
+        if (! appl.globalCache().isSet(formStr(DEVLabelsCreateInfo), 'IsEnabled'))
+        {
+            return;
+        }
+        try
+        {
+            if ((_errorCode == #compileApplicationCheck && _errorMessage != strFmt('%1', "@SYS87094"))
+                || _errorCode == #BPErrorLabelIsText || _errorCode == #BPErrorHelpIsText)
+            {
+                if (_errorCode == #compileApplicationCheck)
+                {
+                    prefixValue = strFmt("@SYS55394");
+                    prefixValue = subStr(prefixValue, 1, strLen(prefixValue) - 2);
+                    if (prefixValue != subStr(_errorMessage, 1, strLen(prefixValue)))
+                    {
+                        return;
+                        //throw error(strFmt("Prefix %1 doen't match %2", prefixValue, _errorMessage));
+                    }
+                    textVal = subStr(_errorMessage, strLen(prefixValue)  + 1, strLen(_errorMessage));
+                }
+                if (_errorCode == #BPErrorLabelIsText ||
+                    _errorCode == #BPErrorHelpIsText)
+                {
+                    prefixValue = strFmt("@SYS60289", _propertyName);
+                    prefixValue = subStr(prefixValue, 1, strLen(prefixValue) - 2);
+                    if (prefixValue != subStr(_errorMessage, 1, strLen(prefixValue)))
+                    {
+                        throw error(strFmt('Prefix %1 doen"t match %2', prefixValue, _errorMessage));
+                    }
+                    textVal = subStr(_errorMessage, strLen(prefixValue)  + 1, strLen(_errorMessage));
+                }
+                if (textVal)
+                {
+                    labelsCreateInfo.ElementPath    = _treeNodePath;
+                    labelsCreateInfo.PropertyName   = _propertyName;
+                    labelsCreateInfo.Column         = _col;
+                    labelsCreateInfo.Line           = _line;
+                    labelsCreateInfo.TextValue      = textVal;
+                    labelsCreateInfo.insert();
+                }
+            }
+        }
+        catch
+        {
+            exceptionTextFallThrough();
+        }
+    }
+}

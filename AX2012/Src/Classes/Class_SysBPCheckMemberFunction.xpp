@@ -1,0 +1,3474 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysBPCheckMemberFunction extends SysBPCheckBase
+{
+    SysDictMethod       sysDictMethod;
+    SysScannerClass     scanner;
+    xRefTmpReferences   tmpxRefReferences;       // the source, as the xRef sees it
+    MemberFunction      memberFunction;
+    boolean             xRefIsInited;
+    UtilElementType     parentType;
+    UtilElementType     methodType;
+    IdentifierName      parentName;
+    IdentifierName      methodName;
+    int                 parentId;
+    boolean             allowHardcodedTexts;
+    boolean             isUpgradeScript;
+    DictClass           currentClass;
+    Array               attributes;
+
+    UtilEntryLevel      currentAOLayer;
+
+    //
+    // Caches that are flushed after every completed BP run (i.e. onIdle)
+    //
+    Set                 pathsUnderVCS;
+    Set                 pathsNotUnderVCSError;
+    Set                 pathsNotUnderVCSInfo;
+
+    #define.del('DEL_')
+    #XmlDocumentation
+
+    protected void addSuppressableError(int _errorCode, int _line, int _col, str _errorMessage, str _propertyName = '', TreeNodePath _treeNodePath = '')
+    {
+        if (this.deviationDocumented(_line))
+        {
+            if (prmisDefault(_treeNodePath))
+            {
+                sysBPCheck.addInfo(_errorCode, _line, _col, _errorMessage, _propertyName);
+            }
+            else
+            {
+                sysBPCheck.addInfo(_errorCode, _line, _col, _errorMessage, _propertyName, _treeNodePath);
+            }
+        }
+        else
+        {
+            if (prmisDefault(_treeNodePath))
+            {
+                sysBPCheck.addError(_errorCode, _line, _col, _errorMessage, _propertyName);
+            }
+            else
+            {
+                sysBPCheck.addError(_errorCode, _line, _col, _errorMessage, _propertyName, _treeNodePath);
+            }
+        }
+    }
+
+    protected void addSuppressableWarning(int _errorCode, int _line, int _col, str _errorMessage, str _propertyName = '', TreeNodePath _treeNodePath = '')
+    {
+        if (this.deviationDocumented(_line))
+        {
+            if (prmisDefault(_treeNodePath))
+            {
+                sysBPCheck.addInfo(_errorCode, _line, _col, _errorMessage, _propertyName);
+            }
+            else
+            {
+                sysBPCheck.addInfo(_errorCode, _line, _col, _errorMessage, _propertyName, _treeNodePath);
+            }
+        }
+        else
+        {
+            if (prmisDefault(_treeNodePath))
+            {
+                sysBPCheck.addWarning(_errorCode, _line, _col, _errorMessage, _propertyName);
+            }
+            else
+            {
+                sysBPCheck.addWarning(_errorCode, _line, _col, _errorMessage, _propertyName, _treeNodePath);
+            }
+        }
+    }
+
+    public void check()
+    {
+        super();
+
+        if (sysDictMethod.compiledOk() && memberFunction.AOTgetSource())
+        {
+            this.checkSource();
+            this.checkIndentation();
+            this.checkSymbols();
+            this.checkReturnTypes();
+
+            this.checkFrameworkClassDisclaimer();
+
+            if (parameters.CheckVCSReferences)
+            {
+                this.checkUseLocalObjects();
+            }
+
+            if (parameters.CheckTwC)
+            {
+                this.checkUseOfDangerousClasses();
+                this.checkUseOfDangerousFunctions();
+            }
+
+            if (parameters.CheckEmptyMethods)
+            {
+                this.checkEmptyMethod();
+            }
+
+            if (parameters.CheckAOS)
+            {
+                this.checkUseOfFieldLists();
+                this.checkUseOfCacheAddMethod();
+            }
+
+            if (parameters.CheckPrivacy)
+            {
+                this.checkAccessSpecifier();
+            }
+
+            if (parameters.CheckDiscontinuation)
+            {
+                this.checkDiscontinuation();
+            }
+
+            if (parameters.CheckFutureReservedWords)
+            {
+                this.checkFutureReservedWord();
+            }
+
+            if (parameters.CheckVariables)
+            {
+                this.checkVariables();
+            }
+
+            if (parameters.CheckXmlDocumentation)
+            {
+                this.checkXmlDocumentation();
+            }
+
+            if (parameters.CheckUpgradeScript && isUpgradeScript)
+            {
+                this.checkUpgradeScriptMethodType();
+                this.checkUpgradeScriptRequiredAttributes();
+                this.checkUpgradeScriptTableXRef();
+            }
+
+            if (parameters.CheckOperationLabelAttribute)
+            {
+                this.checkSysOperationLabel();
+            }
+
+            if (parameters.CheckInteractionClassControlReferences)
+            {
+                this.checkInteractionClassControlReferences();
+            }
+        }
+    }
+
+    /*
+        This method checks the method for how it's access specifier could be set to
+        private/protected/public
+        based on who calls it.
+
+        A hint will be given, if the methods access specifier has not been set,
+        *   and could be set to more private than it it's default public.
+        *   or could be explicitely specified as public.
+
+        If the programmer has explicitely specified any of the possible access specifiers, the check are skipped
+        The compiler checks if combinations are possible at all.
+    */
+    protected boolean checkAccessSpecifier()
+    {
+        boolean ret = true;
+
+        xRefPaths xRefPaths;
+        xRefPaths xRefPathsReference;
+        xRefReferences xRefReferences;
+        UtilElements callingElement;
+
+        AccessSpecifier neededPublicity;
+        TreeNode callingNode;
+        SysDictMethod superDictMethod;
+
+        #TokenTypes
+
+        boolean isMorePublic(AccessSpecifier oneAccessSpecifier, AccessSpecifier otherAccessSpecifier)   // is oneAccessSpecifier more public than otherAccessSpecifier?
+        {
+            switch (oneAccessSpecifier)
+            {
+                case AccessSpecifier::private:
+                    switch (otherAccessSpecifier)
+                    {
+                        case AccessSpecifier::private:     return false;
+                        case AccessSpecifier::protected:   return false;
+                        case AccessSpecifier::public:      return false;
+                    }
+                case AccessSpecifier::protected:
+                    switch (otherAccessSpecifier)
+                    {
+                        case AccessSpecifier::private:     return true;
+                        case AccessSpecifier::protected:   return false;
+                        case AccessSpecifier::public:      return false;
+                    }
+                case AccessSpecifier::public:
+                    switch (otherAccessSpecifier)
+                    {
+                        case AccessSpecifier::private:     return true;
+                        case AccessSpecifier::protected:   return true;
+                        case AccessSpecifier::public:      return false;
+                    }
+            }
+            return false;
+        }
+
+        AccessSpecifier maxPublicity(AccessSpecifier oneAccessSpecifier, AccessSpecifier otherAccessSpecifier)
+        {
+            return isMorePublic(oneAccessSpecifier, otherAccessSpecifier) ? oneAccessSpecifier : otherAccessSpecifier;
+        }
+
+        if (sysBPCheck.toBeUsed(SysBPWarningLevel::Warning))
+        {
+            if (parentId &&           // this check is only done on table and class methods
+                !(methodType == UtilElementType::ClassInstanceMethod && methodName == #MethodNameClassDeclaration)                              &&           // a ClassDeclaration isn't a real method
+                sysDictMethod.displayType() == DisplayFunctionType::None                  &&           // that aren't edit/display methods (as theese are more public than public!)
+                (sysDictMethod.accessSpecifier() == AccessSpecifier::public &&                         // that are having the default access specification (public)
+                 !new xppScanner(SysUtil::unpackSource(sysDictMethod.getSource())).find(#PUBLIC_SYM))) // and the default access specification (public) are the default, i.e. unspecified in the method
+            {
+                // set the inital bid on how private this method can be
+                if (methodType == UtilElementType::ClassStaticMethod &&
+                    (methodName == #MethodNameMain        ||                              // main are called from the complete outside
+                     methodName == #MethodNameDescription ||                              // description are called by the runbase framework
+                     methodName == #MethodNameHelpText)                                   // helpText are a "standard property" (used in consistency check framework)
+                   )
+                {
+                    neededPublicity = AccessSpecifier::public;
+                }
+                else
+                {
+                    neededPublicity = AccessSpecifier::private; // most private ("lowest") possible, until otherwise proven
+                    if (methodType == UtilElementType::ClassInstanceMethod)
+                    {
+                        superDictMethod = sysDictMethod.superDictMethod();
+                        if (superDictMethod)
+                            neededPublicity = superDictMethod.accessSpecifier();            // can't be more private than it?s super method
+                    }
+                    if (neededPublicity == AccessSpecifier::private)    // if it is overridden, private are too private
+                    {
+                        if (sysDictMethod.subDictMethodList(true).elements())
+                        {
+                            neededPublicity = AccessSpecifier::protected; // protected is the most restrictive for an overridden method
+                        }
+                    }
+                }
+
+                if (neededPublicity != AccessSpecifier::public)
+                {
+                    // find all direct call's to this method
+                    while select Path from xRefPaths
+                    join TableId from xRefReferences
+                        where xRefReferences.xRefPathRecId == xRefPaths.RecId &&
+                              xRefReferences.Reference     == XRefReference::Call
+                    join TableId from xRefPathsReference
+                        where xRefPathsReference.RecId == xRefReferences.ReferencePathRecId &&
+                              xRefPathsReference.Path  == memberFunction.treeNodePath()
+                    {
+                        callingNode = this.findNode(xRefPaths.Path);
+                        if (callingNode)
+                        {
+                            if (callingNode.treeNodeType().isUtilElement())
+                            {
+                                callingElement = callingNode.utilElement();
+
+                                // caller private to the table or the class
+                                if (callingElement.ParentId == parentId &&
+                                   (( (callingElement.RecordType    == UtilElementType::ClassStaticMethod || callingElement.RecordType    == UtilElementType::ClassInstanceMethod) &&
+                                      (methodType == UtilElementType::ClassStaticMethod || methodType == UtilElementType::ClassInstanceMethod) ) ||
+                                    ( (callingElement.RecordType    == UtilElementType::TableStaticMethod || callingElement.RecordType    == UtilElementType::TableInstanceMethod) &&
+                                      (methodType == UtilElementType::TableStaticMethod || methodType == UtilElementType::TableInstanceMethod) ) ) )
+                                {
+                                    neededPublicity = maxPublicity(neededPublicity,AccessSpecifier::private);
+                                }
+                                else
+                                // caller from a sub class
+                                if ((((callingElement.RecordType    == UtilElementType::ClassStaticMethod || callingElement.RecordType    == UtilElementType::ClassInstanceMethod) &&
+                                      (methodType == UtilElementType::ClassStaticMethod || methodType == UtilElementType::ClassInstanceMethod) ) ) &&
+                                      SysDictClass::isSuperclass(callingElement.ParentId,parentId) )
+                                {
+                                    neededPublicity = maxPublicity(neededPublicity,AccessSpecifier::protected);
+                                }
+                                else
+                                // caller from a another class
+                                {
+                                    neededPublicity = AccessSpecifier::public;
+                                    break; // one external caller are enough to make it public
+                                }
+                            }
+                            else
+                            // caller from a another element (not class)
+                            {
+                                neededPublicity = AccessSpecifier::public;
+                                break; // one external caller are enough to make it public
+                            }
+                        }
+                    }
+                }
+
+                if (isMorePublic(sysDictMethod.accessSpecifier(),neededPublicity))
+                {
+                    this.addSuppressableWarning(#BPErrorMethodAccessCanBeSetExplicitely, 1, 1, strFmt("@SYS68392", neededPublicity));
+                    ret = false;
+                }
+                else
+                {
+                    if (neededPublicity == AccessSpecifier::public)// which is the default, and as we only are here if it isn't explicitely specified in the method, it can be set.
+                    {
+                        this.addSuppressableWarning(#BPErrorMethodAccessCanBeSetExplicitely, 1, 1, strFmt("@SYS68392", neededPublicity));
+                        ret = false;
+                    }
+                }
+            }
+        }
+        callingNode = null;
+        return ret;
+
+    }
+
+
+    /*
+    This method checks the source text for
+        Client/server usability - tell's it's recommondations.
+    */
+    public boolean checkAOS()
+    {
+        TextBuffer  textBuffer;
+        boolean     ret;
+
+        UtilElementType utilElementType;
+
+        ClassRunMode runOn = sysDictMethod.runMode();
+        str runOnString;
+        str tierString;
+
+        #define.serverString('server')
+        #define.clientString('client')
+        #define.calledFromString('called from')
+
+        int startPos;
+        container posOfWhileSelect;     // list of pointers to while select statements
+
+        ClassRunMode calledRunOn;
+        int countSides[];           // indexed by ClassRunMode + 1 (the one is zero (0), the other is one (1) based)
+        str logSides[];
+
+        xRefNames         xRefNamesNull;
+        xRefTmpReferences thisRefererences;
+        xRefTmpReferences thisDeclarations;
+
+        void giveHint(ClassRunMode _tier)
+        {
+            boolean warn = true;
+
+            xRefPaths       xRefPathsCALL,
+                            xRefPathsDEFINITION;
+            xRefReferences  xRefReferencesCALL,
+                            xRefReferencesDEFINITION;
+            SysApplicationObjectPathInfo applObjectPathInfoCALL;
+
+            // Method is hinted to _tier, but if it's only called from the same _tier, don't bother to give a warning
+            while select Path from xRefPathsCALL
+            join TableId from xRefReferencesCALL
+                where xRefReferencesCALL.xRefPathRecId == xRefPathsCALL.RecId
+                   && xRefReferencesCALL.Reference     == XRefReference::Call
+                   && xRefReferencesCALL.Line          >  0                         // .. virtual call's not checked by this procedure
+            join TableId from xRefReferencesDEFINITION
+                where xRefReferencesDEFINITION.xRefNameRecId == xRefReferencesCALL.xRefNameRecId
+                   && xRefReferencesDEFINITION.Reference     == XRefReference::Definition
+            join TableId from xRefPathsDEFINITION
+                where xRefPathsDEFINITION.Path == sysDictMethod.path()
+                   && xRefReferencesDEFINITION.xRefPathRecId == xRefPathsDEFINITION.RecId
+            {
+                warn = false;
+                applObjectPathInfoCALL = new SysApplicationObjectPathInfo(xRefPathsCALL.Path);
+                if (applObjectPathInfoCALL.runMode() != _tier)
+                {
+                    warn = true;
+                    break;
+                }
+            }
+            if (warn)
+            {
+                if (runOn == ClassRunMode::Called)
+                {
+                    runOnString = #calledFromString;
+                }
+                else
+                {
+                    runOnString = strLwr(strFmt('%1',runOn));
+                }
+                tierString = strLwr(strFmt('%1', _tier));
+                this.addSuppressableWarning(#BPErrorMethodConsiderRunOn, 0, 0, strFmt("@SYS54211", runOnString, tierString, logSides[_tier + 1])); // Consider '%1' method to run on '%2' since it uses: '%3'
+                ret = false;
+            }
+            else
+            {
+                sysBPCheck.addInfo(#BPErrorMethodOnlyCalledFrom, 0, 0, strFmt("@SYS68394", runOn, _tier, logSides[_tier + 1]));
+            }
+        }
+        ;
+
+        if (!memberFunction.AOTgetSource())
+            return true;
+
+        ret = super();
+
+        if (ret)
+        {
+            if (methodType == UtilElementType::ClassInstanceMethod &&
+                match('AOSRunMode\\:\\:',memberFunction.AOTparent().AOTfindChild(#methodNameClassDeclaration).AOTgetSource()) ) // this is a class, and AOSRunMode is written in it's ClassDeclaration, skip it
+            {
+                sysBPCheck.addInfo(#BPErrorMethodAOSRunModeWritten, 0, 0, strFmt("@SYS55401", methodType, methodName));
+                return true;
+            }
+
+            if (match('dialog>', sysDictMethod.path())) // we skip the checks for *dialog methods, they are always run in the beginning of a bigger job (hopefully!)
+                return true;
+
+            if (match('\\\\' + #methodNameClassDeclaration + '>', sysDictMethod.path())) // there are no checks to be done for classdeclarations
+                return true;
+
+            if (runOn == ClassRunMode::ClientOrServer) // this must be an concious decision, so no further checking is nessecary
+                return true;
+
+            if (sysDictMethod.isAbstract())     // there are no client server calls in an abstract method
+                return true;
+
+            // init
+            textBuffer = new TextBuffer();
+            textBuffer.setText(scanner.source());
+
+            // BP Deviation Documented
+            if (textBuffer.find('AOSRunMode\\:\\:Server')) // indicates the developer already decided that the current implementation is ok
+            {
+                if (runOn == ClassRunMode::Server)
+                {
+                    sysBPCheck.addInfo(#BPErrorMethodAOSRunModeWritten, 0, 0, strFmt("@SYS85367", methodType, methodName, ClassRunMode::Server));
+                    return true;
+                }
+                sysBPCheck.addError(#BPErrorMethodBoundWrong, 0, 0, strFmt("@SYS85345", runOn, ClassRunMode::Server));
+            }
+
+            // BP Deviation Documented
+            if (textBuffer.find('AOSRunMode\\:\\:Client')) // indicates the developer already decided that the current implementation is ok
+            {
+                if (runOn == ClassRunMode::Client)
+                {
+                    sysBPCheck.addInfo(#BPErrorMethodAOSRunModeWritten, 0, 0, strFmt("@SYS85367", methodType, methodName, ClassRunMode::Client));
+                    return true;
+                }
+                sysBPCheck.addError(#BPErrorMethodBoundWrong, 0, 0, strFmt("@SYS85345", runOn, ClassRunMode::Client));
+            }
+
+            // BP Deviation Documented
+            if (textBuffer.find('AOSRunMode\\:\\:Called')) // indicates the developer already decided that the current implementation is ok
+            {
+                if (runOn == ClassRunMode::Called)
+                {
+                    sysBPCheck.addInfo(#BPErrorMethodAOSRunModeWritten, 0, 0, strFmt("@SYS85367", methodType, methodName, ClassRunMode::Called));
+                    return true;
+                }
+                sysBPCheck.addError(#BPErrorMethodBoundWrong, 0, 0, strFmt("@SYS85345", runOn, ClassRunMode::Called));
+            }
+
+            // for each method call in the source, find out where the call are to .. client, called or server
+            thisRefererences.setTmpData(tmpxRefReferences);
+            while select thisRefererences
+                where (thisRefererences.Kind == xRefKind::TableInstanceMethod ||
+                       thisRefererences.Kind == xRefKind::TableStaticMethod   ||
+                       thisRefererences.Kind == xRefKind::MapInstanceMethod   ||
+                       thisRefererences.Kind == xRefKind::MapStaticMethod     ||
+                       thisRefererences.Kind == xRefKind::ClassInstanceMethod ||
+                       thisRefererences.Kind == xRefKind::ClassStaticMethod)
+                   && thisRefererences.Reference == XRefReference::Call
+            {
+                utilElementType = xRefNamesNull.utilElementType(thisRefererences.Kind);
+
+                if (thisRefererences.Kind == xRefKind::ClassInstanceMethod && thisRefererences.ParentName == classStr(QueryRun) && thisRefererences.Name == identifierStr(next))
+                {
+                    calledRunOn = ClassRunMode::Server;   // QueryRun.next() executes on the server (except for client based tmp tables)
+                }
+                else
+                if (thisRefererences.Kind == xRefKind::ClassInstanceMethod && (thisRefererences.ParentName == classStr(DLL) ||
+                                                                               thisRefererences.ParentName == classStr(DLLFunction)) &&
+                                                                               thisRefererences.Name == #MethodNameNew)
+                {
+                    calledRunOn = ClassRunMode::Client;   // DLL's should be new'ed on the client
+                }
+                else
+                if (thisRefererences.Kind == xRefKind::ClassInstanceMethod && (match('super[ (]', subStr(scanner.sourceLine(thisRefererences.Line), thisRefererences.Column,6))))   // this is a super call
+                {
+                    calledRunOn = runOn;   // super calls are always executed where the object are instatiated; same side as self!
+                }
+                else
+                if (thisRefererences.Kind == xRefKind::ClassStaticMethod && thisRefererences.ParentName == classStr(Global) &&
+                    (thisRefererences.Name == staticMethodStr(Global, error)   ||
+                     thisRefererences.Name == staticMethodStr(Global, warning) ||
+                     thisRefererences.Name == staticMethodStr(Global, info)    ||
+                     thisRefererences.Name == staticMethodStr(Global, checkFailed)))
+                {
+                    calledRunOn = ClassRunMode::Called;   // Treat these (client calls) as neutral calls, as they are (normally) only called by exeception
+                }
+                else
+                {
+                    calledRunOn = new SysDictMethod(utilElementType,thisRefererences.ParentId,thisRefererences.Name).runMode();
+                }
+
+                countSides[calledRunOn+1]++;
+                logSides[calledRunOn+1] += strFmt('%1%2%3%4',
+                                        (countSides[calledRunOn+1] > 1)? ', ':'',
+                                        thisRefererences.ParentName,
+                                        (utilElementType == UtilElementType::ClassInstanceMethod || utilElementType == UtilElementType::TableInstanceMethod) ? '.' : '::',
+                                        thisRefererences.Name);
+
+                // Perform various other analysis
+                if (thisRefererences.Kind == xRefKind::ClassInstanceMethod &&
+                    thisRefererences.ParentName == classStr(Info) &&
+                    thisRefererences.Name == identifierStr(add))  // use error, warning, info, checkFailed
+                {
+                    this.addSuppressableError(#BPErrorMethodNeutralFunctNotUsed, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS54379",thisRefererences.ParentName,
+                                               (utilElementType == UtilElementType::ClassInstanceMethod || utilElementType == UtilElementType::TableInstanceMethod) ? '.' : '::',
+                                                thisRefererences.Name,
+                                                'error, warning, info, checkfailed'));
+                    ret = false;
+                }
+                else
+                if (thisRefererences.Kind == xRefKind::ClassInstanceMethod &&
+                    thisRefererences.ParentName == classStr(Company) &&
+                    thisRefererences.Name == identifierStr(ext)) // use curExt
+                {
+                    sysBPCheck.addError(#BPErrorMethodNeutralFunctNotUsed, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS54379",thisRefererences.ParentName,
+                                        (utilElementType == UtilElementType::ClassInstanceMethod || utilElementType == UtilElementType::TableInstanceMethod) ? '.' : '::',
+                                        thisRefererences.Name,
+                                        identifierStr(curExt)));
+                    ret = false;
+                }
+
+            }
+            if (sysBPCheck.toBeUsed(SysBPWarningLevel::Warning))
+            {
+
+                if (match('<\\\\Data Dictionary\\\\Tables\\\\', sysDictMethod.path()) && // it's a table method
+                    textBuffer.find('super: *(: *)'))                       // the xRef isn't set up to report the super calls
+                {
+                    calledRunOn = runOn;  // same side as self!
+                    countSides[calledRunOn+1]++;
+                    logSides[calledRunOn+1] += strFmt('%1%2',
+                                            (countSides[calledRunOn+1] > 1)? ', ':'',
+                                            'super()');
+                }
+
+                // class instance methods can also refer to member variables; should count as calls to their own tier
+                if (!memberFunction.isStatic())
+                {
+                    // find accessed variables, that are defined outside this method
+                    thisRefererences.setTmpData(tmpxRefReferences);
+                    thisDeclarations.setTmpData(tmpxRefReferences);
+                    while select thisRefererences
+                        group by Kind, ParentName, Name
+                        where thisRefererences.ParentName
+                           && (thisRefererences.Kind == xRefKind::BasicType || thisRefererences.Kind == xRefKind::Class        ||
+                               thisRefererences.Kind == xRefKind::Enum      || thisRefererences.Kind == xRefKind::ExtendedType ||
+                               thisRefererences.Kind == xRefKind::Map       || thisRefererences.Kind == xRefKind::Table)
+                           && (thisRefererences.Reference == XRefReference::Read ||
+                               thisRefererences.Reference == XRefReference::Write)
+                    notexists join thisDeclarations
+                        where thisDeclarations.Name         == thisRefererences.Name
+                           && thisDeclarations.ParentName   == thisRefererences.ParentName
+                           && thisDeclarations.Kind         == thisRefererences.Kind
+                           && thisDeclarations.Reference    == XRefReference::Declaration
+                    {
+                        if (thisRefererences.Name == varStr(appl))
+                        {
+                            calledRunOn = ClassRunMode::Server;
+                        }
+                        else
+                        if (thisRefererences.Name == varStr(infolog))
+                        {
+                            calledRunOn = ClassRunMode::Client;
+                        }
+                        else
+                        {
+                            calledRunOn = runOn;  // same side as self!
+                        }
+                        countSides[calledRunOn+1]++;
+                        logSides[calledRunOn+1] += strFmt('%1%2',
+                                                            (countSides[calledRunOn+1] > 1)? ', ':'',
+                                                            thisRefererences.Name);
+                    }
+                }
+
+                // Check if method uses transactions, selects or deletes on the database, that indicates it should be run on the server
+                calledRunOn = ClassRunMode::Server;
+
+                startPos = 0;
+                while (textBuffer.find('ttsbegin: *;',startPos))
+                {
+                    countSides[calledRunOn+1]++;
+                    logSides[calledRunOn+1] += strFmt('%1%2',
+                                            (countSides[calledRunOn+1] > 1)? ', ':'',
+                                            'ttsbegin');
+                    startPos = textBuffer.matchPos() + textBuffer.matchLen();
+                }
+                startPos = 0;
+                while (textBuffer.find('ttscommit: *;',startPos))
+                {
+                    countSides[calledRunOn+1]++;
+                    logSides[calledRunOn+1] += strFmt('%1%2',
+                                            (countSides[calledRunOn+1] > 1)? ', ':'',
+                                            'ttscommit');
+                    startPos = textBuffer.matchPos() + textBuffer.matchLen();
+                }
+
+                startPos = 0;
+                while (textBuffer.find('while: +select',startPos))
+                {
+                    countSides[calledRunOn+1] += 2;                                     // expensive, counts double!
+                    logSides[calledRunOn+1] += strFmt('%1%2',
+                                            (countSides[calledRunOn+1] > 1)? ', ':'',
+                                            'while select ...');
+                    startPos = textBuffer.matchPos() + textBuffer.matchLen();
+                    posOfWhileSelect += startPos - strLen('select');
+                }
+
+                startPos = 0;
+                while (textBuffer.find('[\n (]+select: +',startPos))       // it might be cached - not taken into account, yet!
+                {
+                    if (!conFind(posOfWhileSelect,textBuffer.matchPos()))  // this isn't a while select, it's a stand alone.
+                    {
+                        countSides[calledRunOn+1]++;
+                        logSides[calledRunOn+1] += strFmt('%1%2',
+                                                (countSides[calledRunOn+1] > 1)? ', ':'',
+                                                'select ...');
+                    }
+                    startPos = textBuffer.matchPos() + textBuffer.matchLen();
+                }
+
+                startPos = 0;
+                while (textBuffer.find('next: +[a-z?oa0-9_]+: *;',startPos))       // next on a buffer is a (potential) server call
+                {
+                    countSides[calledRunOn+1]++;
+                    logSides[calledRunOn+1] += strFmt('%1%2',
+                                            (countSides[calledRunOn+1] > 1)? ', ':'',
+                                            'next ...');
+                    startPos = textBuffer.matchPos() + textBuffer.matchLen();
+                }
+
+                startPos = 0;
+                while (textBuffer.find('delete_from: +',startPos))
+                {
+                    countSides[calledRunOn+1]++;
+                    logSides[calledRunOn+1] += strFmt('%1%2',
+                                                (countSides[calledRunOn+1] > 1)? ', ':'',
+                                                'delete_from...');
+                    startPos = textBuffer.matchPos() + textBuffer.matchLen();
+                }
+
+
+                // report the accumulated situation
+                #define.hintLimit(1)       // if there are only one other tier call, it dosen't change much
+
+                switch(runOn)
+                {
+                    case ClassRunMode::Client:
+                        if (countSides[ClassRunMode::Server+1] > #hintLimit)
+                        {
+                            if (runOn == ClassRunMode::Called)
+                            {
+                                runOnString = #calledFromString;
+                            }
+                            else
+                            {
+                                runOnString = strLwr(strFmt('%1',runOn));
+                            }
+                            this.addSuppressableWarning(#BPErrorMethodConsiderRunOn, 0, 0, strFmt("@SYS54211", runOnString,#serverString,logSides[ClassRunMode::Server+1]));
+                        }
+
+                        if (sysBPCheck.toBeUsed(SysBPWarningLevel::All) && countSides[runOn+1] == 0)
+                        {
+                            sysBPCheck.addInfo(#BPErrorMethodBoundWrong, 0, 0, strFmt("@SYS54322", runOn));
+                        }
+                        break;
+
+                    case ClassRunMode::Server:
+                        if (countSides[ClassRunMode::Client+1] > #hintLimit)
+                        {
+                            if (runOn == ClassRunMode::Called)
+                            {
+                                runOnString = #calledFromString;
+                            }
+                            else
+                            {
+                                runOnString = strLwr(strFmt('%1',runOn));
+                            }
+                            this.addSuppressableWarning(#BPErrorMethodConsiderRunOn, 0, 0, strFmt("@SYS54211",runOnString,#clientString,logSides[ClassRunMode::Client+1]));
+                        }
+
+                        if (countSides[runOn+1] == 0)
+                        {
+                            sysBPCheck.addInfo(#BPErrorMethodBoundWrong, 0, 0, strFmt("@SYS54322", runOn));
+                        }
+                        break;
+
+                    case ClassRunMode::Called:
+                        if ((countSides[ClassRunMode::Server+1] > 0) && (countSides[ClassRunMode::Client+1] > 0))
+                        {
+                            this.addSuppressableWarning(#BPErrorMethodConsiderRestructuring, 0, 0, strFmt("@SYS54324",runOn,countSides[ClassRunMode::Server+1],logSides[ClassRunMode::Server+1],
+                                                                       countSides[ClassRunMode::Client+1],logSides[ClassRunMode::Client+1]));
+                            ret = false;
+                        }
+                        else if (countSides[ClassRunMode::Client+1] > #hintLimit)
+                        {
+                            if (sysBPCheck.toBeUsed(SysBPWarningLevel::All))
+                            {
+                                giveHint(ClassRunMode::Client);
+                            }
+                        }
+                        else if (countSides[ClassRunMode::Server+1] > #hintLimit)
+                        {
+                            if (sysBPCheck.toBeUsed(SysBPWarningLevel::All))
+                            {
+                                giveHint(ClassRunMode::Server);
+                            }
+                        }
+                        break;
+
+                    default :
+                        break;
+                }
+            }
+        }
+
+        return ret;
+
+    }
+
+
+    /*
+        This method checks the source text for
+        calls to functionality that are going to be discontinued
+    */
+    protected boolean checkDiscontinuation()
+    {
+        xRefTmpReferences thisRefererences;
+        boolean           ret = true;
+
+        #localmacro.DiscontinuedMethods
+            'delete',
+            'edit',
+            'save'
+        #endmacro
+
+        // check if things are used, that are being superseed by something new
+        thisRefererences.setTmpData(tmpxRefReferences);
+        while select thisRefererences
+            where thisRefererences.Kind == xRefKind::ClassInstanceMethod
+        {
+            switch (thisRefererences.ParentName)
+            {
+                case classStr(FormControl),
+                     classStr(FormListControl),
+                     classStr(FormListBoxControl):
+                    if (thisRefererences.Name == 'doubleclick') // The method will be discontinued in a later version '%1%2%3'. Use 'mouseDblClick'
+                    {
+                        sysBPCheck.addError(#BPErrorMethodDiscontinuedInLaterVers, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS68910", thisRefererences.ParentName,
+                                           (thisRefererences.Kind == xRefKind::ClassInstanceMethod || thisRefererences.Kind == xRefKind::TableInstanceMethod || thisRefererences.Kind == xRefKind::MapInstanceMethod) ? '.' : '::',
+                                            thisRefererences.Name, 'mousedblclick'));
+                    }
+                    break;
+
+                case classStr(MethodInfo): // The class will be discontinued in a later version 'MethodInfo'. Use: 'DictMethod'.
+                    sysBPCheck.addError(#BPErrorClassDiscontinuedInLaterVers, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS69514",
+                                        thisRefererences.ParentName, classStr(DictMethod)));
+                    break;
+
+                case classStr(SysMethodInfo): // The class will be discontinued in a later version 'SysMethodInfo'. Use: 'SysDictMethod'.
+                    sysBPCheck.addError(#BPErrorClassDiscontinuedInLaterVers, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS69514",
+                                        thisRefererences.ParentName, classStr(SysDictMethod)));
+                    break;
+
+                case classStr(TreeNode),
+                     classStr(AOTTableFieldList),
+                     classStr(ClassNode),
+                     classStr(ControlNode),
+                     classStr(DocNode),
+                     classStr(Job),
+                     classStr(MemberFunction),
+                     classStr(Menu),
+                     classStr(MenuFunction),
+                     classStr(MenuItem),
+                     classStr(MenuReference),
+                     classStr(ProjectGroupNode),
+                     classStr(ProjectNode),
+                     classStr(Query),
+                     classStr(QueryBuildDataSource),
+                     classStr(QueryBuildFieldList),
+                     classStr(QueryBuildLink),
+                     classStr(QueryBuildRange),
+                     classStr(Report),
+                     classStr(ReportAutoDesignSpecs),
+                     classStr(ReportControl),
+                     classStr(ReportDesign),
+                     classStr(ReportFieldGroup),
+                     classStr(ReportSection),
+                     classStr(ReportSectionGroup),
+                     classStr(UserSetup),
+                     classStr(ReportBitmapControl),
+                     classStr(ReportDateControl),
+                     classStr(ReportEnumControl),
+                     classStr(ReportIntegerControl),
+                     classStr(ReportPromptControl),
+                     classStr(ReportRealControl),
+                     classStr(ReportShapeControl),
+                     classStr(ReportStringControl),
+                     classStr(ReportSumControl),
+                     classStr(ReportTextControl),
+                     classStr(ReportTimeControl):
+
+                        switch (thisRefererences.Name)
+                        {
+                            case 'AOTaddExtendedDataType',
+                                 'AOTaddRelation':
+                                sysBPCheck.addError(#BPErrorMethodDiscontinuedInLaterVers, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS68910", thisRefererences.ParentName,
+                                               (thisRefererences.Kind == xRefKind::ClassInstanceMethod || thisRefererences.Kind == xRefKind::TableInstanceMethod || thisRefererences.Kind == xRefKind::MapInstanceMethod) ? '.' : '::',
+                                                thisRefererences.Name, 'AOTaddSubNode'));
+
+                                break;
+
+                            // outdated methods on TreeNode; use AOT prefixed variants - incl. for all sub-classes
+                            case #DiscontinuedMethods :
+                                sysBPCheck.addError(#BPErrorMethodDiscontinuedInLaterVers, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS68910", thisRefererences.ParentName,
+                                                  (thisRefererences.Kind == xRefKind::ClassInstanceMethod || thisRefererences.Kind == xRefKind::TableInstanceMethod || thisRefererences.Kind == xRefKind::MapInstanceMethod) ? '.' : '::',
+                                                   thisRefererences.Name, 'aot'+thisRefererences.Name));
+                                break;
+                        }
+
+                    break;
+                case classStr(DictTable),
+                    classStr(SysDictTable):
+                    switch (thisRefererences.Name)
+                    {
+                        case 'maxAccessMode':
+                            sysBPCheck.addError(#BPErrorMethodDiscontinuedInLaterVers, thisRefererences.Line, thisRefererences.Column, strFmt("@SYS68910", thisRefererences.ParentName,
+                                                  (thisRefererences.Kind == xRefKind::ClassInstanceMethod || thisRefererences.Kind == xRefKind::TableInstanceMethod || thisRefererences.Kind == xRefKind::MapInstanceMethod) ? '.' : '::',
+                                                   thisRefererences.Name, methodStr(DictTable,visible)));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        while select thisRefererences
+            where thisRefererences.Kind == xRefKind::ClassStaticMethod
+        {
+            switch (thisRefererences.ParentName)
+            {
+
+                case classStr(Global):
+                    switch (thisRefererences.Name)
+                    {
+                        //BP Deviation Documented
+                        case staticMethodStr(Global, guidFromString):
+                            this.addSuppressableError(
+                                #BPErrorMethodDiscontinuedInLaterVers,
+                                thisRefererences.Line,
+                                thisRefererences.Column,
+                                strFmt("@SYS68910", thisRefererences.ParentName, '::', thisRefererences.Name, 'str2guid'));
+                            break;
+
+                        //BP Deviation Documented
+                        case staticMethodStr(Global, stringFromGuid):
+                            this.addSuppressableError(
+                                #BPErrorMethodDiscontinuedInLaterVers,
+                                thisRefererences.Line,
+                                thisRefererences.Column,
+                                strFmt("@SYS68910", thisRefererences.ParentName, '::', thisRefererences.Name, 'guid2str'));
+                            break;
+                    }
+                    break;
+            }
+        }
+        return ret;
+    }
+
+    /*
+        Check for empty methods, i.e. x++ methods that doesn't add anything semantically, like
+        * overridings that just calls super
+
+        Empty methods should just be deleted.
+    */
+    protected boolean checkEmptyMethod()
+    {
+        TextBuffer  textBuffer;
+        boolean     ret = true;
+        str         params;
+        int         i;
+        #TokenTypes
+
+        if (!scanner.symbolExists(#PUBLIC_SYM) &&
+            !scanner.symbolExists(#PROTECTED_SYM) &&
+            !scanner.symbolExists(#PRIVATE_SYM))
+        {
+            textBuffer = new TextBuffer();
+            textBuffer.setText(scanner.source());
+
+            for (i=1; i<=sysDictMethod.parameterCnt(); i++)
+            {
+                params += params ? ': *,: *' : ': *';
+                params += sysDictMethod.parameterName(i);
+            }
+
+            if (textBuffer.find('{: *super: *('+params+'): *;: *}: *>') ||      // just a super call with some parameters
+                textBuffer.find('{: *:a+: +ret: *;: *ret: *=: *super: *('+params+'): *;: *return: +ret: *;: *}: *>'))    // ret declaration, super call w/parametres & return ret
+            {
+                this.addSuppressableError(#BPErrorMethodIsEmpty, 2, 1, strFmt("@SYS68904", methodName));
+                ret = false;
+            }
+        }
+
+        return ret;
+
+    }
+
+
+    /// <summary>
+    /// Verifies that a specified control has the <c>AutoDeclaration</c> value set to a string value of Yes.
+    /// </summary>
+    /// <param name="_formName">
+    /// The form that contains the control.
+    /// </param>
+    /// <param name="_controlName">
+    /// The name of the control on the form.
+    /// </param>
+    /// <param name="_sourceLine">
+    /// The line of source code that contains the reference to the control.
+    /// </param>
+    /// <param name="_sourceCol">
+    /// The column of source code that contains the reference to the control.
+    /// </param>
+    private void checkFormControlAutoDeclaration(str _formName, str _controlName, int _sourceLine, int _sourceCol)
+    {
+        #AOT
+        #define.AutoDeclarationProperty('AutoDeclaration')
+        #define.AutoDeclarationYes('Yes')
+
+        str         controlNodePath         = strFmt(#FormControlPath, _formName, _controlName);
+        TreeNode    controlNode             = TreeNode::findNode(controlNodePath);
+        str         autoDeclarationValue;
+
+        if (controlNode)
+        {
+            autoDeclarationValue = controlNode.AOTgetProperty(#AutoDeclarationProperty);
+            if (autoDeclarationValue != #AutoDeclarationYes)
+            {
+                sysBPCheck.addError(
+                    #BPErrorInteractionClassFormControlNotVisible,
+                    _sourceLine,
+                    _sourceCol,
+                    strFmt("@GLS222756", _formName, _controlName));
+            }
+        }
+    }
+
+    protected void checkFrameworkClassDisclaimer()
+    {
+        #define.disclaimer('// This is a framework class. Customizing this class may cause problems with future upgrades to the software.')
+
+        Set layers = new Set(Types::Enum);
+
+        layers.add(UtilEntryLevel::sys);
+        layers.add(UtilEntryLevel::syp);
+        layers.add(UtilEntryLevel::gls);
+        layers.add(UtilEntryLevel::glp);
+        layers.add(UtilEntryLevel::fpk);
+        layers.add(UtilEntryLevel::fpp);
+        layers.add(UtilEntryLevel::isv);
+        layers.add(UtilEntryLevel::isp);
+
+
+        if (methodType == UtilElementType::ClassInstanceMethod &&
+            methodName == #MethodNameClassDeclaration)
+        {
+            //
+            // Is it a framework class?
+            //
+            if (strStartsWith(parentName, 'Sys') ||
+                strStartsWith(parentName, 'AIF') ||
+                strStartsWith(parentName, 'Workflow') ||
+                strStartsWith(parentName, 'SRS') ||
+                strStartsWith(parentName, 'Event') ||
+                strStartsWith(parentName, 'AF') ||
+                strStartsWith(parentName, 'Web') ||
+                strStartsWith(parentName, 'Docu') ||
+                strStartsWith(parentName, 'SQL') ||
+                strStartsWith(parentName, 'Runbase') ||
+               (strStartsWith(parentName, 'Release') && !strStartsWith(parentName, 'ReleaseUpdateDB')) ||
+                strStartsWith(parentName, 'Batch') ||
+                strStartsWith(parentName, 'User') ||
+                strStartsWith(parentName, 'Upgrade') ||
+                strStartsWith(parentName, 'Dialog') ||
+                strStartsWith(parentName, 'AxdBase') ||
+                strStartsWith(parentName, 'xRef') ||
+                strStartsWith(parentName, 'Cue') ||
+               (strStartsWith(parentName, 'Form') && !strStartsWith(parentName, 'FormLetter')) ||
+                strStartsWith(parentName, 'OM') ||
+                strStartsWith(parentName, 'Expression') ||
+                strStartsWith(parentName, 'xUtil') ||
+                strStartsWith(parentName, 'BI') ||
+                strStartsWith(parentName, 'HTML') ||
+                strStartsWith(parentName, 'Win') ||
+                strStartsWith(parentName, 'Box') ||
+                strStartsWith(parentName, 'Class') ||
+                strStartsWith(parentName, 'DDE') ||
+                strStartsWith(parentName, 'Profile') ||
+                strStartsWith(parentName, 'TreeBuild') ||
+                strStartsWith(parentName, 'XML'))
+            {
+                //
+                // Is the method defined in the Microsoft Layers?
+                // If so, it must contain the disclaimer
+                //
+                if (Set::intersection(layers, memberFunction.AOTLayers()))
+                {
+                    if(!strContains(scanner.source(), #disclaimer))
+                    {
+                        sysBPCheck.addError(#BPErrorClassFrameworkDisclaimer, 0, 0, "@SYS316340");
+                    }
+                    else
+                    {
+                        if (strScan(scanner.source(), '///', 1, maxInt()) > strScan(scanner.source(), #disclaimer, 1, maxInt()))
+                        {
+                            sysBPCheck.addError(#BPErrorClassFrameworkDisclaimerPosition, 0, 0, "@SYS316341");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected boolean checkFutureReservedWord()
+    {
+        #localmacro.FutureReservedWords
+            'As',
+            'Attribute',
+            'Enum',
+            'Foreach',
+            'Friend',
+            'In',
+            'Instance',
+            'Internal',
+            'Long',
+            'Is',
+            'Module',
+            'Namespace',
+            'Native',
+            'Out',
+            'Override',
+            'Readonly',
+            'Ref',
+            'Unique',
+            'Unsigned',
+            'WebService',
+            'XMLRoot'
+        #endmacro
+
+        boolean ret = true;
+
+        xRefTmpReferences thisRefererences;
+
+        thisRefererences.setTmpData(tmpxRefReferences);
+        while select thisRefererences
+            where thisRefererences.Kind == xRefKind::BasicType
+        {
+            switch (thisRefererences.Name)
+            {
+                case #FutureReservedWords :
+                    sysBPCheck.addError(#BPErrorMethodDiscontinuedInLaterVers, thisRefererences.Line, thisRefererences.Column,
+                                          strFmt("@SYS74739", thisRefererences.Name)); // The name '%1' will be used as a reserved word in a future release.
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        return ret;
+
+    }
+
+
+
+    protected boolean checkIndentation()
+    {
+        #TokenTypes
+        int         symbol;
+        int         prevSymbol;
+        int         prevLine;
+        int         caseLine;
+        int         prevStartColumn;
+        int         scannerLine;
+        int         scannerStartColumn;
+        int         maximumInt = maxInt();
+        str         prevStrValue;
+        #define.Indentation(4)
+
+    boolean previousAllowed()
+    {
+        if ((symbol == #WHILE_SYM     && prevSymbol == #RIGHTBR_SYM)    // Accept "} While" as in do { ... } while
+         || (symbol == #SEMICOLON_SYM && prevSymbol == #LEFTBR_SYM)     // Accept "{;"
+         || (symbol == #IF_SYM        && prevSymbol == #ELSE_SYM))      // Accept "else if"
+            return true;
+
+        return false;
+    }
+        symbol = scanner.firstSymbol();
+        while (symbol)
+        {
+            scannerLine = scanner.line();
+            scannerStartColumn = scanner.startColumn();
+            if (scannerLine > 1)
+            {
+                switch (symbol)
+                {
+                    case #CASE_SYM :
+                    case #DEFAULT_SYM :
+                        caseLine = scannerLine;
+                        break;
+                }
+
+                if (!scanner.isFromExpandedMacro())
+                {
+                    switch (symbol)
+                    {
+                        //
+                        // These symbols must be the first one on a line
+                        //
+                        case #CASE_SYM :
+                        case #CATCH_SYM :
+                        case #CHANGECOMP_SYM :
+                        case #CONTINUE_SYM :
+                        case #DEFAULT_SYM :
+                        case #FOR_SYM :
+                        case #RETRY_SYM :
+                        case #TRY_SYM :
+                        case #ELSE_SYM :
+                        case #IF_SYM :
+                        case #LEFTBR_SYM:
+                        case #RIGHTBR_SYM :
+                        case #WHILE_SYM :
+                        case #TTSABORT_SYM :
+                        case #TTSBEGIN_SYM :
+                        case #TTSEND_SYM :
+                        case #RETURN_SYM :
+                            if (prevLine == scannerLine)
+                            {
+                                if (caseLine != scannerLine &&
+                                    prevSymbol != #PERIOD_SYM &&
+                                    prevSymbol != #DBLCOLON_SYM &&
+                                    !previousAllowed())
+                                {
+                                    sysBPCheck.addError(#compileApplicationCheck, scannerLine, scannerStartColumn, strFmt("@SYS87095", scanner.strValue()));
+                                }
+                            }
+                            else
+                            {
+                                //Check indentation
+                                if (scanner.startColumn() mod #Indentation != 1)
+                                {
+                                    sysBPCheck.addError(#compileApplicationCheck, scannerLine, scannerStartColumn, "@SYS87094");
+                                }
+                            }
+                            break;
+
+                        default:
+                            //
+                            // Checks that no code is starting in column 2, 3 and 4.
+                            //
+                            if (prevLine != scannerLine &&
+                                scannerStartColumn <=  #Indentation &&
+                                scannerStartColumn mod #Indentation != 1)
+                            {
+                                sysBPCheck.addError(#compileApplicationCheck, scannerLine, scannerStartColumn, "@SYS87094");
+                            }
+                            break;
+                    }
+
+                    switch (prevSymbol)
+                    {
+                        //
+                        // These symbols must be the only one on a line
+                        //
+                        case #ELSE_SYM :
+                        case #LEFTBR_SYM:
+                        case #RIGHTBR_SYM :
+                            if (prevLine == scannerLine)
+                            {
+                                if (!previousAllowed())
+                                {
+                                    sysBPCheck.addError(#compileApplicationCheck, prevline, prevStartColumn, strFmt("@SYS87096", prevStrValue));
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+            prevSymbol      = symbol;
+            prevLine        = scannerLine;
+            prevStartColumn = scannerStartColumn;
+            prevStrValue    = scanner.strValue();
+            symbol          = scanner.nextSymbol();
+        }
+        return true;
+    }
+
+
+    /// <summary>
+    /// Checks that all <c>FormControlStr</c> references in a method reference form controls that have the
+    /// <c>AutoDeclaration</c> value set to a string value of Yes.
+    /// </summary>
+    /// <remarks>
+    /// Only classes that derive from the <c>PageInteraction</c> class are examined and guarantees that the
+    /// page interaction framework will work correctly.
+    /// </remarks>
+    protected void checkInteractionClassControlReferences()
+    {
+        #TokenTypes
+        #define.controlStrPrefix('formControlStr')
+
+        SysDictClass    sysDictClass;
+        int             symbol;
+        str             symbolStr;
+        FormName        formName;
+        FormControlName formControlName;
+        int             line;
+        int             column;
+
+        // Only scan classes
+        if (! currentClass)
+            return;
+
+        sysDictClass = new SysDictClass(currentClass.id());
+
+        // Only scan interaction classes
+        if (!sysDictClass.isExtending(classNum(PageInteraction)))
+            return;
+
+        // Scan the code for the formControlStr method
+        symbol = scanner.firstSymbol();
+        while (symbol)
+        {
+            line      = scanner.line();
+            column    = scanner.col();
+            symbolStr = scanner.strValue();
+
+            if (symbolStr == #controlStrPrefix &&
+               !scanner.isComment(line, column))
+            {
+                // The next symbol should be a left paren
+                symbol = scanner.nextSymbol();
+                if (symbol != #LEFT_PAR_SYM)
+                {
+                    continue;
+                }
+
+                // The next symbol is the form name
+                symbol   = scanner.nextSymbol();
+                formName = scanner.strValue();
+
+                // The next symbol is a comma
+                symbol = scanner.nextSymbol();
+                if (symbol != #LIST_SEP_SYM)
+                {
+                    continue;
+                }
+
+                // The next symbol is the control name
+                symbol          = scanner.nextSymbol();
+                formControlName = scanner.strValue();
+
+                // The next symbol is a right paren
+                symbol = scanner.nextSymbol();
+                if (symbol != #RGHT_PAR_SYM)
+                {
+                    continue;
+                }
+
+                if (formName && formControlName)
+                {
+                    this.checkFormControlAutoDeclaration(formName, formControlName, line, column);
+                }
+            }
+
+            symbol = scanner.nextSymbol();
+        }
+    }
+
+    public boolean checkLabelUse()
+    {
+        #TokenTypes
+        SysDictType sysDictType;
+        SysDictEnum sysDictEnum;
+        boolean     ret;
+
+        ret = super();
+
+        if (ret)
+        {
+            if (sysDictMethod.displayType() == DisplayFunctionType::Get ||
+                sysDictMethod.displayType() == DisplayFunctionType::Set)
+            {
+                switch (sysDictMethod.returnType())
+                {
+                    case Types::UserType:
+                        sysDictType = new SysDictType(sysDictMethod.returnId());
+                        // Note! system types (like boolean) doesn't have a label and help
+                        sysBPCheck.checkLabelBasics(sysDictType.labelLabel(), #propertyLabel, !this.isKernelDefined(sysDictMethod.returnId()));
+                        break;
+
+                    case Types::Enum:
+                        sysDictEnum = new SysDictEnum(sysDictMethod.returnId());
+                        // Note! system types (like boolean) doesn't have a label and help
+                        sysBPCheck.checkLabelBasics(sysDictEnum.labelDefined(), #propertyLabel, !isSysId(sysDictMethod.returnId()));
+                        break;
+
+                    default :
+                        sysBPCheck.addError(#BPErrorDisplayEditNoExtendedReturnType, 0, 0, strFmt("@SYS55403"));
+                        break;
+                }
+            }
+        }
+
+        return ret;
+
+    }
+
+
+    protected boolean checkReturnTypes()
+    {
+        boolean ret = true;
+        SysDictTable inheritedMethodReturnType;
+        SysDictTable thisMethodReturnType;
+
+        SysDictMethod inheritedFrom;
+
+        if (sysDictMethod.isStatic())
+            return ret;
+
+        // Get the return type of the method and check if it's a map or a record:
+        inheritedFrom = sysDictMethod.superDictMethod();
+        if (!inheritedFrom)
+            return ret;
+
+        if (sysDictMethod.returnType() == Types::Record)
+        {
+            //if (inheritedFrom.returnType() != Types::Record)  //this is already checked by compiler
+            //{
+            //    sysBPCheck.addError(#BPErrorInheritedReturnTypeMustBeTable, 1,1,
+            //          strfmt("@SYS309720", parentname, methodname));
+            //}
+            // Both records. Both must be maps or regular tables.
+            inheritedMethodReturnType = new SysDictTable(inheritedFrom.returnId());
+            thisMethodReturnType = new SysDictTable(sysDictMethod.returnId());
+
+            if (inheritedMethodReturnType.isMap() != thisMethodReturnType.isMap())
+            {
+                sysBPCheck.addError(#BPErrorInheritedReturnTypeMustBeTableOrMap, 1,1,
+                    strFmt("@SYS309721", parentName, methodName));
+            }
+            else
+            {   // They're the same. If they are maps, they must refer to the same map.
+                if (thisMethodReturnType.isMap())
+                {
+                    if (sysDictMethod.returnId() != inheritedFrom.returnId())
+                    {
+                        sysBPCheck.addError(#BPErrorInheritedReturnTypeMustBeSameMap, 1,1,
+                            strFmt("@SYS309722", parentName, methodName));
+                    }
+                }
+            }
+        }
+
+        return ret;
+    }
+
+
+    /*
+        This method checks the source text for
+        More general programming styles.
+    */
+    protected boolean checkSource()
+    {
+        TextBuffer textBuffer;
+        boolean ret = true;
+        boolean showWarnings = sysBPCheck.toBeUsed(SysBPWarningLevel::Warning);
+        int startPos;
+        int ttsbegins;
+        int ttscommits;
+        int ttsaborts;
+
+        int matchPosLine;
+        int matchPosColumn;
+        int cntChar;
+        int parameterCount;
+        str proposal;
+
+        xRefTmpReferences thisRefererences;
+        SysDictClass dictClass,superClass;
+
+        #define.NonAlphaNumeric('[^a-zA-Z0-9_]')
+
+        void setMatchPosLineAndColumn() // Finds Line and Column from textbuffer.matchPos
+        {
+            cntChar = 0;
+            matchPosLine = 0;
+
+            if (scanner.lines())
+            {
+                while ((matchPosLine <= scanner.lines()) && (cntChar <= textBuffer.matchPos()))
+                {
+                    matchPosLine ++;
+
+                    if ((cntChar + strLen(scanner.sourceLine(matchPosLine)) < textBuffer.matchPos()))
+                    {
+                        cntChar += strLen(scanner.sourceLine(matchPosLine));
+                    }
+                    else
+                    {
+                        matchPosColumn = textBuffer.matchPos() - cntChar;
+                        break;
+                    }
+                }
+            }
+        }
+        boolean isComment()
+        {
+            return scanner.isComment(matchPosLine, matchPosColumn);
+        }
+
+        // init
+        textBuffer = new TextBuffer();
+        textBuffer.setText(scanner.source());
+
+        // check if things are used, that mustn't be used directly
+        thisRefererences.setTmpData(tmpxRefReferences);
+        while select thisRefererences
+            where (thisRefererences.Kind == xRefKind::ClassInstanceMethod &&
+                   thisRefererences.Name == #MethodNameNew &&
+                   thisRefererences.Reference == XRefReference::Call &&
+                   (thisRefererences.ParentName == classStr(FormRun) ||       // use ClassFactory.FormRunClass(.. or new menuFunction(..).run()
+                     thisRefererences.ParentName == classStr(ReportRun) ||
+                     thisRefererences.ParentName == classStr(DialogBox)))
+        {
+            switch (thisRefererences.ParentName)
+            {
+                case classStr(DialogBox):
+                    proposal = classStr(Box);
+                    break;
+
+                case classStr(FormRun):
+                    proposal = classStr(ClassFactory) + '.' + methodStr(ClassFactory, formRunClass);
+                    break;
+
+                case classStr(ReportRun):
+                    proposal = classStr(ClassFactory) + '.' + methodStr(ClassFactory, reportRunClass);
+                    break;
+
+            }
+            this.addSuppressableError(#BPErrorMethodIllegalConstructionUsed, thisRefererences.Line, thisRefererences.Column,
+                strFmt("@SYS137151",  thisRefererences.ParentName, proposal));
+        }
+
+        // Check if method contains the bad habit with placing the code dependant on the case in block-style curly braces
+        startPos = 0;
+        while (textBuffer.find('\\:: *\\{',startPos))      //  was: '\\:: *\\{'
+        {
+            setMatchPosLineAndColumn();
+            if (!isComment())
+                this.addSuppressableError(#BPErrorMethodNoBracketsInCaseBlocks, matchPosLine, matchPosColumn, "@SYS152524");
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+
+        // Check if method contains the bad habit with placing code that actually aren't a block in block-style curly braces
+        startPos = 0;
+        while (textBuffer.find(';: *\\{',startPos))
+        {
+            setMatchPosLineAndColumn();
+            if (!isComment())
+                this.addSuppressableError(#BPErrorMethodNonNeededBlockStyleUsed, matchPosLine, matchPosColumn, strFmt("@SYS152538"));
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+
+        // Check if method has paranteses around the case constants
+        startPos = 0;
+        while (textBuffer.find(': case: *([^)]*): *\\:',startPos))
+        {
+            setMatchPosLineAndColumn();
+            if (!isComment())
+                this.addSuppressableError(#BPErrorMethodParenthesisRoundCaseConst, matchPosLine, matchPosColumn, strFmt("@SYS55397", strLRTrim(textBuffer.subStr(textBuffer.matchPos(), textBuffer.matchLen()))));
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+
+        // Check if DateFlags is used when calling date2strusr
+        startPos = 0;
+        while(textBuffer.find(
+        #NonAlphaNumeric +
+        'date2strusr: *(: *', startPos))
+        {
+            setMatchPosLineAndColumn();
+            if(!isComment())
+            {
+                parameterCount = this.getParameterCount(textBuffer);
+                if(parameterCount < 2)
+                {
+                    this.addSuppressableError(#BPErrorMethodParenthesisRoundCaseConst, matchPosLine, matchPosColumn, strFmt("@SYS191133", textBuffer.subStr(textBuffer.matchPos(), textBuffer.matchLen() - 1)));
+                }
+            }
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+
+        // Check if DateFlags is used when calling datetime2str
+        startPos = 0;
+        while(textBuffer.find(
+        #NonAlphaNumeric +
+        'datetime2str: *(: *', startPos))
+        {
+            setMatchPosLineAndColumn();
+            if(!isComment())
+            {
+                parameterCount = this.getParameterCount(textBuffer);
+                if(parameterCount < 2)
+                {
+                    this.addSuppressableError(#BPErrorMethodParenthesisRoundCaseConst, matchPosLine, matchPosColumn, strFmt("@SYS191133", textBuffer.subStr(textBuffer.matchPos(), textBuffer.matchLen() - 1)));
+                }
+            }
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+
+        // Check if DateFlags is used when calling date2str
+        startPos = 0;
+        while(textBuffer.find(
+        #NonAlphaNumeric +
+        'date2str: *(: *', startPos))
+        {
+            setMatchPosLineAndColumn();
+            if(!isComment())
+            {
+                parameterCount = this.getParameterCount(textBuffer);
+                if(parameterCount < 8)
+                {
+                    this.addSuppressableError(#BPErrorMethodParenthesisRoundCaseConst, matchPosLine, matchPosColumn, strFmt("@SYS191133", textBuffer.subStr(textBuffer.matchPos(), textBuffer.matchLen() - 1)));
+                }
+            }
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+
+        // Check that ttsbegin & ttscommit/ttsabort are in the same method - they should be well balanced
+        ttsbegins = 0;
+        startPos = 0;
+        while (textBuffer.find('ttsbegin: *;',startPos))
+        {
+            setMatchPosLineAndColumn();
+            if (!isComment())
+            {
+                ttsbegins++;
+            }
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+        ttscommits = 0;
+        startPos = 0;
+        while (textBuffer.find('ttscommit: *;',startPos))
+        {
+            setMatchPosLineAndColumn();
+            if (!isComment())
+            {
+                ttscommits++;
+            }
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+        ttsaborts = 0;
+        startPos = 0;
+        while (textBuffer.find('ttsabort: *;',startPos))
+        {
+            setMatchPosLineAndColumn();
+            if (!isComment())
+            {
+                ttsaborts++;
+            }
+            startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        }
+        // Error phase: No ttsbegin is allowed without at least a ttscommit or ttsabort covering it in the same method
+        if (ttsbegins > ttscommits + ttsaborts)
+        {
+            this.addSuppressableError(#BPErrorMethodUnbalancedTtsbeginCommit, matchPosLine, matchPosColumn, strFmt("@SYS57826",ttsbegins - ttscommits - ttsaborts));
+        }
+        // Warning phase: Having more ttscommits or ttsaborts than ttsbegins is discouraged
+        else if (showWarnings &&
+                     (ttscommits > ttsbegins ||
+                      ttsaborts  > ttsbegins))
+        {
+            this.addSuppressableWarning(#BPErrorMethodUnbalancedTtsbeginCommit, matchPosLine, matchPosColumn, strFmt("@SYS57826",ttsbegins - ttscommits - ttsaborts));
+        }
+
+
+        if (showWarnings)
+        {
+            // Check to use the optimizing delete_from statement
+            if (textBuffer.find('while: +select') && (textBuffer.find('\\.: *delete: *(: *)',textBuffer.matchPos()+textBuffer.matchLen())))
+            {
+                setMatchPosLineAndColumn();
+                if (!isComment())
+                {
+                    this.addSuppressableWarning(#BPErrorMethodDeleteFromNotUsed, matchPosLine, matchPosColumn, strFmt("@SYS55398"));
+                }
+            }
+
+            // Check for use of identifierStr, as better intrisic functions often could be used
+            startPos = 0;
+            while (textBuffer.find('identifierstr: *([^)]+: *)',startPos))
+            {
+                if (!match('settimeout: *(: *>',textBuffer.subStr(1,textBuffer.matchPos() - 1)))    // setTimeOut / method names can be identified with identifierStr
+                {
+                    setMatchPosLineAndColumn();
+                    if (!isComment())
+                    {
+                        this.addSuppressableWarning(#BPErrorMethodIdentifierStrUsed, matchPosLine, matchPosColumn, strFmt("@SYS55399",textBuffer.subStr(textBuffer.matchPos(), textBuffer.matchLen())));
+                        ret = false;
+                    }
+                }
+
+                startPos = textBuffer.matchPos() + textBuffer.matchLen();
+            }
+
+            // check if super are called in sub classes new
+            if (methodType == UtilElementType::ClassInstanceMethod &&
+                methodName == #MethodNameNew)
+            {
+                dictClass = new SysDictClass(parentId);
+                if (dictClass && dictClass.extend())
+                {
+                    superClass = new SysDictClass(dictClass.extend());
+                    if (superClass)
+                    {
+                        thisRefererences.setTmpData(tmpxRefReferences);
+                        select firstonly thisRefererences
+                            where thisRefererences.Kind         == xRefKind::ClassInstanceMethod
+                               && thisRefererences.ParentName   == superClass.name()
+                               && thisRefererences.Name         == #MethodNameNew
+                               && thisRefererences.Reference    == XRefReference::Call;
+                        if (!thisRefererences)
+                        {
+                            this.addSuppressableWarning(#BPErrorMethodMissingSuperCall, 0, 0, strFmt("@SYS62822"));
+                        }
+                    }
+                }
+            }
+        }
+        thisRefererences = null;
+        return ret;
+    }
+
+
+    protected void checkSymbols()
+    {
+        #TokenTypes
+        int         symbol;
+        boolean     isMethod;
+        boolean     passedDeclaration;
+        boolean     ret = true;
+        #Define.namePrintDebug('printDebug')
+        #Define.namePrintTab('printTab')
+        ;
+        if (scanner.lines())
+        {
+            symbol = scanner.firstSymbol();
+
+            while (symbol)
+            {
+                //
+                // Methods (both called and declared) sharing the name with standard tokens like 'print'
+                // are reported as the standard token by the scanner.
+                //
+                if (isMethod)
+                {
+                    symbol = #STD_ID;
+                    isMethod = false;
+                }
+
+                switch (symbol)
+                {
+                    case #PERIOD_SYM, #DBLCOLON_SYM :
+                        isMethod = true;
+                        break;
+
+                    case #LEFT_PAR_SYM:
+                        passedDeclaration = true;
+                        break;
+
+                    case #DATE2STR_FUNC, #STR2DATE_FUNC, #TODAY_FUNC :
+                        if (parameters.CheckDate && passedDeclaration)
+                            this.addSuppressableWarning(#BPErrorMethodIllegalDateConstruction, scanner.line(), scanner.startColumn(), strFmt("@SYS68391", scanner.strValue())); // This date construction can be illegal: %1
+                        break;
+
+                    case #STD_ID :
+                        //Methods on Debug class.
+                        //Can be converted to xref check.
+                        if (isMethod && parameters.CheckSourcePrintAndPause && passedDeclaration)
+                        {
+                            switch (scanner.strValue())
+                            {
+                                case #namePrintDebug, #namePrintTab :
+                                    sysBPCheck.addError(#compileApplicationCheck, scanner.line(), scanner.startColumn(), strFmt("@SYS74647", scanner.strValue()));
+                                    break;
+                            }
+                        }
+                        break;
+
+                    case #TextConstant:
+                        this.checkSymbolTextConstant(scanner.string());
+                        break;
+
+                    case #Print_SYM :
+                        if (parameters.CheckSourcePrintAndPause && passedDeclaration)
+                        {
+                            this.addSuppressableError(#compileApplicationCheck, scanner.line(), scanner.startColumn(), strFmt("@SYS74647", scanner.strValue()));
+                        }
+                        break;
+
+                    case #Pause_SYM :
+                        if (parameters.CheckSourcePrintAndPause && passedDeclaration)
+                        {
+                            sysBPCheck.addError(#compileApplicationCheck, scanner.line(), scanner.startColumn(), strFmt("@SYS74647", scanner.strValue()));
+                        }
+                        break;
+
+                    case #BP_SYM :
+                        if (parameters.CheckSourcePrintAndPause && passedDeclaration)
+                        {
+                            sysBPCheck.addError(#compileApplicationCheck, scanner.line(), scanner.startColumn(), strFmt("@SYS74647", scanner.strValue()));
+                        }
+                        break;
+
+                    default :
+                        isMethod = false;
+                        break;
+
+                }
+                symbol = scanner.nextSymbol();
+            }
+        }
+    }
+
+    protected void checkSymbolTextConstant(str _scannerString)
+    {
+        str DEVnewString; // trud labels create
+
+        if (_scannerString)
+        {
+            if (parameters.CheckTextInSingleQuotes)
+            {
+                if (subStr(scanner.sourceLine(), scanner.startColumn(), 1) == #CharSingleQuote) // single qoute: System text, not to appear on any User Interface
+                {
+                    if (SysLabel::isLabelId(_scannerString)) // Method contains labels in single quotes
+                    {
+                        this.addSuppressableError(#BPErrorMethodLabelInSingleQuotes, scanner.line(), scanner.startColumn(), "@SYS55395");
+                    }
+                }
+            }
+            if (parameters.CheckLabelUse)
+            {
+                if (subStr(scanner.sourceLine(), scanner.startColumn(), 1) == #CharDoubleQuote) // double quote: User Interface text
+                {
+                    if (!SysLabel::isLabelId(_scannerString)) // Method contains text constant
+                    {
+                        //Is the text only used to format a label, by using a combination of %1 and symbols?
+                        if (allowHardcodedTexts ||
+                            strLen(strRem(strAlpha(_scannerString), '0123456789')) == 0)   // no a-z
+                        {
+                            this.addSuppressableWarning(#compileApplicationCheck, scanner.line(), scanner.startColumn(), strFmt("@SYS55394", _scannerString));
+                        }
+                        else
+                        {
+                            DEVnewString = subStr(scanner.sourceLine(), scanner.startColumn() + 1, scanner.col() - scanner.startColumn() - 1); // trud labels create
+
+                            sysBPCheck.addError(#compileApplicationCheck, scanner.line(), scanner.startColumn(), strFmt("@SYS55394",
+                                                //_scannerString)); // trud labels create
+                                                DEVnewString));  // trud labels create
+                        }
+                    }
+                    else
+                    {
+                        if (!sysBPCheck.label().exists(_scannerString))
+                        {
+                            if (SysLabelLog::exists(_scannerString))
+                            {
+                                sysBPCheck.addError(#BPError, scanner.line(), scanner.startColumn(), strFmt("@SYS76945", _scannerString)); // Unknown Label
+                            }
+                            else
+                            {
+                                sysBPCheck.addError(#BPError, scanner.line(), scanner.startColumn(), strFmt("@SYS76844", _scannerString));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks whether the <c>SysOperationLabelAttribute</c> or <c>SysOperationHelpTextAttribute</c>
+    /// objects and whether the <c>LabelId</c> is correctly labeled.
+    /// </summary>
+    private void checkSysOperationLabel()
+    {
+        SysOperationLabelAttribute      labelAttribute;
+        SysOperationHelpTextAttribute   helpTextAttribute;
+        str                             labelAttrStr = classStr(SysOperationLabelAttribute);
+        str                             textAttrStr = classStr(SysOperationHelpTextAttribute);
+
+        labelAttribute = sysDictMethod.getAttribute(labelAttrStr);
+        if(labelAttribute && !SysLabel::isLabelId(labelAttribute.label()))
+        {
+            sysBPCheck.addError(#BPErrorMethodSysOperationLabelIncorrect, 0, 0, strFmt("@SYS343201", labelAttrStr));
+        }
+
+        helpTextAttribute = sysDictMethod.getAttribute(textAttrStr);
+        if(helpTextAttribute && !SysLabel::isLabelId(helpTextAttribute.helpText()))
+        {
+            sysBPCheck.addError(#BPErrorMethodSysOperationLabelIncorrect, 0, 0, strFmt("@SYS343201", textAttrStr));
+        }
+    }
+
+    protected void checkUpgradeScriptMethodType()
+    {
+        if (sysDictMethod)
+        {
+            if (sysDictMethod.isStatic())
+            {
+                // The upgrade script method cannot be static.
+                sysBPCheck.addError(#BPErrorMethodIsStatic, 1, 1, "@SYS309410");
+            }
+
+            if (sysDictMethod.parameterCnt() > 0)
+            {
+                // The upgrade script method cannot accept parameters.
+                sysBPCheck.addError(#BPErrorMethodHasParams, 1, 1, "@SYS309411");
+            }
+        }
+    }
+
+    protected void checkUpgradeScriptRequiredAttributes()
+    {
+        sysReleasedVersion                  version = this.getUpgradeScriptVersion();
+        int                                 i;
+        DictClass                           attributeClass;
+        boolean                             descFound;
+        int                                 typeCount;
+        int                                 stageCount;
+        boolean                             crudFound;
+        boolean                             dependsOnMeAttributeFound;
+        ReleaseUpdateScriptStage            scriptStage;
+        UpgradeScriptStageAttribute         stageAttribute;
+
+        if (attributes)
+        {
+            for (i = 1; i <= attributes.lastIndex(); i++)
+            {
+                this.validateUpgradeAttribute(attributes.value(i));
+                attributeClass = new DictClass(classIdGet(attributes.value(i)));
+
+                switch (attributeClass.id())
+                {
+                    case classNum(UpgradeScriptDescriptionAttribute):
+                        descFound = true;
+                        break;
+                    case classNum(UpgradeScriptTypeAttribute):
+                        typeCount++;
+                        break;
+                    case classNum(UpgradeScriptStageAttribute):
+                        stageCount++;
+                        stageAttribute = attributes.value(i);
+                        scriptStage = stageAttribute.parmScriptStage();
+                        break;
+                    case classNum(UpgradeScriptTableAttribute):
+                        crudFound = true;
+                        break;
+
+                    case classNum(UpgradeModuleDependsOnMeAttribute), classNum(UpgradeTaskDependsOnMeAttribute):
+                        dependsOnMeAttributeFound = true;
+                        break;
+                }
+            }
+
+            if (version == sysReleasedVersion::v60)
+            {
+                if (!descFound)
+                {
+                    // The upgrade script is missing required attribute %1.
+                    sysBPCheck.addError(#BPErrorMissingReqDesc, 1, 1, strFmt("@SYS309412", classStr(UpgradeScriptDescriptionAttribute)));
+                }
+
+                if (!typeCount)
+                {
+                    // The upgrade script is missing required attribute %1.
+                    sysBPCheck.addError(#BPErrorMissingReqType, 1, 1, strFmt("@SYS309412", classStr(UpgradeScriptTypeAttribute)));
+                }
+                else if (typeCount > 1)
+                {
+                    sysBPCheck.addError(#BPErrorInvalidUseOfUpgradeAttribute, 1, 1, strFmt("@SYS4001063", classStr(UpgradeScriptTypeAttribute)));
+                }
+
+                if (!stageCount)
+                {
+                    // The upgrade script is missing required attribute %1.
+                    sysBPCheck.addError(#BPErrorMissingReqStage, 1, 1, strFmt("@SYS309412", classStr(UpgradeScriptStageAttribute)));
+                }
+                else if (stageCount > 1)
+                {
+                    sysBPCheck.addError(#BPErrorInvalidUseOfUpgradeAttribute, 1, 1, strFmt("@SYS4001063", classStr(UpgradeScriptStageAttribute)));
+                }
+
+                //Perfectly we should check for the class' layer
+                if (dependsOnMeAttributeFound && currentAOLayer == UtilEntryLevel::sys)
+                {
+                    //%1 or %2 should not be used in the sys layer.
+                    sysBPCheck.addError(#BPErrorExternalUseOnlyAttribute, 1, 1,
+                        strFmt("@SYS327183", classStr(UpgradeModuleDependsOnMeAttribute), classStr(UpgradeTaskDependsOnMeAttribute)));
+                }
+            }
+
+            if (!crudFound && !this.exemptFromCRUD() && (stageCount && (scriptStage == ReleaseUpdateScriptStage::PostSync)))
+            {
+                // The upgrade script is missing required attribute %1.
+                sysBPCheck.addError(#BPErrorMissingReqTable, 1, 1, strFmt("@SYS309412", classStr(UpgradeScriptTableAttribute)));
+            }
+        }
+    }
+
+    protected void checkUpgradeScriptTableXRef()
+    {
+        xRefTmpReferences           thisReferences;
+        xRefTmpReferences           thisTableReferences;
+        int                         i;
+        boolean                     tableAttributeFound;
+        UpgradeScriptTableAttribute tableAttribute;
+
+
+        thisReferences.setTmpData(tmpxRefReferences);
+        thisTableReferences.setTmpData(tmpxRefReferences);
+
+        if (attributes)
+        {
+            while select *
+                from thisTableReferences
+                order by Line, Column
+                where thisTableReferences.Kind      == xRefKind::Table &&
+                      thisTableReferences.Reference == XRefReference::Declaration
+                join * from thisReferences
+                    where thisReferences.Kind       == xRefKind::Table &&
+                          thisReferences.Name       == thisTableReferences.Name &&
+                          thisReferences.ParentName == thisTableReferences.ParentName &&
+                          (thisReferences.Reference == XRefReference::Read ||
+                           thisReferences.Reference == XRefReference::Write)
+
+            {
+                tableAttributeFound = false;
+
+                for (i = 1; i <= attributes.lastIndex(); i++)
+                {
+                    if (classNum(UpgradeScriptTableAttribute) == classIdGet(attributes.value(i)))
+                    {
+                        tableAttribute = attributes.value(i);
+                        if (thisReferences.actualClassName() == tableAttribute.parmTableName())
+                        {
+                            tableAttributeFound = true;
+                            break;
+                        }
+                    }
+                }
+                if (!tableAttributeFound)
+                {
+                    // The upgrade script is missing required attribute %1 for table %2 referenced in the method as %3.
+                    this.addSuppressableError(#BPErrorMissingReqTable, thisTableReferences.Line, thisTableReferences.Column,
+                        strFmt("@SYS309399", classStr(UpgradeScriptTableAttribute), thisReferences.actualClassName(), thisReferences.Name));
+                }
+            }
+        }
+    }
+
+    // Verifies all objects being referenced are known to the version control system
+    protected void checkUseLocalObjects()
+    {
+        xRefTmpReferences thisReferences;
+        TreeNodePath      path;
+        FilePath          repopath;
+        Filename          filename;
+        Filename          objectFilename;
+        UtilEntryLevel    pathLayer;
+        Set               pathSet;
+        Map               pathMap;
+        Map               additionalFolders;
+        Map               modelFolders;
+        MapEnumerator     pathEnum;
+        MapEnumerator     enum;
+        boolean           found;
+        #File
+
+    void addToCache(Set _cache, TreeNodePath _path)
+    {
+        //
+        // Ensure the cache doesn't exhaust the memory
+        //
+        if (_cache.elements() > 1000)
+        {
+            _cache = new Set(Types::String);
+        }
+        _cache.add(_path);
+    }
+
+        if (versioncontrol.ideIntegration())
+        {
+            if (versioncontrol.parmSysVersionControlSystem() &&
+                !(versioncontrol.parmSysVersionControlSystem() is SysVersionControlSystemMorphX)) //MorphX VCS is not file based.
+            {
+                pathSet = new Set(Types::String);
+                thisReferences.setTmpData(tmpxRefReferences);
+
+                while select thisReferences
+                    where thisReferences.Reference == XRefReference::Declaration
+                       || thisReferences.Reference == XRefReference::Definition
+                {
+                    path = SysTreeNode::applObjectPath(thisReferences.calcPath());
+
+                    if (path && !pathsUnderVCS.in(path))
+                    {
+                        if (pathsNotUnderVCSError.in(path))
+                        {
+                            sysBPCheck.addError(#BPErrorMethodRefersLocalObject, thisReferences.Line, thisReferences.Column, strFmt("@SYS86883", path));
+                        }
+                        else if (pathsNotUnderVCSInfo.in(path))
+                        {
+                            sysBPCheck.addInfo(#BPErrorMethodRefersLocalObject, thisReferences.Line, thisReferences.Column, strFmt("@SYS86883", path));
+                        }
+                        else
+                        {
+                            pathSet.add(path);
+                        }
+                    }
+                }
+
+                if (pathSet.elements())
+                {
+                    //
+                    // Ensure the cache gets flushed
+                    //
+                    infolog.addTimeOut(this, methodStr(SysBPCheckMemberFunction, flushCaches), 1, true);
+
+                    repopath = strFmt('%1\\', versioncontrol.parmSysVersionControlSystem().parmFolder());
+                    additionalFolders = versioncontrol.parmSysVersionControlSystem().parmAdditionalFolders();
+                    modelFolders = versioncontrol.parmSysVersionControlSystem().parmModelFolders();
+
+                    pathMap = Map::create(SysBPCheckMemberFunction::findLayerFromPaths(pathSet.pack()));
+                    pathEnum = pathMap.getEnumerator();
+                    while (pathEnum.moveNext())
+                    {
+                        path = pathEnum.currentKey();
+                        pathLayer = pathEnum.currentValue();
+
+                        objectFilename = SysTreeNode::treeNodePath2FilePath(path)+#xpo;
+                        filename       = repopath+strFmt('%1', pathLayer)+objectFilename;
+
+                        found = false;
+                        //BP Deviation documented
+                        if (WinAPI::fileExists(filename))
+                        {
+                            found = true;
+                        }
+                        else
+                        {
+                            // Check in model folders
+                            enum  = modelFolders.getEnumerator();
+                            while (enum.moveNext())
+                            {
+                                filename = repopath+strFmt(@'%1\', enum.currentKey())+objectFilename;
+                                //BP Deviation documented
+                                if (WinAPI::fileExists(filename))
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            //
+                            // Check in additional folders
+                            //
+                            if (!found)
+                            {
+                                enum  = additionalFolders.getEnumerator();
+                                while (enum.moveNext())
+                                {
+                                    filename = repopath+strFmt('%1', enum.currentKey())+objectFilename;
+                                    //BP Deviation documented
+                                    if (WinAPI::fileExists(filename))
+                                    {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (found)
+                        {
+                            addToCache(pathsUnderVCS, path);
+                        }
+                        else
+                        {
+                            if (currentAOLayer == pathLayer)
+                            {
+                                addToCache(pathsNotUnderVCSError, path);
+                                sysBPCheck.addError(#BPErrorMethodRefersLocalObject, 0, 0, strFmt("@SYS86883", path));
+                            }
+                            else
+                            {
+                                addToCache(pathsNotUnderVCSInfo, path);
+                                sysBPCheck.addInfo(#BPErrorMethodRefersLocalObject, 0, 0, strFmt("@SYS86883", path));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    protected void checkUseOfCacheAddMethod()
+    {
+        xRefTmpReferences thisReferences;
+        #TokenTypes
+
+        void testAPI(
+            ClassName       _className,
+            IdentifierName  _methodname,
+            xRefKind        _kind)
+        {
+            int64 refCount = 0;
+            ;
+            if (scanner.lines())
+            {
+                select count (RecId) from thisReferences
+                    where thisReferences.Kind       ==   _kind &&
+                          thisReferences.ParentName like _className &&
+                          thisReferences.Name       ==   _methodname &&
+                          thisReferences.Reference  ==   XRefReference::Call;
+                refCount = thisReferences.RecId;
+            }
+            if(refCount > 1)
+            {
+                sysBPCheck.addWarning(#BPErrorMethodCacheAddMethod, thisReferences.Line, thisReferences.Column, "@SYS107158");
+            }
+        }
+
+        thisReferences.setTmpData(tmpxRefReferences);
+
+    //BP Deviation documented
+        testAPI(classStr(FormDataSource),          methodStr(FormDataSource, cacheAddMethod), xRefKind::ClassInstanceMethod);
+    }
+
+
+    protected void checkUseOfDangerousClasses()
+    {
+        xRefTmpReferences thisReferences;
+        #TokenTypes
+
+        void testAPI(
+            ClassName       _className,
+            IdentifierName  _methodname,
+            int             _parm,
+            boolean         _isError,
+            xRefKind        _kind,
+            CompileErrorCode _errorCode,
+            ClassName       _apiName = _className,
+            str             _message = _isError ? "@SYS90608" : "@SYS90609",
+            anytype         _forbiddenParameterValue = '' )
+        {
+            int symbol;
+            int i;
+
+            if (scanner.lines())
+            {
+                while select thisReferences
+                    where thisReferences.Kind       ==   _kind &&
+                          thisReferences.ParentName like _className &&
+                          thisReferences.Name       ==   _methodname &&
+                          thisReferences.Reference  ==   XRefReference::Call
+                {
+                    if (_parm != 0)
+                    {
+                        symbol = scanner.firstSymbol();
+
+                        // Skip to the symbol found in xref
+                        while (symbol &&
+                               scanner.line() < thisReferences.Line ||
+                               (scanner.line() == thisReferences.Line && scanner.col() < thisReferences.Column))
+                        {
+                            symbol = scanner.nextSymbol();
+
+                            if (scanner.line() == thisReferences.Line &&
+                                (scanner.string() == identifierStr('methodStr') ||
+                                 scanner.string() == identifierStr('staticmethodStr')))
+                            {
+                                return;
+                            }
+                        }
+
+                        // Skip the (
+                        while (symbol && scanner.string() != '(')
+                        {
+                            symbol = scanner.nextSymbol();
+                        }
+                        symbol = scanner.nextSymbol();
+
+                        // Skip to the right parameter
+                        i = 1;
+                        while (symbol && i < _parm)
+                        {
+                            if (scanner.string() == ',')
+                                i++;
+                            symbol = scanner.nextSymbol();
+                        }
+
+                    }
+
+                    if (_parm == 0 ||
+                        (symbol != #Str_sym &&
+                         symbol != #Int_Sym &&
+                         symbol != #Bad_Macro &&
+                         xppScanner::symbolClass(symbol) != #SymbolClassINTRINSIC &&
+                         symbol != #RGHT_PAR_SYM &&
+                         scanner.string())) // not constant text value
+                    {
+                        if (_isError)
+                        {
+                            if (_methodname == methodStr(Object, new))
+                            {
+                                sysBPCheck.addError(_errorCode, thisReferences.Line, thisReferences.Column, strFmt(_message, _apiName));
+                            }
+                            else
+                            {
+                                sysBPCheck.addError(_errorCode, thisReferences.Line, thisReferences.Column, strFmt(_message, _apiName+'.'+_methodname));
+                            }
+                        }
+                        else
+                        {
+                            if (_methodname == methodStr(Object, new))
+                            {
+                                this.addSuppressableError(_errorCode, thisReferences.Line, thisReferences.Column, strFmt(_message, _apiName));
+                            }
+                            else
+                            {
+                                this.addSuppressableError(_errorCode, thisReferences.Line, thisReferences.Column, strFmt(_message, _apiName+'.'+_methodname));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!prmisDefault(_forbiddenParameterValue) && _parm)
+                        {
+                            if (typeOf(_forbiddenParameterValue) == Types::Integer &&
+                                scanner.intValue() == _forbiddenParameterValue)
+                            {
+                                if (_isError)
+                                {
+                                    sysBPCheck.addError(_errorCode, thisReferences.Line, thisReferences.Column, strFmt(_message, _apiName+'.'+_methodname));
+                                }
+                                else
+                                {
+                                    this.addSuppressableError(_errorCode, thisReferences.Line, thisReferences.Column, strFmt(_message, _apiName+'.'+_methodname));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        thisReferences.setTmpData(tmpxRefReferences);
+
+    //BP Deviation documented
+        testAPI(classStr(DLL),          methodStr(DLL, new),                                1, true,   xRefKind::ClassInstanceMethod, #BPErrorTwCAPICalledWithNonConstantParameter);
+        testAPI(classStr(DLLFunction),  methodStr(DLLFunction, new),                        2, true,   xRefKind::ClassInstanceMethod, #BPErrorTwCAPICalledWithNonConstantParameter);
+    //BP Deviation documented
+        testAPI(classStr(COM),          methodStr(COM, new),                                1, true,   xRefKind::ClassInstanceMethod, #BPErrorTwCAPICalledWithNonConstantParameter);
+
+        testAPI('*',                    methodStr(xRecord, setTmp),                         0, false,  xRefKind::TableInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(xRecord),      "@SYS90973");
+        testAPI(classStr(SysTableLookup), methodStr(SysTableLookupBase, parmTmpBuffer),         1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(SysTableLookup), "@SYS90973");
+
+    //BP Deviation documented
+        testAPI(classStr(FormListItem), methodStr(FormListItem, new),                       1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(FormListItem), "@SYS98155");
+        testAPI(classStr(FormListItem), methodStr(FormListItem, text),                      1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(FormListItem), "@SYS98155");
+    //BP Deviation documented
+        testAPI(classStr(FormTreeItem), methodStr(FormTreeItem, new),                       1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(FormTreeItem), "@SYS98155");
+        testAPI(classStr(FormTreeItem), methodStr(FormTreeItem, text),                      1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(FormTreeItem), "@SYS98155");
+
+        testAPI(classStr(FormListControl), methodStr(FormListControl, add),                 1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(FormListControl), "@SYS98155");
+        testAPI(classStr(FormTreeControl), methodStr(FormTreeControl, add),                 1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(FormTreeControl), "@SYS98155");
+
+        testAPI(classStr(FormTableCell), methodStr(FormTableCell, data),                    1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCEnsureRecordLevelSecurity, classStr(FormTableCell), "@SYS98155");
+
+        testAPI(classStr(QueryRun), methodStr(QueryRun, literals),                          1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCDangerousAPI, classStr(QueryRun), SysBPCheckQuery::literalErrorMessage(), 1);
+        testAPI(classStr(Query), methodStr(Query, literals),                                1, false,  xRefKind::ClassInstanceMethod, #BPErrorTwCDangerousAPI, classStr(Query), SysBPCheckQuery::literalErrorMessage(), 1);
+    }
+
+    protected void checkUseOfDangerousFunctions()
+    {
+        #TokenTypes
+
+        void testAPI(int _token, int _parm, int _errorCode, str _message)
+        {
+            int symbol;
+            int i;
+            boolean firstSymbol = true;
+            if (scanner.lines() && scanner.symbolExists(_token))
+            {
+                symbol = scanner.firstSymbol();
+
+                do
+                {
+                    if (symbol == _token &&
+                        (firstSymbol ||
+                         subStr(scanner.sourceLine(scanner.line()), scanner.col()-1-strLen(scanner.strValue()), 1) == ' '))
+                    {
+                        if (_parm)
+                        {
+                            // Skip the (
+                            while (symbol && scanner.string() != '(')
+                            {
+                                symbol = scanner.nextSymbol();
+                            }
+                            symbol = scanner.nextSymbol();
+
+                            // Skip to the right parameter
+                            i = 1;
+                            while (symbol && i < _parm)
+                            {
+                                if (scanner.string() == ',')
+                                    i++;
+                                symbol = scanner.nextSymbol();
+                            }
+                        }
+
+                        if (_parm == 0 ||
+                            (symbol != #TextConstant &&
+                             symbol != #Bad_Macro &&
+                             symbol != #RGHT_PAR_SYM &&
+                             scanner.string())) // not constant text value
+                        {
+                            this.addSuppressableError(_errorCode, scanner.line(), scanner.col(), _message);
+                        }
+                    }
+                    firstSymbol = false;
+                    symbol = scanner.nextSymbol();
+                }
+                while (symbol);
+            }
+        }
+
+        testAPI(#RUNBUF_EVAL,  1, #BPErrorTwCDangerousAPI,      strFmt("@SYS90609", identifierStr('RunBuf')));
+        testAPI(#EVALBUF_EVAL, 1, #BPErrorTwCDangerousAPI,      strFmt("@SYS90609", identifierStr('EvalBuf')));
+        testAPI(#RUNAS_FUNC,   1, #BPErrorTwCDangerousAPI,      strFmt("@SYS90609", identifierStr('RunAs')));
+        testAPI(#FORCE_LITERALS_SYM, 0, #BPErrorTwCDangerousAPI, SysBPCheckQuery::literalErrorMessage());
+    }
+
+    protected void checkUseOfFieldLists()
+    {
+        xRefTmpReferences thisReferences;
+        xRefTmpReferences thisTableReferences;
+        xRefTmpReferences thisTableReferencesInBlock;
+        xRefTmpReferences thisFieldReferencesInBlock;
+        xRefTmpReferences thisLocalMethodCallsInBlock;
+        str               sourceLine;
+        int               startLine;
+        int               endLine;
+        int               level;
+        int               symbol;
+        int               size;
+        int               parmIndex;
+        boolean           nonFieldRefDetected;
+        boolean           inBlock;
+        boolean           groupByDetected;
+        SysDictTable      dictTable;
+        SysDictField      dictField;
+        boolean           whileSymbolDetected;
+        boolean           firstOnlySymbolDetected;
+        boolean           joinSymbolDetected;
+        boolean           breakSymbolDetected;
+        boolean           skipCheckSymbolDetected;
+        Set               skipTableVariables = new Set(Types::String);
+        Set               skipTables = new Set(Types::String);
+        #TokenTypes
+
+        if (scanner.symbolExists(#SEARCH_SYM))
+        {
+            thisReferences.setTmpData(tmpxRefReferences);
+            thisTableReferences.setTmpData(tmpxRefReferences);
+            thisTableReferencesInBlock.setTmpData(tmpxRefReferences);
+            thisFieldReferencesInBlock.setTmpData(tmpxRefReferences);
+            thisLocalMethodCallsInBlock.setTmpData(tmpxRefReferences);
+
+            //
+            // build the skipTableVariables set from the input parameters
+            //
+            for(parmIndex=1;parmIndex<=sysDictMethod.parameterCnt();++parmIndex)
+            {
+                if ( Types::Record == sysDictMethod.parameterType(parmIndex) )
+                {
+                    skipTableVariables.add(sysDictMethod.parameterName(parmIndex));
+                }
+            }
+
+            //
+            // A table is being written,
+            // and the table is declared in this method (and not in a classDeclaration)
+            //
+            while select thisReferences
+                order by Line, Column
+                where thisReferences.Kind       ==   xRefKind::Table &&
+                      thisReferences.Reference  ==   XRefReference::Write
+                exists join thisTableReferences
+                    where thisTableReferences.Kind       == xRefKind::Table &&
+                          thisTableReferences.Reference  == XRefReference::Declaration &&
+                          thisTableReferences.Name       == thisReferences.Name &&
+                          thisTableReferences.ParentName == thisReferences.ParentName
+            {
+                dictTable = new SysDictTable(tableName2id(thisReferences.ParentName));
+                if (dictTable &&
+                    !dictTable.isTmp() &&
+                    !skipTables.in(dictTable.name()))
+                {
+                    sourceLine = scanner.sourceLine(thisReferences.Line);
+
+                    // It is a select or a join...
+                    if ((strScan(sourceLine,  ' select ',    1, thisReferences.Column) ||
+                         strScan(sourceLine,  ' join ',      1, thisReferences.Column)))
+                    {
+                        // ...but not an exists join
+                        if(!strScan(sourceLine, ' exists ',    1, thisReferences.Column) &&
+                           !strScan(sourceLine, ' notexists ', 1, thisReferences.Column))
+                        {
+                            // Is field list already used ?
+                            if (!strScan(sourceLine, ' from ', 1, thisReferences.Column))
+                            {
+                                symbol = scanner.firstSymbol();
+                                whileSymbolDetected = false;
+                                firstOnlySymbolDetected = false;
+                                joinSymbolDetected = false;
+                                skipCheckSymbolDetected = false;
+
+                                // Skip to the symbol found in xref
+                                while (symbol &&
+                                       scanner.line() < thisReferences.Line ||
+                                       (scanner.line() == thisReferences.Line && scanner.col() < thisReferences.Column))
+                                {
+                                    switch (symbol)
+                                    {
+                                        case #UPDATE_SYM:    //Update_RecordSet
+                                        case #FORUPDATE_SYM: //Forupdate
+                                        case #INSERT_SYM:    //Insert_RecordSet
+                                            skipCheckSymbolDetected = true;
+                                            break;
+
+                                        case #WHILE_SYM:
+                                            whileSymbolDetected = true;
+                                            break;
+
+                                        case #JOIN_SYM:
+                                            joinSymbolDetected = true;
+                                            break;
+
+                                        case #FIRSTONLY_SYM:
+                                        case #FIRSTONLY1_SYM:
+                                        case #FIRSTONLY10_SYM:
+                                        case #FIRSTONLY100_SYM:
+                                        case #FIRSTONLY1000_SYM:
+                                            firstOnlySymbolDetected = true;
+                                            break;
+
+                                        case #LEFTBR_SYM:
+                                        case #SEMICOLON_SYM:
+                                            whileSymbolDetected = false;
+                                            firstOnlySymbolDetected = false;
+                                            joinSymbolDetected = false;
+                                            skipCheckSymbolDetected = false;
+                                            break;
+                                    }
+                                    symbol = scanner.nextSymbol();
+                                }
+
+                                if (skipCheckSymbolDetected)
+                                    continue;
+
+                                groupByDetected = false;
+                                breakSymbolDetected = false;
+                                if (whileSymbolDetected)
+                                {
+                                    // It is a while select
+                                    level = 0;
+                                    inBlock = false;
+                                    while (symbol && (level > 0 || !inBlock))
+                                    {
+                                        switch (symbol)
+                                        {
+                                            case #LEFTBR_SYM:
+                                                level++;
+                                                if (!inBlock)
+                                                    startLine = scanner.line();
+                                                inBlock = true;
+                                                break;
+                                            case #RIGHTBR_SYM:
+                                                level--;
+                                                if (level == 0)
+                                                    endLine = scanner.line();
+                                                break;
+                                            case #GROUP_SYM:
+                                                groupByDetected = true;
+                                                break;
+                                            case #BREAK_SYM:
+                                                breakSymbolDetected = true;
+                                                break;
+                                        }
+                                        symbol = scanner.nextSymbol();
+                                    }
+                                    if (breakSymbolDetected)
+                                    {
+                                        //When a break is used inside a while select
+                                        //the buffer can be used in the rest of the method
+                                        endLine = scanner.lines();
+                                    }
+                                }
+                                else
+                                {
+                                    // It is not a while select - consider the rest of the method as a block.
+                                    inBlock = false;
+                                    while (symbol && !inBlock)
+                                    {
+                                        switch (symbol)
+                                        {
+                                            case #SEMICOLON_SYM:
+                                                inBlock = true;
+                                                startLine = scanner.line() + 1;
+                                                break;
+                                            case #GROUP_SYM:
+                                                groupByDetected = true;
+                                                break;
+                                        }
+                                        symbol = scanner.nextSymbol();
+                                    }
+                                    endLine   = scanner.lines();
+
+                                    if (!firstOnlySymbolDetected
+                                     && !joinSymbolDetected
+                                     && !scanner.symbolExists(#NEXT_SYM))
+                                    {
+                                        sysBPCheck.addWarning(#BPErrorSelectUsingFirstOnly, thisReferences.Line, thisReferences.Column,
+                                            strFmt("@SYS91288", thisReferences.Name));
+                                    }
+                                }
+
+                                if (!groupByDetected)
+                                {
+                                    //
+                                    // Find first table reference, that doesn't have a field reference.
+                                    // Only looking in the scope of startLine to endLine.
+                                    //
+                                    nonFieldRefDetected = false;
+                                    while select thisTableReferencesInBlock
+                                        where thisTableReferencesInBlock.Kind == xRefKind::Table &&
+                                              thisTableReferencesInBlock.Name == thisReferences.Name &&
+                                              thisTableReferencesInBlock.Line >= startLine &&
+                                              thisTableReferencesInBlock.Line <= endLine
+                                    {
+                                        //
+                                        // What is the next reference?
+                                        //
+                                        select firstonly thisFieldReferencesInBlock
+                                            order by Line, Column
+                                            where thisFieldReferencesInBlock.Line == thisTableReferencesInBlock.Line
+                                               && thisFieldReferencesInBlock.Column > thisTableReferencesInBlock.Column;
+
+                                        if (!thisFieldReferencesInBlock ||
+                                             thisFieldReferencesInBlock.Kind != xRefKind::TableField ||
+                                             thisFieldReferencesInBlock.ParentName != thisReferences.ParentName)
+                                        {
+                                            nonFieldRefDetected = true;
+                                        }
+                                    }
+
+                                    //
+                                    // Is there a call to a local method in the block?
+                                    // Local methods are not analyzed -> the BP check is skipped
+                                    //
+                                    select firstonly thisLocalMethodCallsInBlock
+                                        where thisLocalMethodCallsInBlock.Kind == xRefKind::LocalMethod &&
+                                              thisLocalMethodCallsInBlock.Reference == XRefReference::Call &&
+                                              thisLocalMethodCallsInBlock.Line >= startLine &&
+                                              thisLocalMethodCallsInBlock.Line <= endLine;
+
+                                    //
+                                    // Only field references; no method calls, no passing-on of the record, no calls to local methods, etc.
+                                    //
+                                    if (!nonFieldRefDetected && !thisLocalMethodCallsInBlock)
+                                    {
+                                        size = 0;
+                                        while select RecId from thisFieldReferencesInBlock
+                                            group by Name
+                                            where thisFieldReferencesInBlock.Kind == xRefKind::TableField &&
+                                                  thisFieldReferencesInBlock.ParentName == thisReferences.ParentName &&
+                                                  thisFieldReferencesInBlock.Line >= startLine &&
+                                                  thisFieldReferencesInBlock.Line <= endLine
+                                        {
+
+                                            dictField = new SysDictField(dictTable.id(), dictTable.fieldName2Id(thisFieldReferencesInBlock.Name));
+                                            if (dictField && dictField.isSql() && !dictField.isSystem())
+                                            {
+                                                size += dictField.fieldSize();
+                                            }
+                                        }
+                                        if (size < dictTable.recordSize(false,false) / 2) //Less than half the bandwidth of fields are used
+                                        {
+                                            // only report BP error if the table is not an input parameter
+                                            if ( !skipTableVariables.in(thisReferences.Name) )
+                                            {
+                                                this.addSuppressableError(#BPErrorSelectUsingFieldList, thisReferences.Line, thisReferences.Column,
+                                                    strFmt("@SYS91289", thisReferences.Name, num2str(100*size / dictTable.recordSize(false), 1, 0, -1, -1) ));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        skipTables.add(dictTable.name());
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Check the variable use in this particular method
+    protected boolean checkVariables()
+    {
+        #AviFiles
+        boolean                 ret = true;
+        ;
+        if (methodname != #methodNameClassDeclaration && // no meaning in checking ClassDeclaration on a single method basis
+            !sysDictMethod.isAbstract()) // no meaning in checking parameters and variables in abstract methods
+        {
+            //
+            // Skip if classdeclaration can't compile - as the xref will contain wrong info
+            //
+            if (methodType == UtilElementType::ClassInstanceMethod &&
+                !new SysDictMethod(UtilElementType::ClassInstanceMethod, parentId, #methodNameClassDeclaration).compiledOk())
+            {
+                return true;
+            }
+
+            ret = this.checkVariablesUse(tmpxRefReferences);
+        }
+
+        return ret;
+    }
+
+
+    /*
+        Check how the variables in the method are used
+
+        Known problems:
+         * When checking Class hierarcies, scope rules are not yet complete, leading to missing warnings
+         * Parameters and variables in local methods are skipped
+    */
+    private boolean checkVariablesUse(xRefTmpReferences _tmpxRefReferences)
+    {
+        boolean ret = true;
+        xRefTmpReferences variables;
+        xRefTmpReferences reads;
+        xRefTmpReferences writes;
+        xRefTmpReferences all;
+        boolean isClassDeclaration = match('\\\\' + #MethodNameClassDeclaration + '>', memberFunction.treeNodePath());
+        int parms;           // declarations after that are variables
+        int declarationNo;   // counter for local declarations
+        int localMethodLine;
+        int bodyLine, bodyColumn, symbol;
+        #TokenTypes
+
+        variables.setTmpData(_tmpxRefReferences);
+        reads.setTmpData(_tmpxRefReferences);
+        writes.setTmpData(_tmpxRefReferences);
+        all.setTmpData(_tmpxRefReferences);
+
+        parms = sysDictMethod.parameterCnt();
+
+        //
+        // Find the line where the first local method is declared.
+        // (Method-level variables cannot be declared after local methods.)
+        //
+        select firstonly Line from all
+            order by Line
+            where all.Reference == XRefReference::Definition
+               && all.Kind      == xRefKind::LocalMethod;
+        if (all)
+            localMethodLine = all.Line;
+        else
+            localMethodLine = maxInt();
+
+        /* --- */
+        declarationNo = 0;
+        while select variables // every variable (incl. parameter) on every method are checked
+            order by Line, Column
+            where variables.Reference == XRefReference::Declaration &&
+                  variables.Line < localMethodLine //Ignore parameters and variables of local methods
+        {
+            declarationNo++;
+
+            // check the name rule
+            // Name rule (Naming conventions, Underscore)
+            if (declarationNo > parms &&
+                match('<_',variables.Name))
+            {
+                this.addSuppressableError(#BPErrorMethodVariableWithUnderscore, variables.Line, variables.Column, strFmt("@SYS60113", variables.Name)); // Only parameters must start with an underscore, not variables like '%1'
+                ret = false;
+            }
+            // check the usage of the variable
+            if (isClassDeclaration)
+            {
+                reads.clear();
+                writes.clear();
+            }
+            else
+            {
+                select reads
+                    where reads.ParentName == variables.ParentName
+                       && reads.Name       == variables.Name
+                       && reads.Reference  == XRefReference::Read;
+                select writes
+                    where writes.ParentName == variables.ParentName
+                       && writes.Name       == variables.Name
+                       && writes.Reference  == XRefReference::Write /*||
+                          writes.reference  == XRefReference::Declaration)*/ ;
+            }
+
+            if (!reads && !writes && memberFunction) // Unused parameters and variables should be cleaned out
+            {
+                // some parameters are given by the system (like args in main)
+                // or can be inherited by method in super class (can also be a system defined method like mouseDblClick)
+                // it's ret to leave them untouched
+
+                // skip _args in main:
+                if (!(methodname == #MethodNameMain &&
+                      methodType == UtilElementType::ClassStaticMethod &&
+                      declarationNo == 1)) // args are the first declaration
+                {
+                    if (declarationNo > parms)
+                    {
+                        sysBPCheck.addError(#BPErrorMethodVariableNotUsed, variables.Line, variables.Column, strFmt("@SYS60464", "@SYS60111", variables.Name));
+                    }
+                    else
+                    {
+                        if (sysDictMethod.accessSpecifier() == AccessSpecifier::private)
+                            this.addSuppressableWarning(#BPErrorMethodVariableNotUsed, variables.Line, variables.Column, strFmt("@SYS60464" ,"@SYS7755", variables.Name));
+                        else
+                            sysBPCheck.addInfo(#BPErrorMethodVariableNotUsed, variables.Line, variables.Column, strFmt("@SYS60464" ,"@SYS7755", variables.Name));
+                    }
+                    ret = false;
+                }
+            }
+            else
+            if (!reads)
+            {
+                if (declarationNo > parms)
+                {
+                    sysBPCheck.addInfo(#BPErrorMethodVariableNotReadButWritten, writes.Line, writes.Column, strFmt("@SYS60465", "@SYS60111", variables.Name));
+                }
+                else
+                {
+                    sysBPCheck.addInfo(#BPErrorMethodVariableNotReadButWritten, writes.Line, writes.Column, strFmt("@SYS60465", "@SYS7755", variables.Name));
+                }
+                ret = false;
+            }
+
+            if (sysBPCheck.toBeUsed(SysBPWarningLevel::Warning) &&
+                writes && (declarationNo <= parms)) // writes to parameters have to be analyzed
+            {
+                //
+                // Find the line and column where the method body starts
+                // (But only once for each method)
+                //
+                if (bodyLine == 0)
+                {
+                    scanner.firstSymbol();
+                    do
+                    {
+                        symbol = scanner.nextSymbol();
+                    }
+                    while (symbol && symbol != #LEFTBR_SYM);
+                    bodyLine = scanner.line();
+                    bodyColumn = scanner.col();
+                }
+
+                // some writes to parameters are not allowed
+                while select writes
+                    where writes.ParentName == variables.ParentName
+                       && writes.Name       == variables.Name
+                       && writes.Reference  == XRefReference::Write
+                       && (writes.Line       >  bodyLine || (writes.Line == bodyLine && writes.Column > bodyColumn)) // in the method body, after the optional default value assignments
+                       && writes.Kind       != xRefKind::Table  // only parameters which aren't supplied by reference (parameters supplied by reference may be modified - especially by accssing their members).
+                       && writes.Kind       != xRefKind::Map
+                       && writes.Kind       != xRefKind::Class
+                {
+                    if (writes)
+                    {
+                        this.addSuppressableWarning(#BPErrorMethodVariableDontWriteToParms, writes.Line, writes.Column, strFmt("@SYS60115", variables.Name, writes.Line, writes.Column));
+                        ret = false;
+                    }
+                }
+            }
+        }
+
+        variables           = null;
+        reads               = null;
+        writes              = null;
+        all                 = null;
+
+        return ret;
+    }
+
+    protected void checkXmlDocumenationParam()
+    {
+        #Define.LineOffset(1)
+        #Define.ColumnOffset(5)
+        int cnt = sysDictMethod.xmlDocumentationParameterCount();
+        int i;
+        str tag;
+
+        // Check all parameters are documented
+        for (i=1; i<=cnt; i++)
+        {
+            tag = strFmt('%1 %2="%3"', #XmlParam, #XmlName, sysDictMethod.xmlDocumentationParameterName(i));
+
+            // Case sensitivy parameter name check
+            if (i > sysDictMethod.parameterCnt() ||
+                strCmp(sysDictMethod.parameterName(i), sysDictMethod.xmlDocumentationParameterName(i)) != 0)
+            {
+                sysBPCheck.addError(#BPErrorXmlDocumentationParamWrongName, sysDictMethod.xmlDocumentationParameterLine(i)+#LineOffset, #ColumnOffset, strFmt("@SYS107113", tag));
+            }
+            else
+            {
+                // Is parameter documented ?
+                if (!sysDictMethod.xmlDocumentationParameterDocumentation(i))
+                {
+                    sysBPCheck.addError(#BPErrorXmlDocumentationParamMissing, sysDictMethod.xmlDocumentationParameterLine(i)+#LineOffset, #ColumnOffset, strFmt("@SYS107150", tag));
+                }
+            }
+        }
+
+        // Check remaining implemented parameters are documented
+        for (i=sysDictMethod.xmlDocumentationParameterCount()+1; i<=sysDictMethod.parameterCnt(); i++)
+        {
+            tag = strFmt('%1 %2="%3"', #XmlParam, #XmlName, sysDictMethod.parameterName(i));
+
+            // Is parameter documented ?
+            sysBPCheck.addError(#BPErrorXmlDocumentationParamTagMissing, 0, 0, strFmt("@SYS107110", tag));
+        }
+    }
+
+    /// <summary>
+    /// Checks if an XML tag is used correctly in the documentation.
+    /// </summary>
+    /// <param name="_tag">
+    /// The name of the tag.
+    /// </param>
+    /// <param name="_contentsMissingErrorCode">
+    /// The error code to report when the tag exists but has no content.
+    /// </param>
+    /// <param name="_tagMissingErrorCode">
+    /// The error code to report when the tag is missing.
+    /// </param>
+    /// <param name="_tagForbiddenErrorCode">
+    /// The error code to report when the tag exists but should not be used.
+    /// </param>
+    /// <remarks>
+    /// Use a value of zero as the error code to skip individual checks.
+    /// </remarks>
+    protected void checkXmlDocumenationTag(
+        str _tag,
+        int _contentsMissingErrorCode,
+        int _tagMissingErrorCode = 0,
+        int _tagForbiddenErrorCode = 0)
+    {
+        #Define.LineOffset(1)
+        #Define.ColumnOffset(5)
+
+        // Does the tag exists?
+        if (sysDictMethod.xmlDocumentationTagExists(_tag))
+        {
+            // Is the tag forbidden?
+            if (_tagForbiddenErrorCode)
+            {
+                sysBPCheck.addError(_tagForbiddenErrorCode, sysDictMethod.xmlDocumentationTagLine(_tag), #ColumnOffset, strFmt("@SYS107113", _tag));
+            }
+            else
+            {
+                // Does the tag have a value?
+                if (!sysDictMethod.xmlDocumentationTagDocumentation(_tag))
+                {
+                    // If tag is present, it must have a value
+                    sysBPCheck.addError(_contentsMissingErrorCode, sysDictMethod.xmlDocumentationTagLine(_tag)+#LineOffset, #ColumnOffset, strFmt("@SYS107150", _tag));
+                }
+            }
+        }
+        else
+        {
+            // Is tag mandatory?
+            if (_tagMissingErrorCode)
+            {
+                sysBPCheck.addError(_tagMissingErrorCode, 0, 0, strFmt("@SYS107110", _tag));
+            }
+        }
+    }
+
+    protected void checkXmlDocumenationTags()
+    {
+        #Define.LineOffset(1)
+        #Define.ColumnOffset(5)
+
+        List tags = sysDictMethod.xmlDocumentationTags();
+        ListEnumerator enumerator = tags.getEnumerator();
+
+        int cnt = sysDictMethod.xmlDocumentationParameterCount();
+        str tag;
+        Set tagSet = new Set(Types::String);
+
+        // Check tags
+        while (enumerator.moveNext())
+        {
+            tag = enumerator.current();
+
+            // Does casing match a supported tag
+            if (strCmp(tag, #XmlSummary) == 0 ||
+                strCmp(tag, #XmlParam) == 0 ||
+                strCmp(tag, #XmlReturns) == 0 ||
+                strCmp(tag, #XmlException) == 0 ||
+                strCmp(tag, #XmlPermission) == 0 ||
+                strCmp(tag, #XmlSeeAlso) == 0 ||
+                strCmp(tag, #XmlSyntax) == 0 ||
+                strCmp(tag, #XmlRemarks) == 0)
+            {
+                // Detect if already used
+                if (tag != #XmlParam &&      //tag is allowed multiple times
+                    tag != #XmlException &&  //tag is allowed multiple times
+                    tag != #XmlPermission && //tag is allowed multiple times
+                    tagSet.in(tag))
+                {
+                    sysBPCheck.addError(#BPErrorXmlDocumentationDuplicated, sysDictMethod.xmlDocumentationTagLine(tag), #ColumnOffset, strFmt("@SYS107215", tag));
+                }
+                tagSet.add(tag);
+            }
+            else
+            {
+                // Is it a support tag, but with wrong casing?
+                if (tag == #XmlSummary ||
+                    tag == #XmlParam ||
+                    tag == #XmlReturns ||
+                    tag == #XmlException ||
+                    tag == #XmlPermission ||
+                    tag == #XmlSeeAlso ||
+                    tag == #XmlSyntax ||
+                    tag == #XmlRemarks)
+                {
+                    sysBPCheck.addError(#BPErrorXmlDocumentationUnsupported, sysDictMethod.xmlDocumentationTagLine(tag), #ColumnOffset, strFmt("@SYS107111", tag));
+                }
+                else
+                {
+                    sysBPCheck.addWarning(#BPErrorXmlDocumentationUnsupported, sysDictMethod.xmlDocumentationTagLine(tag), #ColumnOffset, strFmt("@SYS107111", tag));
+                }
+            }
+        }
+    }
+
+    protected void checkXmlDocumentation()
+    {
+        #Define.ColumnOffset(5)
+
+        if (!sysDictMethod.xmlDocumentationExists())
+        {
+            if (sysBPCheck.toBeUsed(SysBPWarningLevel::Warning) &&
+                !sysDictMethod.xmlDocumentationCanBeAutomated() &&
+                !sysDictMethod.xmlDocumentationCanBeInherited() &&
+                (parentType == UtilElementType::Class ||
+                 parentType == UtilElementType::Table))
+            {
+                sysBPCheck.addWarning(#BPErrorXmlDocumentationMissing, 0, 0, "@SYS107198");
+            }
+            return;
+        }
+
+        // Check well-formed
+        if (!sysDictMethod.xmlDocumentationIsWellFormed())
+        {
+            sysBPCheck.addError(#BPErrorXmlDocumentationNotWellFormed, 0, 0, "@SYS107112");
+            return;
+        }
+
+        // summary tag is mandatory
+        this.checkXmlDocumenationTag(#XmlSummary,
+                                     #BPErrorXmlDocumentationSummaryMissing,
+                                     #BPErrorXmlDocumentationSummaryTagMissing);
+
+        // Optional tags
+        this.checkXmlDocumenationTag(#XmlRemarks, #BPErrorXmlDocumentationRemarksMissing);
+        this.checkXmlDocumenationTag(#XmlException, #BPErrorXmlDocumentationExceptionMissing);
+        this.checkXmlDocumenationTag(#XmlPermission, #BPErrorXmlDocumentationPermissionMissing);
+        this.checkXmlDocumenationTag(#XmlSeeAlso, #BPErrorXmlDocumentationSeeAlsoMissing);
+
+        if (sysDictMethod.name() == #MethodNameClassDeclaration ||
+            sysDictMethod.returnType() == Types::void)
+        {
+            // returns tag is forbidden
+            this.checkXmlDocumenationTag(#XmlReturns, 0, 0, #BPErrorXmlDocumentationReturnsForbidden);
+        }
+        else
+        {
+            // returns tag is mandatory
+            this.checkXmlDocumenationTag(#XmlReturns, #BPErrorXmlDocumentationReturnsMissing, #BPErrorXmlDocumentationReturnsTagMissing);
+        }
+        this.checkXmlDocumenationTags();
+
+        this.checkXmlDocumenationParam();
+
+        if (sysDictMethod.xmlDocumentationTagExists(#XmlSyntax))
+        {
+            sysBPCheck.addError(#BPErrorXmlDocumentationSyntaxForbidden, sysDictMethod.xmlDocumentationTagLine(#XmlSyntax), #ColumnOffset, "@SYS152515");
+        }
+    }
+
+    protected boolean deviationDocumented(int _line)
+    {
+        str line = scanner.sourceLine(_line - 1);
+        if (strScan(line, #DeviationDocumented, 1, strLen(line)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void dispose()
+    {
+        super();
+        sysDictMethod = null;
+        if (scanner)
+        {
+            scanner.dispose();
+            scanner = null;
+        }
+        tmpxRefReferences = null;
+        if (memberFunction)
+        {
+    //        memberFunction.treeNodeRelease();
+            memberFunction = null;
+        }
+        xRefIsInited = false;
+    }
+
+    private boolean exemptFromCRUD()
+    {
+        boolean             exempt;
+        xRefTmpReferences   thisReferences;
+        xRefTmpReferences   thisTableReferences;
+
+        thisReferences.setTmpData(tmpxRefReferences);
+        thisTableReferences.setTmpData(tmpxRefReferences);
+
+        while select *
+            from thisReferences
+            order by Line, Column
+            where thisReferences.Kind == xRefKind::ClassStaticMethod
+        {
+            if (thisReferences.actualClassName() == classStr(ReleaseUpdateDB))
+            {
+                switch (thisReferences.Name)
+                {
+                    case 'deleteDuplicatesUsingIds':
+                    case 'deleteDuplicatesUsingNames':
+                    case 'indexAllowDup':
+                    case 'indexAllowNoDup':
+                        exempt = true;
+                        break;
+                    default:
+                        exempt = false;
+                }
+            }
+        }
+
+        return exempt;
+    }
+
+    /// <summary>
+    /// Flush all caches.
+    /// </summary>
+    /// <remarks>
+    /// This method is invoked after a complete BP run.
+    /// </remarks>
+    public void flushCaches()
+    {
+        pathsUnderVCS = new Set(Types::String);
+        pathsNotUnderVCSError = new Set(Types::String);
+        pathsNotUnderVCSInfo = new Set(Types::String);
+    }
+
+    // This method gets the number of parameters in a function call.
+    // Prior to calling this method, textBuffer.matchPos() should point to the begining of the function call, e.g., if target
+    // function name is "targetMethod", textBuffer.find("targetMethod: *(: *") should be called before being passed into this
+    // method. See SysBPCheckMemberFunction::checkSource for more example.
+    private int getParameterCount(TextBuffer textBuffer)
+    {
+        int paramCount;
+        int startPos;
+        str currentChar;
+        int parenthesisCount;
+        ;
+        parenthesisCount = 1;
+        startPos = textBuffer.matchPos() + textBuffer.matchLen();
+        currentChar = textBuffer.subStr(startPos, 1);
+
+        // if next char is not a space, there must be at least 1 parameter
+        if(currentChar != ')')
+        {
+            paramCount = 1;
+        }
+        else
+        {
+            paramCount = 0;
+            parenthesisCount = 0;
+        }
+
+        // counting parameter by counting top level commas
+        while(currentChar != ';' && parenthesisCount != 0)
+        {
+            if(currentChar == '(')
+            {
+                parenthesisCount++;
+            }
+            else if(currentChar == ')')
+            {
+                parenthesisCount--;
+            }
+            else if(currentChar == ',' && parenthesisCount == 1)
+            {
+                paramCount++;
+            }
+            startPos++;
+            currentChar = textBuffer.subStr(startPos, 1);
+        }
+
+        return paramCount;
+    }
+
+    private sysReleasedVersion getUpgradeScriptVersion()
+    {
+        #SysBPCheck
+        #TokenTypes
+
+        sysReleasedVersion  ver = sysReleasedVersion::Unknown;
+        SysScannerClass     ctorScanner;
+        MemberFunction      ctorMemberFunction;
+        TextBuffer          source = new TextBuffer();
+        str                 verStr;
+
+        MemberFunction getConstructor(IdentifierName _className)
+        {
+            TreeNode t = infolog.rootNode();
+            t = t.AOTfindChild('Classes');
+            t = t.AOTfindChild(_className);
+            t = t.AOTfindChild(#MethodNameClassDeclaration);
+
+            return t;
+        }
+
+        ctorMemberFunction = getConstructor(currentClass.name());
+
+        ctorScanner = new SysScannerClass(ctorMemberFunction);
+        source.setText(ctorScanner.source());
+
+        if (source.find(@'#define.version\(.*sysReleasedVersion\:\:v[0-9]+.*\)'))
+        {
+            source.setText(source.subStr(source.matchPos(), source.matchLen()));
+            if (source.find(@'v[0-9]+'))
+            {
+                verStr = source.subStr(source.matchPos(), source.matchLen());
+                ver = symbol2Enum(enumNum(sysReleasedVersion), verStr);
+            }
+        }
+
+        if (!ver ||
+            (ver == sysReleasedVersion::Unknown) ||
+            (ver == sysReleasedVersion::vNext))
+        {
+            // The upgrade script does not have a valid version defined [#define.version(sysReleasedVersion)] in the class declaration.
+            sysBPCheck.addError(#BPErrorInvalidScriptVersion, 1, 1, "@SYS309415");
+        }
+
+        return ver;
+    }
+
+    private boolean hasUpgradeAttributes()
+    {
+        boolean         retVal;
+        int             i;
+        int             attributeClass;
+
+        if (sysDictMethod)
+        {
+            if (attributes)
+            {
+                for (i = 1; i <= attributes.lastIndex(); i++)
+                {
+                    attributeClass = classIdGet(attributes.value(i));
+
+                    if (attributeClass == classNum(UpgradeScriptDescriptionAttribute) ||
+                        attributeClass == classNum(UpgradeScriptTypeAttribute) ||
+                        attributeClass == classNum(UpgradeScriptStageAttribute) ||
+                        attributeClass == classNum(UpgradeScriptTableAttribute))
+                    {
+                        retVal = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return retVal;
+    }
+
+    public boolean init()
+    {
+        TreeNodePath parentPath;
+        UtilElements utilElement;
+        super();
+        xRefIsInited = false;
+        allowHardcodedTexts = false;
+
+        if (sysBPCheck.treeNode().handle() == classNum(MemberFunction))
+        {
+            parentPath = SysTreeNode::applObjectPath(sysBPCheck.treeNode().treeNodePath());
+            parentName = SysTreeNode::applObjectName(parentPath);
+            parentType = SysTreeNode::path2ApplObjectType(parentPath);
+            memberFunction = sysBPCheck.treeNode();
+            methodname = memberFunction.name();
+            sysDictMethod = SysDictMethod::newMemberFunction(memberFunction);
+
+            if (memberFunction.treeNodeType().isUtilElement())
+            {
+                utilElement = memberFunction.utilElement();
+                parentId = utilElement.ParentId;
+                methodType = utilElement.RecordType;
+            }
+            else
+            {
+                methodType = parentType;
+            }
+
+            if (parentType == UtilElementType::Report)
+                allowHardcodedTexts = SysBPCheckReportDesign::allowHardcodedTexts(parentName);
+
+            if (sysDictMethod)
+            {
+                scanner = new SysScannerClass(memberFunction);
+                currentClass = new DictClass(sysDictMethod.parentId());
+
+                if (methodType == UtilElementType::ClassInstanceMethod ||
+                    methodType == UtilElementType::ClassStaticMethod ||
+                    methodType == UtilElementType::TableInstanceMethod ||
+                    methodType == UtilElementType::TableStaticMethod)
+                {
+                    attributes = sysDictMethod.getAllAttributes();
+                }
+                else
+                {
+                    attributes = null;
+                }
+
+                isUpgradeScript = this.hasUpgradeAttributes();  // Call after setting 'attributes'
+            }
+            else
+            {
+                error(strFmt("@SYS19384", classStr(SysDictMethod)));
+                return false;
+            }
+            this.initTmpxRefReferences();
+
+            return true;
+        }
+
+        error("@SYS60290");
+        return false;
+    }
+
+
+    protected void initTmpxRefReferences()
+    {
+        if (!xRefIsInited)
+        {
+            appl.updatexRefSet(true);
+            memberFunction.AOTmakeXref(1);
+            tmpxRefReferences = xRefCreate::makeTmp(appl.lastxRef(), sysDictMethod.path());
+            appl.updatexRefSet(false);
+
+            xRefIsInited = true;
+        }
+    }
+
+    private boolean isKernelDefined(int id)
+    {
+        SysDictType dictType = new SysDictType(id);
+        if (isSysId(dictType.id()))
+            return true;
+        if (dictType.extend())
+            return this.isKernelDefined(dictType.extend());
+        return false;
+    }
+
+    protected void new()
+    {
+        super();
+        currentAOLayer = currentAOLayer();
+        pathsUnderVCS = new Set(Types::String);
+        pathsNotUnderVCSInfo = new Set(Types::String);
+        pathsNotUnderVCSError = new Set(Types::String);
+    }
+
+    private boolean validateUpgradeAttribute(SysAttribute _attribute)
+    {
+        boolean                             retVal = true;
+        UpgradeScriptTableAttribute         tableAttribute;
+        UpgradeScriptConfigKeyAttribute     configKeyAttribute;
+        UpgradeDependsOnModuleAttribute     moduleAttribute;
+        UpgradeDependsOnTaskAttribute       taskAttribute;
+        UpgradeDependsOnVersionAttribute    versionAttribute;
+        SysDictClass                        sysDictClass;
+
+        switch (classIdGet(_attribute))
+        {
+            case classNum(UpgradeScriptTableAttribute):
+                tableAttribute = _attribute;
+                if (!tableName2id(tableAttribute.parmTableName()))
+                {
+                    // Table %1 specified in the UpgradeScriptTableAttribute is not valid.
+                    sysBPCheck.addError(#BPErrorTableNotFound, 1, 1, strFmt("@SYS309400", tableAttribute.parmTableName()));
+                }
+                break;
+            case classNum(UpgradeScriptConfigKeyAttribute):
+                configKeyAttribute = _attribute;
+                if (!configurationkeyId2Name(configKeyAttribute.parmConfigurationKeyId()))
+                {
+                    // Configuration Key %1 specified in the UpgradeScriptConfigKeyAttribute is not valid.
+                    sysBPCheck.addError(#BPErrorConfigurationKeyNotFound, 1, 1, strFmt("@SYS309401", configKeyAttribute.parmConfigurationKeyName()));
+                }
+                break;
+            case classNum(UpgradeDependsOnModuleAttribute):
+                moduleAttribute = _attribute;
+                sysDictClass = new SysDictClass(className2Id(moduleAttribute.parmClassName()));
+                if (sysDictClass)
+                {
+                    if (!sysDictClass.hasObjectMethod(moduleAttribute.parmMethodName()))
+                    {
+                        // Method %1 in class %2 specified in the UpgradeDependsOnModuleAttribute is not valid.
+                        sysBPCheck.addError(#BPErrorMethodNameNotFound, 1, 1, strFmt("@SYS309403", moduleAttribute.parmMethodName(), moduleAttribute.parmClassName()));
+                    }
+                }
+                else
+                {
+                    // Class %1 specified in the UpgradeDependsOnModuleAttribute is not valid.
+                    sysBPCheck.addError(#BPErrorClassNameNotFound, 1, 1, strFmt("@SYS309404", moduleAttribute.parmClassName()));
+                }
+                break;
+            case classNum(UpgradeDependsOnTaskAttribute):
+                taskAttribute = _attribute;
+                sysDictClass = new SysDictClass(currentClass.id());
+                if (!sysDictClass.hasObjectMethod(taskAttribute.parmMethodName()))
+                {
+                    // Method %1 in the current module specified in the UpgradeDependsOnTaskAttribute is not valid.
+                    sysBPCheck.addError(#BPErrorMethodNameNotFound, 1, 1, strFmt("@SYS309405", taskAttribute.parmMethodName()));
+                }
+                break;
+            case classNum(UpgradeDependsOnVersionAttribute):
+                versionAttribute = _attribute;
+                sysDictClass = new SysDictClass(className2Id(versionAttribute.parmClassName()));
+                if (sysDictClass)
+                {
+                    if (!sysDictClass.hasObjectMethod(versionAttribute.parmMethodName()))
+                    {
+                        // Method %1 in class %2 specified in the UpgradeDependsOnVersionAttribute is not valid.
+                        sysBPCheck.addError(#BPErrorMethodNameNotFound, 1, 1, strFmt("@SYS309406", versionAttribute.parmMethodName(), versionAttribute.parmClassName()));
+                    }
+                }
+                else
+                {
+                    // Class %1 specified in the UpgradeDependsOnVersionAttribute is not valid.
+                    sysBPCheck.addError(#BPErrorClassNameNotFound, 1, 1, strFmt("@SYS309407", versionAttribute.parmClassName()));
+                }
+                break;
+        }
+
+        return false;
+    }
+
+    private static server container findLayerFromPaths(container _pathSet)
+    {
+        UtilElements    utilElements;
+        Map             returnMap   = new Map(Types::String, Types::Enum);
+        Set             paths       = Set::create(_pathSet);
+        SetEnumerator   enum        = paths.getEnumerator();
+        TreeNodePath    path;
+
+        while (enum.moveNext())
+        {
+            path = enum.current();
+
+            select firstonly RecId, UtilLevel from utilElements
+                order by UtilLevel desc
+                where utilElements.ParentId   == 0
+                   && utilElements.RecordType == SysTreeNode::path2ApplObjectType(path)
+                   && utilElements.Name       == SysTreeNode::applObjectName(path);
+
+            //
+            // Make sure the object is a real AOT object, and exclude system objects
+            //
+            if (utilElements)
+            {
+                returnMap.insert(path, utilElements.UtilLevel);
+            }
+        }
+        return returnMap.pack();
+    }
+
+
+    private static client server UtilElements pseuduUtilElements(SysDictMethod _sysDictMethod)
+    {
+        UtilElements utilElementsBuffer;
+
+        utilElementsBuffer.RecordType = _sysDictMethod.utilElementType();
+        utilElementsBuffer.Name       = _sysDictMethod.name();
+        utilElementsBuffer.ParentId   = _sysDictMethod.parentId();
+
+        return utilElementsBuffer;
+    }
+}

@@ -1,0 +1,1605 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #DEVRunBaseBuilder
+  PROPERTIES
+    Name                #DEVRunBaseBuilder
+    Origin              #{E6E46DB6-09C8-4CDE-A2B9-12FC4810AE39}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #//EVO RunBaseBuilder
+      #public class FormRun extends ObjectRun
+      #{
+      #    SysElementName      rbName;
+      #    ClassDescription    rbClassDescription;
+      #    SysElementName      rbUseAOTQuery;
+      #
+      #    boolean             showQueryValues;
+      #    boolean             showDefaultButton;
+      #    boolean             showClearButton;
+      #
+      #    boolean             isTable;
+      #
+      #    #define.CurrentVersion(3)
+      #    #define.version1(1)
+      #    #localmacro.CurrentList
+      #        rbName,
+      #        rbClassDescription,
+      #        rbUseAOTQuery,
+      #        showQueryValues,
+      #        showDefaultButton,
+      #        showClearButton,
+      #        isTable
+      #    #endmacro
+      #
+      #    #define.newLine("\n")
+      #}
+    ENDSOURCE
+    SOURCE #addParmMethods
+      #void addParmMethods(TreeNode _classNode)
+      #{
+      #    //Source      source;
+      #    TreeNode    methodTreeNode;
+      #    ;
+      #
+      #    while select devRunBaseBuilderVars
+      #      order by LineNum
+      #    {
+      #        methodTreeNode = _classNode.AOTadd('parm' + devRunBaseBuilderVars.Name);
+      #
+      #        methodTreeNode.AOTsetSource(element.srcParmMethod( devRunBaseBuilderVars.Type,
+      #                                                           devRunBaseBuilderVars.Name,
+      #                                                           devRunBaseBuilderVars.ParmName,
+      #                                                           devRunBaseBuilderVars.Name), false);
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #addParmMethodsContract
+      #void addParmMethodsContract(TreeNode _classNode)
+      #{
+      #    //Source      source;
+      #    TreeNode    methodTreeNode;
+      #    int i;
+      #    ;
+      #
+      #    while select devRunBaseBuilderVars
+      #      order by LineNum
+      #    {
+      #        methodTreeNode = _classNode.AOTadd('parm' + devRunBaseBuilderVars.Name);
+      #        i++;
+      #        methodTreeNode.AOTsetSource(element.srcParmMethodContract(i), false);
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #buildRunBase
+      #void buildRunBase()
+      #{
+      #    TreeNode    classNode;
+      #    TreeNode    methodTreeNode;
+      #    ;
+      #
+      #    // 1. Add class
+      #    classNode = TreeNode::findNode('\\Classes');
+      #
+      #    if (!classNode)
+      #        throw error('An error occured while building the class');
+      #
+      #    classNode = classNode.AOTadd(rbName);
+      #
+      #    if (!classNode)
+      #        throw error('An error occured while building the class');
+      #    if (! CreateContract.checked())
+      #    {
+      #        // 2. Add method Construct
+      #        methodTreeNode = classNode.AOTadd('construct');
+      #        methodTreeNode.AOTsetSource(this.srcConstruct(), true);
+      #
+      #        // 3. Add method Main
+      #        methodTreeNode = classNode.AOTadd('main');
+      #        methodTreeNode.AOTsetSource(this.srcMain(), true);
+      #
+      #        // 4. Add method Description
+      #        methodTreeNode = classNode.AOTadd('description');
+      #        methodTreeNode.AOTsetSource(this.srcDescription(), true);
+      #
+      #        // 5. Add parm methods
+      #        this.addParmMethods(classNode);
+      #
+      #        // 4. Add method GetFromDialog
+      #        methodTreeNode = classNode.AOTadd('getFromDialog');
+      #        methodTreeNode.AOTsetSource(this.srcGetFromDialog(), false);
+      #
+      #        // 5. Add method ClassDeclaration
+      #        methodTreeNode = classNode.AOTfindChild('ClassDeclaration');
+      #        methodTreeNode.AOTsetSource(this.srcClassDeclaration(), false);
+      #
+      #        // 6. Add method pack()
+      #        methodTreeNode = classNode.AOTadd('pack');
+      #        methodTreeNode.AOTsetSource(this.srcPack(), false);
+      #
+      #        // 7. Add method unpack()
+      #        methodTreeNode = classNode.AOTadd('unpack');
+      #        methodTreeNode.AOTsetSource(this.srcUnpack(), false);
+      #
+      #        // 8. Add method initQuery()
+      #        if (rbUseAOTQuery)
+      #        {
+      #            methodTreeNode = classNode.AOTadd('initQuery');
+      #            methodTreeNode.AOTsetSource(this.srcInitQuery(), false);
+      #        }
+      #        // 9. Add method initParmDefault()
+      #        methodTreeNode = classNode.AOTadd('initParmDefault');
+      #        methodTreeNode.AOTsetSource(this.srcInitParmDefault(), false);
+      #
+      #        //10. Add method dialog()
+      #        methodTreeNode = classNode.AOTadd('dialog');
+      #        methodTreeNode.AOTsetSource(this.srcDialog(), false);
+      #
+      #        //11. Add method dialog()
+      #        if (rbUseAOTQuery)
+      #        {
+      #            methodTreeNode = classNode.AOTadd('queryRun');
+      #            methodTreeNode.AOTsetSource(this.srcQueryRun(), false);
+      #        }
+      #        //12. Add method showQueryValues()
+      #        if (showQueryValues)
+      #        {
+      #            methodTreeNode = classNode.AOTadd('showQueryValues');
+      #            methodTreeNode.AOTsetSource(this.srcShowQueryValues(), false);
+      #        }
+      #
+      #        //13. Add method showDefaultButton()
+      #        if (showDefaultButton)
+      #        {
+      #            methodTreeNode = classNode.AOTadd('showDefaultButton');
+      #            methodTreeNode.AOTsetSource(this.srcShowDefaultButton(), false);
+      #        }
+      #
+      #        //14. Add method showQueryValues()
+      #        if (showClearButton)
+      #        {
+      #            methodTreeNode = classNode.AOTadd('showClearButton');
+      #            methodTreeNode.AOTsetSource(this.srcShowClearButton(), false);
+      #        }
+      #
+      #        //16. Add method run()
+      #        methodTreeNode = classNode.AOTadd('run');
+      #        methodTreeNode.AOTsetSource(this.srcRun(), false);
+      #    }
+      #    else
+      #    {
+      #        // 5. Add parm methods
+      #        this.addParmMethodsContract(classNode);
+      #
+      #        // 5. Add method ClassDeclaration
+      #        methodTreeNode = classNode.AOTfindChild('ClassDeclaration');
+      #        methodTreeNode.AOTsetSource(this.srcClassDeclarationContract(), false);
+      #    }
+      #    classNode.AOTsave();
+      #    classNode.AOTcompile();
+      #    classNode.AOTrestore();
+      #    classNode.AOTnewWindow();
+      #}
+    ENDSOURCE
+    SOURCE #close
+      #public void close()
+      #{
+      #    super();
+      #
+      #    xSysLastValue::saveLast(this);
+      #}
+    ENDSOURCE
+    SOURCE #closeOk
+      #public void closeOk()
+      #{
+      #    super();
+      #
+      #    startLengthyOperation();
+      #
+      #    this.buildRunBase();
+      #
+      #    endLengthyOperation();
+      #}
+    ENDSOURCE
+    SOURCE #editIsTable
+      #edit boolean editIsTable(boolean _set, boolean _isTable)
+      #{
+      #    if (_set)
+      #    {
+      #        isTable = _isTable;
+      #    }
+      #
+      #    return  isTable;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #editRBClassDescription
+      #edit ClassDescription editRBClassDescription(boolean _set, ClassDescription _rbClassDescription)
+      #{
+      #    if (_set)
+      #    {
+      #        rbClassDescription = _rbClassDescription;
+      #    }
+      #
+      #    return  rbClassDescription;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #editRBName
+      #edit SysElementName editRBName(boolean _set, SysElementName _rbName)
+      #{
+      #    if (_set)
+      #    {
+      #        rbName = _rbName;
+      #    }
+      #
+      #    return  rbName;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #editRBUseAOTQuery
+      #edit SysElementName editRBUseAOTQuery(boolean _set, SysElementName _rbUseAOTQuery)
+      #{
+      #    if (_set)
+      #    {
+      #        rbUseAOTQuery = _rbUseAOTQuery;
+      #    }
+      #
+      #    return  rbUseAOTQuery;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #editShowClearButton
+      #edit boolean editShowClearButton(boolean _set, boolean _showClearButton)
+      #{
+      #    if (_set)
+      #    {
+      #        showClearButton = _showClearButton;
+      #    }
+      #
+      #    return  showClearButton;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #editShowDefaultButton
+      #edit boolean editShowDefaultButton(boolean _set, boolean _showDefaultButton)
+      #{
+      #    if (_set)
+      #    {
+      #        showDefaultButton = _showDefaultButton;
+      #    }
+      #
+      #    return showDefaultButton;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #editShowQueryValues
+      #edit boolean editShowQueryValues(boolean _set, boolean _showQueryValues)
+      #{
+      #    if (_set)
+      #    {
+      #        showQueryValues = _showQueryValues;
+      #    }
+      #
+      #    return  showQueryValues;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #initParmDefault
+      #public void initParmDefault()
+      #{
+      #
+      #}
+    ENDSOURCE
+    SOURCE #lastValueDataAreaId
+      #public dataAreaId lastValueDataAreaId()
+      #{
+      #    return curExt();
+      #}
+    ENDSOURCE
+    SOURCE #lastValueDesignName
+      #public identifiername lastValueDesignName()
+      #{
+      #    return '';
+      #}
+    ENDSOURCE
+    SOURCE #lastValueElementName
+      #public identifiername lastValueElementName()
+      #{
+      #    return classId2Name(classIdGet(this));
+      #}
+    ENDSOURCE
+    SOURCE #lastValueType
+      #public UtilElementType lastValueType()
+      #{
+      #    return UtilElementType::Form;
+      #}
+    ENDSOURCE
+    SOURCE #lastValueUserId
+      #public userId lastValueUserId()
+      #{
+      #    return curUserId();
+      #}
+    ENDSOURCE
+    SOURCE #pack
+      #public container pack()
+      #{
+      #    //container   fmtRecord;
+      #    ;
+      #    /*
+      #    while select devRunBaseBuilderVars
+      #    {
+      #        fmtRecord += [buf2con(devRunBaseBuilderVars)];
+      #    }
+      #    */
+      #    return [#CurrentVersion, #CurrentList];// + [fmtRecord];
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    super();
+      #    xSysLastValue::getLast(this);
+      #
+      #    devRunBaseBuilderVars_ds.executeQuery();
+      #}
+    ENDSOURCE
+    SOURCE #srcClassDeclaration
+      #Source srcClassDeclaration()
+      #{
+      #    Source      source;
+      #    ;
+      #
+      #    #define.SysQueryRun('QueryRun')
+      #    #define.queryRun('queryRun')
+      #
+      #    if (CreateContract.checked())
+      #    {
+      #        source += strFmt('[DataContractAttribute]')                                               + #newLine;
+      #    }
+      #
+      #    source += strFmt('class %1 extends RunBaseBatch', rbName)                                               + #newLine;
+      #
+      #    source += strFmt('{')                                                                                   + #newLine;
+      #
+      #    while select devRunBaseBuilderVars
+      #      order by LineNum
+      #    {
+      #        source += strFmt('    %1%3 %2;', devRunBaseBuilderVars.Type, devRunBaseBuilderVars.Name,
+      #                            strRep(' ', 22 - strLen(devRunBaseBuilderVars.Type)))   + #newLine;
+      #    }
+      #
+      #    source += #newLine;
+      #
+      #    source += strFmt('    %1            %2;', #SysQueryRun, #queryRun)                                      + #newLine;
+      #
+      #    source += #newLine;
+      #
+      #    while select devRunBaseBuilderVars
+      #      order by LineNum
+      #        where devRunBaseBuilderVars.IsExternalTable == false
+      #    {
+      #        source += strFmt('    DialogField            %1;', devRunBaseBuilderVars.DlgName)                   + #newLine;
+      #    }
+      #
+      #    source += #newLine + #newLine;
+      #
+      #    source += strFmt('    #define.CurrentVersion(1)')                                               + #newLine;
+      #    source += strFmt('    #localmacro.CurrentList')                                                 + #newLine;
+      #
+      #    while select devRunBaseBuilderVars
+      #      order by LineNum
+      #         where devRunBaseBuilderVars.IsExternalTable == false
+      #    {
+      #        source += strFmt('        %1,', devRunBaseBuilderVars.Name)                                 + #newLine;
+      #    }
+      #
+      #    source = strdel(source, strlen(source) - 1, 1); // delete last comma
+      #
+      #    source += strFmt('    #endmacro')                                                               + #newLine;
+      #    source += strFmt('}')                                                                           + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcClassDeclarationContract
+      #Source srcClassDeclarationContract()
+      #{
+      #    Source      source;
+      #    str     lastGroup;
+      #    int         curCount;
+      #    ;
+      #
+      #    #define.SysQueryRun('SysQueryRun')
+      #    #define.queryRun('queryRun')
+      #
+      #    source += strFmt('[DataContractAttribute')                                             ;
+      #
+      #    while select devRunBaseBuilderVars
+      #        order by LineNum
+      #        where devRunBaseBuilderVars.ContractGroupName2
+      #    {
+      #        if (lastGroup != devRunBaseBuilderVars.ContractGroupName2)
+      #        {
+      #            curCount++;
+      #            source +=  #newLine + strFmt(', SysOperationGroupAttribute(\'%1\',"%2","%3")', devRunBaseBuilderVars.ContractGroupName2, devRunBaseBuilderVars.ContractGroupLabel2, curCount);
+      #        }
+      #        lastGroup = devRunBaseBuilderVars.ContractGroupName2;
+      #    }
+      #    source += strFmt(']')                                               + #newLine;
+      #
+      #    source += strFmt('class %1', rbName)                                               + #newLine;
+      #
+      #    source += strFmt('{')                                                                                   + #newLine;
+      #
+      #    while select devRunBaseBuilderVars
+      #      order by LineNum
+      #    {
+      #        source += strFmt('    %1            %2;', devRunBaseBuilderVars.Type, devRunBaseBuilderVars.Name)   + #newLine;
+      #    }
+      #
+      #    source += #newLine;
+      #
+      #    source += strFmt('}')                                                                           + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcConstruct
+      #Source srcConstruct()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source = new XppSource().constructMethod(rbName);
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcDescription
+      #Source srcDescription()
+      #{
+      #    Source      source;
+      #    ;
+      #
+      #    source += strFmt('static ClassDescription description()')                           + #newLine;
+      #    source += strFmt('{')                                                               + #newLine;
+      #    source += strFmt('    ;')                                                           + #newLine + #newLine;
+      #
+      #    source += strFmt('    return "%1";', rbClassDescription )                           + #newLine;
+      #    source += strFmt('}');
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcDialog
+      #Source srcDialog()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public Object dialog()')                                                          + #newLine;
+      #    source += strFmt('{')                                                                               + #newLine;
+      #    source += strFmt('    DialogRunbase       dialog = super();')                                       + #newLine;
+      #    source += strFmt('    ;')                                                                           + #newLine + #newLine;
+      #
+      #    while select devRunBaseBuilderVars
+      #      order by LineNum
+      #        where devRunBaseBuilderVars.IsExternalTable == false
+      #    {
+      #
+      #        if (devRunBaseBuilderVars.OverwriteLabels)
+      #        {
+      #            source += strFmt('    %1%6 = dialog.addFieldValue(extendedtypestr(%2), %3, "%4", "%5");', devRunBaseBuilderVars.DlgName,
+      #                                                                                           devRunBaseBuilderVars.Type,
+      #                                                                                           devRunBaseBuilderVars.Name,
+      #                                                                                           devRunBaseBuilderVars.Label,
+      #                                                                                           devRunBaseBuilderVars.LabelHelp,
+      #                                                                                           strRep(' ', 26 - strLen(devRunBaseBuilderVars.DlgName))
+      #                                                                                           ) + #newLine;
+      #        }
+      #        else
+      #        {
+      #            source += strFmt('    %1%4 = dialog.addFieldValue(extendedtypestr(%2), %3);', devRunBaseBuilderVars.DlgName,
+      #                                                                                       devRunBaseBuilderVars.Type,
+      #                                                                                       devRunBaseBuilderVars.Name,
+      #                                                                                       strRep(' ', 26 - strLen(devRunBaseBuilderVars.DlgName))
+      #                                                                                       ) + #newLine;
+      #        }
+      #    }
+      #
+      #    source += #newLine;
+      #    source += strFmt('    return dialog;')                                                              + #newLine;
+      #    source += strFmt('}')                                                                               + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcGetFromDialog
+      #Source srcGetFromDialog()
+      #{
+      #    Source      source;
+      #    ;
+      #
+      #    source += strFmt('public boolean getFromDialog()')                                                  + #newLine;
+      #    source += strFmt('{')                                                                               + #newLine;
+      #    source += strFmt('    ;')                                                                           + #newLine + #newLine;
+      #
+      #    while select devRunBaseBuilderVars
+      #        order by LineNum
+      #        where devRunBaseBuilderVars.IsExternalTable == false
+      #    {
+      #        source += strFmt('    %1%3 = %2.value();', devRunBaseBuilderVars.Name, devRunBaseBuilderVars.DlgName,
+      #                            strRep(' ', 18 - strLen(devRunBaseBuilderVars.Name))
+      #                            ) + #newLine;
+      #    }
+      #
+      #    source += #newLine;
+      #
+      #    source += strFmt('    return super();')                                                             + #newLine;
+      #    source += strFmt('}')                                                                               + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcInitParmDefault
+      #Source srcInitParmDefault()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public void initParmDefault()')                       + #newLine;
+      #    source += strFmt('{')                                                   + #newLine;
+      #    source += strFmt('    ;')                                               + #newLine + #newLine;
+      #    if (rbUseAOTQuery)
+      #    {
+      #        source += strFmt('    this.initQuery();')                               + #newLine + #newLine;
+      #    }
+      #    source += strFmt('    super();')                                        + #newLine;
+      #    source += strFmt('}')                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcInitQuery
+      #Source srcInitQuery()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public void initQuery()')                                                                         + #newLine;
+      #    source += strFmt('{')                                                                                               + #newLine;
+      #    if (isTable)
+      #    {
+      #        source += strFmt('    Query                   query = new Query();') + #newLine;
+      #        source += strFmt('    QueryBuildDataSource    qbds = query.addDataSource(tablenum(%1));', rbUseAOTQuery) + #newLine;
+      #        source += strFmt('    QueryBuildRange         qBR;') + #newLine;
+      #        source += strFmt('    ;') + #newLine;
+      #        source += strFmt('    ')  + #newLine;
+      #        source += strFmt('    qBR = SysQuery::findOrCreateRange(qbds, fieldnum(%1, RecId));', rbUseAOTQuery) + #newLine;
+      #        source += strFmt('    qBR.status(RangeStatus::HIDDEN);  ') + #newLine;
+      #    }
+      #    else
+      #    {
+      #        source += strFmt('    Query   query = new Query(%1);', rbUseAOTQuery ? strFmt('querystr(%1)', rbUseAOTQuery) : '')  + #newLine;
+      #        source += strFmt('    ;')                                                                                           + #newLine + #newLine;
+      #
+      #
+      #    }
+      #    source += strFmt('    queryRun = new QueryRun(query);') + #newLine;
+      #    source += strFmt('}')      + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcMain
+      #Source srcMain()
+      #{
+      #    Source      source;
+      #    ;
+      #
+      #    source += strFmt('public static void main(Args _args)')                                                 + #newLine;
+      #    source += strFmt('{')                                                                                   + #newLine;
+      #    source += strFmt('    %1    runObject = %1::construct();', rbName)                                             + #newLine;
+      #
+      #    devRunBaseBuilderVars.clear();
+      #    select devRunBaseBuilderVars
+      #      order by LineNum
+      #      where devRunBaseBuilderVars.IsExternalTable;
+      #    if (devRunBaseBuilderVars.RecId && showQueryValues)
+      #    {
+      #        source += strFmt('    QueryBuildDataSource  qbds;')                    + #newLine;
+      #    }
+      #
+      #    source += strFmt('    ;')                                                                               + #newLine + #newLine;
+      #
+      #    if (devRunBaseBuilderVars.RecId)
+      #    {
+      #        source += strFmt('    if (_args.record().TableId != tablenum(%1))', devRunBaseBuilderVars.Type)       + #newLine;
+      #        source += strFmt('    {')       + #newLine;
+      #        source += strFmt('        throw error(Error::missingRecord(funcname()));')       + #newLine;
+      #        source += strFmt('    }')       + #newLine;
+      #
+      #        source += strFmt('    runObject.%1(_args.record());', devRunBaseBuilderVars.ParmName) + #newLine;
+      #
+      #        if (showQueryValues)
+      #        {
+      #            source += strFmt('    if (_args && _args.record().TableId == tablenum(%1))' , devRunBaseBuilderVars.Type)       + #newLine;
+      #            source += strFmt('    {')       + #newLine;
+      #            source += strFmt('        qbds = runObject.queryRun().query().dataSourceTable(tablenum(%1));' , devRunBaseBuilderVars.Type)       + #newLine;
+      #            source += strFmt('        qbds.clearRanges();')       + #newLine;
+      #            source += strFmt('        qbds.addRange(fieldnum(%1, RecId)).value(queryValue(runObject.%2().RecId));', devRunBaseBuilderVars.Type,  devRunBaseBuilderVars.ParmName) + #newLine;
+      #            source += strFmt('        //runObject.parmIsDisableUnpackQuery(true);')       + #newLine;
+      #            source += strFmt('    }')       + #newLine;
+      #        }
+      #    }
+      #
+      #    source += strFmt('    if (runObject.prompt())', rbName)                                                        + #newLine;
+      #    source += strFmt('    {')                                                                               + #newLine;
+      #    source += strFmt('        runObject.run();', rbName)                                                           + #newLine;
+      #    source += strFmt('    }')                                                                               + #newLine;
+      #    source += strFmt('}')                                                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcPack
+      #Source srcPack()
+      #{
+      #    Source      source;
+      #    ;
+      #
+      #    source += strFmt('public container pack()')                                             + #newLine;
+      #    source += strFmt('{')                                                                   + #newLine;
+      #    source += strFmt('    ;')                                                               + #newLine + #newLine;
+      #    if (rbUseAOTQuery)
+      #    {
+      #        source += strFmt('    return [#CurrentVersion, #CurrentList, queryRun.pack()];')        + #newLine;
+      #    }
+      #    else
+      #    {
+      #        source += strFmt('    return [#CurrentVersion, #CurrentList];')        + #newLine;
+      #    }
+      #    source += strFmt('}')                                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcParmMethod
+      #Source srcParmMethod(SysElementName _type, SysElementName _name, SysElementName _parmName, SysElementName _varName)
+      #{
+      #    Source      source;
+      #    ;
+      #
+      #    source += strFmt('public %1 %2(%1 _%3 = %3)', _type, _parmName, _varName)   + #newLine;
+      #    source += strFmt('{')                                                       + #newLine;
+      #    source += strFmt('    ;')                                                   + #newLine + #newLine;
+      #
+      #    source += strFmt('    %1 = _%1;',  _varName)                                + #newLine + #newLine;
+      #
+      #    source += strFmt('    return %1;', _varName)                                + #newLine;
+      #    source += strFmt('}')                                                       + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcParmMethodContract
+      #Source srcParmMethodContract(int _lineNum)
+      #{
+      #    Source      source;
+      #    ;
+      #    //SysOperationControlVisibilityAttribute(false)
+      #    source += strFmt('[')+ #newLine;
+      #    source += strFmt("    DataMemberAttribute('%1'),", devRunBaseBuilderVars.Name) + #newLine;
+      #    if (devRunBaseBuilderVars.OverwriteLabels)
+      #    {
+      #        if (devRunBaseBuilderVars.label)
+      #            source += strFmt("    SysOperationLabelAttribute(literalStr(\"%1\")),", devRunBaseBuilderVars.label) + #newLine;
+      #        if (devRunBaseBuilderVars.LabelHelp)
+      #            source += strFmt("    SysOperationHelpTextAttribute(literalStr(\"%1\")),", devRunBaseBuilderVars.LabelHelp) + #newLine;
+      #    }
+      #    if (devRunBaseBuilderVars.ContractGroupName2)
+      #    {
+      #        source += strFmt("    SysOperationGroupMemberAttribute('%1'),", devRunBaseBuilderVars.ContractGroupName2) + #newLine;
+      #    }
+      #    source += strFmt("    SysOperationDisplayOrderAttribute('%1')", _lineNum) + #newLine;
+      #    source += strFmt(']')+ #newLine;
+      #
+      #
+      #    source += strFmt("public %1 %2(%1 _%3 = %3)", devRunBaseBuilderVars.Type, devRunBaseBuilderVars.ParmName, devRunBaseBuilderVars.Name)   + #newLine;
+      #    source += strFmt("{")                                                       + #newLine;
+      #    source += strFmt("    ;")                                                   + #newLine + #newLine;
+      #
+      #    source += strFmt("    %1 = _%1;",  devRunBaseBuilderVars.Name)                                + #newLine + #newLine;
+      #
+      #    source += strFmt("    return %1;", devRunBaseBuilderVars.Name)                                + #newLine;
+      #    source += strFmt("}")                                                       + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcQueryRun
+      #Source srcQueryRun()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public QueryRun queryRun()')                          + #newLine;
+      #    source += strFmt('{')                                                   + #newLine;
+      #    source += strFmt('    ;')                                               + #newLine + #newLine;
+      #
+      #    source += strFmt('    return queryRun;')                                + #newLine;
+      #    source += strFmt('}')                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcRun
+      #Source srcRun()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public void run()')                                   + #newLine;
+      #    source += strFmt('{')                                                   + #newLine;
+      #    if (showQueryValues && rbUseAOTQuery && isTable)
+      #    {
+      #        source += strFmt('    int                     processedCounter;')   + #newLine;
+      #        source += strFmt('    QueryBuildDataSource    qBDS;')               + #newLine;
+      #        source += strFmt('    %1             %2;', rbUseAOTQuery, this.strFirstLower(rbUseAOTQuery))        + #newLine;
+      #        source += strFmt('    ;')                                            + #newLine;
+      #        source += strFmt('    qBDS = queryRun.query().dataSourceTable(tableNum(%1));', rbUseAOTQuery) + #newLine;
+      #        source += strFmt('    SysQuery::findOrCreateRange(qBDS, fieldnum(%1, RecId)).value(queryValue(""));', rbUseAOTQuery) + #newLine;
+      #        source += strFmt('')                                                                   + #newLine;
+      #        source += strFmt('    this.progressInit(RunBase::getDescription(classIdGet(this)),')   + #newLine;
+      #        source += strFmt('                      SysQuery::countTotal(queryRun),')              + #newLine;
+      #        source += strFmt('                      #AviSearch);')                                 + #newLine;
+      #        source += strFmt('    ')                                                               + #newLine;
+      #        source += strFmt('    while (queryRun.next())')                                        + #newLine;
+      #        source += strFmt('    {')                                                              + #newLine;
+      #        source += strFmt('        %1 = queryRun.get(tablenum(%2));', this.strFirstLower(rbUseAOTQuery), rbUseAOTQuery) + #newLine;
+      #        source += strFmt('') + #newLine;
+      #        source += strFmt('        processedCounter++;') + #newLine;
+      #        source += strFmt('        progress.incCount();') + #newLine;
+      #        source += strFmt('') + #newLine;
+      #        source += strFmt('    }') + #newLine;
+      #        source += strFmt('    info(strfmt("%1 record(s) processed", processedCounter));') + #newLine;
+      #
+      #    }
+      #    else
+      #    {
+      #        source += strFmt('    ;')                                               + #newLine + #newLine;
+      #        source += strFmt('    if (! this.validate())')                          + #newLine;
+      #        source += strFmt('    {')                                               + #newLine;
+      #        source += strFmt('        throw error("");')                            + #newLine;
+      #        source += strFmt('    }')                                               + #newLine + #newLine;
+      #
+      #        source += strFmt('    try')                                             + #newLine;
+      #        source += strFmt('    {')                                               + #newLine;
+      #        source += strFmt('        ttsbegin;')                                   + #newLine + #newLine;
+      #
+      #        source += strFmt('        ttscommit;')                                  + #newLine;
+      #        source += strFmt('    }')                                               + #newLine;
+      #        source += strFmt('    catch (exception::DeadLock)')                     + #newLine;
+      #        source += strFmt('    {')                                               + #newLine;
+      #        source += strFmt('        retry;')                                      + #newLine;
+      #        source += strFmt('    }')                                               + #newLine;
+      #    }
+      #
+      #    source += strFmt('}')                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcShowClearButton
+      #Source srcShowClearButton()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public boolean showClearButton()')                    + #newLine;
+      #    source += strFmt('{')                                                   + #newLine;
+      #    source += strFmt('    ;')                                               + #newLine + #newLine;
+      #
+      #    source += strFmt('    return true;')                                    + #newLine;
+      #    source += strFmt('}')                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcShowDefaultButton
+      #Source srcShowDefaultButton()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public boolean showDefaultButton()')                  + #newLine;
+      #    source += strFmt('{')                                                   + #newLine;
+      #    source += strFmt('    ;')                                               + #newLine + #newLine;
+      #
+      #    source += strFmt('    return true;')                                    + #newLine;
+      #    source += strFmt('}')                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcShowQueryValues
+      #Source srcShowQueryValues()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public boolean showQueryValues()')                    + #newLine;
+      #    source += strFmt('{')                                                   + #newLine;
+      #    source += strFmt('    ;')                                               + #newLine + #newLine;
+      #
+      #    source += strFmt('    return true;')                                    + #newLine;
+      #    source += strFmt('}')                                                   + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #srcUnpack
+      #Source srcUnpack()
+      #{
+      #    Source  source;
+      #    ;
+      #
+      #    source += strFmt('public boolean unpack(container _packedClass)')                           + #newLine;
+      #    source += strFmt('{')                                                                       + #newLine;
+      #    source += strFmt('    Version    version = RunBase::getVersion(_packedClass);')             + #newLine;
+      #    if (rbUseAOTQuery)
+      #    {
+      #        source += strFmt('    container  queryCon;')                                                + #newLine;
+      #    }
+      #    source += strFmt('    ;')                                                                   + #newLine + #newLine;
+      #
+      #    source += strFmt('    switch (version)')                                                    + #newLine;
+      #    source += strFmt('    {')                                                                   + #newLine;
+      #    source += strFmt('        case #CurrentVersion:')                                           + #newLine;
+      #    if (rbUseAOTQuery)
+      #    {
+      #        source += strFmt('            [version,#CurrentList,queryCon] = _packedClass;')             + #newLine;
+      #        source += strFmt('            if (SysQuery::isPackedOk(queryCon))')                         + #newLine;
+      #        source += strFmt('            {')                                                           + #newLine;
+      #        source += strFmt('                queryRun = new QueryRun(queryCon);')                      + #newLine;
+      #        source += strFmt('            }')                                                           + #newLine;
+      #        source += strFmt('            else')                                                        + #newLine;
+      #        source += strFmt('            {')                                                           + #newLine;
+      #        source += strFmt('                this.initQuery();')                                       + #newLine;
+      #        source += strFmt('            }')                                                           + #newLine;
+      #    }
+      #    else
+      #    {
+      #        source += strFmt('            [version,#CurrentList] = _packedClass;')             + #newLine;
+      #    }
+      #    source += strFmt('            break;')                                                      + #newLine;
+      #    source += strFmt('        default:')                                                        + #newLine;
+      #    source += strFmt('            return false;')                                               + #newLine;
+      #    source += strFmt('    }')                                                                   + #newLine + #newLine;
+      #
+      #    source += strFmt('    return true;')                                                        + #newLine;
+      #    source += strFmt('}')                                                                       + #newLine;
+      #
+      #    return source;
+      #}
+    ENDSOURCE
+    SOURCE #strFirstLower
+      #str strFirstLower(str _s)
+      #{
+      #    ;
+      #    return strlwr(substr(_s, 1, 1)) + substr(_s, 2, strlen(_s));
+      #}
+    ENDSOURCE
+    SOURCE #udpateDesign
+      #void udpateDesign()
+      #{
+      #    ;
+      #
+      #    DEVRunBaseBuilderVars_ds.object(fieldnum(DEVRunBaseBuilderVars, Label)).enabled(DEVRunBaseBuilderVars.OverwriteLabels);
+      #    DEVRunBaseBuilderVars_ds.object(fieldnum(DEVRunBaseBuilderVars, LabelHelp)).enabled(DEVRunBaseBuilderVars.OverwriteLabels);
+      #}
+    ENDSOURCE
+    SOURCE #unpack
+      #public boolean unpack(container packedClass)
+      #{
+      #    Version     version     = runbase::getVersion(packedClass);
+      #    //container   fmtRecord;
+      #    ;
+      #
+      #    switch (version)
+      #    {
+      #        case #CurrentVersion:
+      #            //[version, #CurrentList, fmtRecord] = packedClass;
+      #            [version, #CurrentList] = packedClass;
+      #            break;
+      #        default:
+      #            return false;
+      #    }
+      #    /*
+      #    while (conlen(fmtRecord))
+      #    {
+      #        devRunBaseBuilderVars.clear();
+      #        con2buf(conpeek(fmtRecord, 1), devRunBaseBuilderVars);
+      #        devRunBaseBuilderVars.insert();
+      #
+      #        fmtRecord = condel(fmtRecord, 1, 1);
+      #    }
+      #    */
+      #    return true;
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #DEVRunBaseBuilderVars
+          Table               #DEVRunBaseBuilderVars
+          Index               #LineNumIdx
+          CounterField        #LineNum
+        ENDPROPERTIES
+        
+        FIELDLIST
+          DATAFIELD Type
+            PROPERTIES
+            ENDPROPERTIES
+            
+            METHODS
+              SOURCE #lookup
+                #public void lookup(FormControl _formControl, str _filterStr)
+                #{
+                #    ;
+                #    DEVRunBaseBuilderVars::lookupVarTypes(_formControl);
+                #}
+              ENDSOURCE
+            ENDMETHODS
+          ENDDATAFIELD
+          
+          DATAFIELD OverwriteLabels
+            PROPERTIES
+            ENDPROPERTIES
+            
+            METHODS
+              SOURCE #modified
+                #public void modified()
+                #{
+                #    super();
+                #
+                #    element.udpateDesign();
+                #}
+              ENDSOURCE
+            ENDMETHODS
+          ENDDATAFIELD
+          
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #active
+          #public int active()
+          #{
+          #    int ret;
+          #
+          #    ret = super();
+          #
+          #    element.udpateDesign();
+          #
+          #    return ret;
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #RunBase class builder
+      TitleDatasource     #DEVRunBaseBuilderVars
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup1
+          Left                #Auto (right)
+          ElementPosition     #1431655764
+          HierarchyParent     #ButtonGroup
+          ArrangeWhen         #Auto
+          ArrangeMethod       #Horizontal, flush right
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #Group
+          DataSource          #DEVRunBaseBuilderVars
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #AdditionalProperties
+          ElementPosition     #1840700268
+          HierarchyParent     #GroupProperties
+          DataSource          #DEVRunBaseBuilderVars
+          DataGroup           #AdditionalProperties
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          Left                #Auto (right)
+          ElementPosition     #1610612733
+          ArrangeMethod       #Horizontal, flush right
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ContractGroup
+          ElementPosition     #1533916890
+          HierarchyParent     #GroupProperties
+          Caption             #Contract group
+          DataSource          #DEVRunBaseBuilderVars
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Group
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #GroupVarList
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GroupProperties
+          ElementPosition     #1610612733
+          HierarchyParent     #VariableGroup
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GroupQuery
+          ElementPosition     #1879048185
+          HierarchyParent     #ParametersGroup
+          Caption             #@SYS25531
+          Columns             #3
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GroupVarList
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #VariableGroup
+          FrameType           #None
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Labels
+          ElementPosition     #1227133512
+          HierarchyParent     #GroupProperties
+          Caption             #@SYS25058
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #MoveButtos
+          ElementPosition     #1073741822
+          HierarchyParent     #GroupVarList
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ParametersGroup
+          Width               #Column width
+          ElementPosition     #536870911
+          Caption             #@SYS7764
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #VariableGroup
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          Caption             #Variables
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #ButtonUp
+          ElementPosition     #1073741822
+          HierarchyParent     #MoveButtos
+          Text                #@SYS35112
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    DEVRunBaseBuilderVars save = devRunBaseBuilderVars.moveUp(devRunBaseBuilderVars);
+            #    ;
+            #
+            #    super();
+            #
+            #    if (save)
+            #    {
+            #        devRunBaseBuilderVars_ds.research();
+            #        devRunBaseBuilderVars_ds.findRecord(save);
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #DownButton
+          ElementPosition     #1610612733
+          HierarchyParent     #MoveButtos
+          Text                #@SYS35113
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    DEVRunBaseBuilderVars cur = devRunBaseBuilderVars.moveDown(devRunBaseBuilderVars);
+            #    ;
+            #
+            #    super();
+            #
+            #    if (cur)
+            #    {
+            #        devRunBaseBuilderVars_ds.research();
+            #        devRunBaseBuilderVars_ds.findRecord(cur);
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #CreateContract
+          AutoDeclaration     #Yes
+          ElementPosition     #1610612730
+          HierarchyParent     #ParametersGroup
+          Label               #Create data contract
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #DEVRunBaseBuilder_VarOverloadLabels
+          ElementPosition     #858993458
+          HierarchyParent     #Labels
+          Label               #Overwrite EDT labels
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #OverwriteLabels
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #editshowClearButton
+          ElementPosition     #1073741820
+          HierarchyParent     #ParametersGroup
+          Label               #Show clear button
+          DataMethod          #editshowClearButton
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #editshowDefaultButton
+          ElementPosition     #1342177275
+          HierarchyParent     #ParametersGroup
+          Label               #Show default button
+          DataMethod          #editshowDefaultButton
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #editshowQueryValues
+          ElementPosition     #1717986916
+          HierarchyParent     #GroupQuery
+          Label               #Show query values
+          DataMethod          #editshowQueryValues
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #IsTableCheckBox
+          ElementPosition     #1288490187
+          HierarchyParent     #GroupQuery
+          Label               #Is table
+          DataMethod          #editIsTable
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMMANDBUTTON
+        PROPERTIES
+          Name                #CommandButtonCancel
+          ElementPosition     #1610612733
+          HierarchyParent     #ButtonGroup1
+          Command             #264
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMMANDBUTTON
+        PROPERTIES
+          Name                #CommandButtonOK
+          ElementPosition     #1073741822
+          HierarchyParent     #ButtonGroup1
+          Command             #263
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilder_Name
+          ElementPosition     #1610612733
+          HierarchyParent     #Grid
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #Name
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilder_Type
+          ElementPosition     #1073741822
+          HierarchyParent     #Grid
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #Type
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilder_VarDlgName
+          ElementPosition     #613566756
+          HierarchyParent     #GroupProperties
+          Label               #DialogField name
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #DlgName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilder_VarLabel
+          AutoDeclaration     #Yes
+          ElementPosition     #1288490187
+          HierarchyParent     #Labels
+          Label               #@SYS25058
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #Label
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilder_VarLabelHelp
+          AutoDeclaration     #Yes
+          ElementPosition     #1717986916
+          HierarchyParent     #Labels
+          Label               #@SYS14501
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #LabelHelp
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilder_VarParmName
+          ElementPosition     #920350134
+          HierarchyParent     #GroupProperties
+          Label               #Parm method name
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #ParmName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilderVars_ContractGroupLabel2
+          ElementPosition     #1610612733
+          HierarchyParent     #ContractGroup
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #ContractGroupLabel2
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #DEVRunBaseBuilderVars_ContractGroupName2
+          ElementPosition     #1073741822
+          HierarchyParent     #ContractGroup
+          DataSource          #DEVRunBaseBuilderVars
+          DataField           #ContractGroupName2
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #editrbClassDescription
+          ElementPosition     #805306365
+          HierarchyParent     #ParametersGroup
+          Label               #@SYS41042
+          DataMethod          #editrbClassDescription
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #editrbName
+          ElementPosition     #536870910
+          HierarchyParent     #ParametersGroup
+          Label               #@SYS24724
+          DataMethod          #editrbName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #editrbUseAOTQuery
+          ElementPosition     #858993458
+          HierarchyParent     #GroupQuery
+          Label               #Use AOT Query
+          DataMethod          #editrbUseAOTQuery
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #lookup
+            #public void lookup()
+            #{
+            #    ;
+            #    DEVRunBaseBuilderVars::lookupAOTQuery(this);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

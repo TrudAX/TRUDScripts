@@ -1,0 +1,26 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FTM
+
+; Microsoft Dynamics AX MENUITEM : DEVSysTraceExecPlan unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEVSysTraceExecPlan
+    Type: 1
+    PROPERTIES
+      Name                #DEVSysTraceExecPlan
+      Label               #@SYS73676
+      HelpText            #Inspect prior and current execution plan for the statement.
+      Object              #DEVSysTraceExecPlan
+      SecurityKey         #AdminMisc
+      ViewUserLicense     #Functional
+      MaintainUserLicense #Functional
+      Origin              #{77429155-CE48-4ABF-BCAA-11EC1AD55284}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+END

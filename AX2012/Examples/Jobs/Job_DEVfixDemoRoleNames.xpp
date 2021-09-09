@@ -1,0 +1,46 @@
+static void DEVfixDemoRoleNames(Args _args)
+{
+    LogisticsLocationRoleTranslation        LogisticsLocationRoleTranslation;
+
+    LogisticsLocationRoleTranslation        LogisticsLocationRoleTranslationAU;
+
+    LogisticsAddressCountryRegionTranslation        logisticsAddressCountryRegionTranslation;
+
+    LogisticsAddressCountryRegionTranslation        logisticsAddressCountryRegionTranslationAU;
+
+    Num         fromLang = 'en-us', toLang = 'en-au';
+    ;
+    ttsBegin;
+
+    while select LogisticsLocationRoleTranslation
+        where LogisticsLocationRoleTranslation.LanguageId == fromLang
+    {
+        LogisticsLocationRoleTranslationAU = null;
+        select forUpdate LogisticsLocationRoleTranslationAU
+            where LogisticsLocationRoleTranslationAU.LanguageId == toLang &&
+                  LogisticsLocationRoleTranslationAU.LocationRole == LogisticsLocationRoleTranslation.LocationRole;
+
+        LogisticsLocationRoleTranslationAU.LocationRole = LogisticsLocationRoleTranslation.LocationRole;
+        LogisticsLocationRoleTranslationAU.LanguageId   = toLang;
+        LogisticsLocationRoleTranslationAU.Description  = LogisticsLocationRoleTranslation.Description;
+        LogisticsLocationRoleTranslationAU.write();
+
+    }
+
+    while select logisticsAddressCountryRegionTranslation
+        where logisticsAddressCountryRegionTranslation.LanguageId == fromLang
+    {
+        logisticsAddressCountryRegionTranslationAU = null;
+        select forupdate logisticsAddressCountryRegionTranslationAU
+            where logisticsAddressCountryRegionTranslationAU.LanguageId == toLang &&
+                  logisticsAddressCountryRegionTranslationAU.CountryRegionId == logisticsAddressCountryRegionTranslation.CountryRegionId;
+
+        logisticsAddressCountryRegionTranslationAU.LanguageId       = toLang;
+        logisticsAddressCountryRegionTranslationAU.CountryRegionId  = logisticsAddressCountryRegionTranslation.CountryRegionId;
+        logisticsAddressCountryRegionTranslationAU.ShortName = logisticsAddressCountryRegionTranslation.ShortName;
+        logisticsAddressCountryRegionTranslationAU.LongName  = logisticsAddressCountryRegionTranslation.LongName;
+        logisticsAddressCountryRegionTranslationAU.write();
+
+    }
+    ttsCommit;
+}

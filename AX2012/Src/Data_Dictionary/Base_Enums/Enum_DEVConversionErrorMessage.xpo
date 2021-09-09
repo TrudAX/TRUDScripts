@@ -1,0 +1,36 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBE
+
+; Microsoft Dynamics AX Enumtype : DEVConversionErrorMessage unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #DEVConversionErrorMessage
+    PROPERTIES
+      Name                #DEVConversionErrorMessage
+      UseEnumValue        #Yes
+      Origin              #{4FDA7497-753E-4038-8D11-1FA71C18A540}
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #Warning
+      PROPERTIES
+        Name                #Warning
+        Label               #Warning
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #Error
+      PROPERTIES
+        Name                #Error
+        Label               #Error
+        EnumValue           #1
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+END

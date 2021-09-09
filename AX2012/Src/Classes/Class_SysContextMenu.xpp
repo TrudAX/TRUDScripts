@@ -1,0 +1,1057 @@
+/// <summary>
+///    The <c>SysContextMenu</c> class provides an interface to the context menu.
+/// </summary>
+/// <remarks>
+///    This class is abstract.
+/// </remarks>
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+abstract public class SysContextMenu
+{
+    #AOT
+    #TreeNodeSysNodeType
+
+    #define.defaultMaxCoulmns   (3)
+    #define.elementTypeSelected (256)
+
+    TreeNodePath    menuPaths[];
+    UtilElementType _firstType;
+    boolean         aUtilElementTypeSeleced[#elementTypeSelected];
+    boolean         anyUtilElementTypeSeleced;
+    TreeNode        firstApplObjectNode;
+    TreeNode        firstUtilNode;
+    TreeNode        firstNode;
+    int             oldMask;
+
+    boolean         xRefNamesExistTreeNodeTested;
+    boolean         xRefNamesExistTreeNode;
+    boolean         allowEdit;
+
+    /// <summary>
+    ///    Builds a pop-up menu for the specified windows handle.
+    /// </summary>
+    /// <param name="windowHdl">
+    ///    The windows handle that should contain the context menu.
+    /// </param>
+    /// <param name="_parent">
+    ///    The parent pop-up menu, which should contain the menu; optional.
+    /// </param>
+    /// <param name="_itemsPerColumn">
+    ///    An integer value that specifies how many items per column; optional.
+    /// </param>
+    /// <param name="_maxColumns">
+    ///    An integer value that specifies maximum columns; optional.
+    /// </param>
+    /// <returns>
+    ///    A new instance of the <c>PopupMenu</c> class.
+    /// </returns>
+    public PopupMenu buildMenu(int windowHdl, PopupMenu _parent = null, int _itemsPerColumn = maxInt(), int _maxColumns = #defaultMaxCoulmns)
+    {
+        TreeNode  treeNode;
+        PopupMenu parent, submenu;
+        ;
+
+        treeNode = TreeNode::findNode(#MenusPath+'\\'+menuStr(sysContextMenu));
+
+        if (_parent)
+        {
+            parent = _parent;
+            submenu = new PopupMenu(windowHdl, parent);
+        }
+        else
+        {
+            parent = new PopupMenu(windowHdl);
+            submenu = parent;
+        }
+        return this.buildSubMenu(treeNode, windowHdl, parent, submenu, _itemsPerColumn, _maxColumns);
+    }
+
+    /// <summary>
+    ///    Builds a pop-up menu for the specified tree node and windows handle.
+    /// </summary>
+    /// <param name="_treeNode">
+    ///    The specified tree node which the pop-up menu is build from.
+    /// </param>
+    /// <param name="windowHdl">
+    ///    The specified windows handle.
+    /// </param>
+    /// <param name="parent">
+    ///    The parent pop-up menu, which should contain the menu.
+    /// </param>
+    /// <param name="popupMenu">
+    ///    The specified popup menu which should contain the sub menu.
+    /// </param>
+    /// <param name="_itemsPerColumn">
+    ///    An integer value that specifies how many items per column; optional.
+    /// </param>
+    /// <param name="_maxColumns">
+    ///    An integer value that specifies maximum columns; optional.
+    /// </param>
+    /// <returns>
+    ///    A new instance of <c>PopupMenu</c> class.
+    /// </returns>
+    public PopupMenu buildSubMenu(TreeNode  _treeNode,
+                                  int       windowHdl,
+                                  PopupMenu parent,
+                                  PopupMenu popupMenu,
+                                  int       _itemsPerColumn = maxInt(),
+                                  int       _maxColumns = #defaultMaxCoulmns)
+    {
+        #AOT
+        #define.menuBreakLength     (3)
+
+        TreeNode        treeNode = _treeNode.AOTfirstChild();
+        MenuItem        menuItem;
+        MenuReference   menuReference;
+        PopupMenu       subPopupMenu;
+        TreeNodePath    path;
+        int             menuCounter;
+        ;
+
+        if (!popupMenu)
+            popupMenu = new PopupMenu(windowHdl, parent, _itemsPerColumn, _maxColumns );
+
+        if (this.selectionCount())
+        {
+            while (treeNode)
+            {
+                if (subStr(treeNode.treeNodeName(), 1, #menuBreakLength) == '---')
+                    popupMenu.insertBreak();
+                else
+                {
+                    switch (treeNode.handle())
+                    {
+                        case classNum(Menu):
+                            subPopupMenu = this.buildSubMenu(treeNode, windowHdl, parent, null, _itemsPerColumn, _maxColumns);
+                            if (subPopupMenu.hits())
+                                popupMenu.insertPopupMenu(treeNode.treeNodeName(), subPopupMenu);
+                            break;
+                        case classNum(MenuReference):
+                            menuReference = treeNode;
+                            subPopupMenu = this.buildSubMenu(TreeNode::findNode(#MenusPath).AOTfindChild(menuReference.menuName()),
+                                                             windowHdl, parent, null, _itemsPerColumn, _maxColumns);
+                            if (subPopupMenu.hits())
+                                popupMenu.insertPopupMenu(treeNode.treeNodeName(), subPopupMenu);
+                            break;
+                        default :
+                            menuItem = treeNode;
+                            infolog.mayReloadMenu(false);
+                            if (this.verifyItem(menuItem.menuItemName(), menuItem.menuItemType()) == 1)
+                            {
+                                menuCounter = popupMenu.insertItem(treeNode.treeNodeName());
+                                path = treeNode.treeNodePath();
+                                menuPaths[menuCounter] = path;
+                            }
+                            infolog.mayReloadMenu(true);
+                    }
+                }
+                treeNode = treeNode.AOTnextSibling();
+            }
+        }
+        return popupMenu;
+    }
+
+    /// <summary>
+    ///    Retrieves the first tree node object.
+    /// </summary>
+    /// <returns>
+    ///    The first tree node object.
+    /// </returns>
+    /// <remarks>
+    ///    This method is abstract.
+    /// </remarks>
+    public abstract TreeNode first()
+    {
+    }
+
+    /// <summary>
+    ///    Retrieves the first tree node, but does not affect the current position.
+    /// </summary>
+    /// <returns>
+    ///    The first tree node object.
+    /// </returns>
+    /// <remarks>
+    ///    This method always returns the first tree node object. But this method does not affect the current
+    ///    position. Therefore the fetching action of the <c>next</c> method is not disturbed. This method
+    ///    offers better performance than a call to the <c>first</c> method followed by repositioning.
+    /// </remarks>
+    public TreeNode getFirstNode()
+    {
+        return firstNode;
+    }
+
+
+
+    protected void new()
+    {
+        TreeNode utilNode;
+        TreeNode treeNode;
+        TreeNode applObjectNode;
+
+        treeNode = this.first();
+
+        if (treeNode && treeNode.treeNodeType().isUtilElement())
+        {
+            this.setFirstType(treeNode.utilElement().RecordType);
+        }
+
+        while (treeNode)
+        {
+            if (!anyUtilElementTypeSeleced) // check if at least one appl object type has been selected, somewhere down the tree
+            {
+                applObjectNode = treeNode;
+                while (applObjectNode.AOTparent()  &&
+                       !applObjectNode.treeNodeType().isUtilElement())
+                {
+                    applObjectNode = applObjectNode.AOTparent();
+                }
+
+                if (applObjectNode.treeNodeType().isUtilElement() &&
+                    applObjectNode.utilElement().RecordType != UtilElementType::SharedProject &&
+                    applObjectNode.utilElement().RecordType != UtilElementType::PrivateProject)
+                {
+                    utilNode = applObjectNode;
+                    applObjectNode = SysTreeNode::getRootElement(applObjectNode);
+
+                    if (applObjectNode &&
+                        applObjectNode.treeNodeType().isUtilElement() &&
+                        applObjectNode.utilElement().RecordType != UtilElementType::SharedProject &&
+                        applObjectNode.utilElement().RecordType != UtilElementType::PrivateProject)
+                    {
+                        anyUtilElementTypeSeleced = true;
+                    }
+                }
+            }
+
+            if (!firstNode && treeNode)
+            {
+                firstNode = treeNode;
+                firstUtilNode = utilNode;
+                firstApplObjectNode = applObjectNode;
+                if (firstNode.treeNodeType().isLayerAware())
+                {
+                    oldMask = firstNode.applObjectOldLayerMask();
+                }
+            }
+
+            allowEdit = versioncontrol.allowEdit(firstApplObjectNode);
+
+            if (treeNode.treeNodeType().id() == #NT_DBTABLE) // condition could be extended to other types that should be look'ed for
+            {
+                aUtilElementTypeSeleced[treeNode.utilElement().RecordType + 1] = true;
+                break;
+            }
+            treeNode = this.next();
+        }
+    }
+
+    /// <summary>
+    ///    Retrieves the next tree node object.
+    /// </summary>
+    /// <returns>
+    ///    The next tree node object.
+    /// </returns>
+    /// <remarks>
+    ///    This method is abstract.
+    /// </remarks>
+    public abstract TreeNode next()
+    {
+    }
+
+    /// <summary>
+    ///    Runs the specified context menu.
+    /// </summary>
+    /// <param name="popupMenuChoice">
+    ///    The item to select in the context menu.
+    /// </param>
+    /// <param name="_sysContextMenu">
+    ///    The context menu to run.
+    /// </param>
+    /// <param name="_caller">
+    ///    An object that is used to set the caller of the command; optional.
+    /// </param>
+    /// <param name="_record">
+    ///    A buffer to a record; optional.
+    /// </param>
+    /// <returns>
+    ///    true, if the menu function is run; otherwise false.
+    /// </returns>
+    /// <remarks>
+    ///    false is returned if the specified <paramref name="popupMenuChoice" /> is less than one, or it is
+    ///    not in the menu.
+    /// </remarks>
+    public boolean runMenu(int popupMenuChoice, SysContextMenu _sysContextMenu, Object _caller = this, Common _record = null)
+    {
+        MenuItem     menuItem;
+        MenuFunction menuFunction;
+        Args         args = new Args();
+
+        if (popupMenuChoice < 1 || !menuPaths[popupMenuChoice])
+            return false;
+
+        menuItem = TreeNode::findNode(menuPaths[popupMenuChoice]);
+        menuFunction = new MenuFunction(menuItem.menuItemName(), menuItem.menuItemType());
+
+        args.parmObject(_sysContextMenu);
+        args.caller(_caller);
+        args.record(_record);
+
+        menuFunction.run(args);
+
+        return true;
+    }
+
+
+    /// <summary>
+    ///    Retrieves the number of items selected in the context menu.
+    /// </summary>
+    /// <returns>
+    ///    The count of selected items in the context menu.
+    /// </returns>
+    /// <remarks>
+    ///    This method is abstract.
+    /// </remarks>
+    public abstract int selectionCount()
+    {
+    }
+
+    /// <summary>
+    ///    Sets the first <c>UtilElementType</c> value in the context menu.
+    /// </summary>
+    /// <param name="t">
+    ///    The <c>UtilElementType</c> value to set as first.
+    /// </param>
+    public void setFirstType(UtilElementType t)
+    {
+    ;
+        _firstType = t;
+    }
+
+    /// <summary>
+    ///    Verifies that the first node in the context menu is among the set of the valid types.
+    /// </summary>
+    /// <returns>
+    ///    1 if the first node is among the valid node types; otherwise 0.
+    /// </returns>
+    /// <remarks>
+    ///    This method verifies that the first node in the context menu is one of the following types:
+    ///    <list type="bullet">
+    ///       <item>
+    ///          <description>Form data source</description>
+    ///       </item>
+    ///       <item>
+    ///          <description>Query data source</description>
+    ///       </item>
+    ///       <item>
+    ///          <description>System table</description>
+    ///       </item>
+    ///       <item>
+    ///          <description>Table collection</description>
+    ///       </item>
+    ///    </list>
+    /// </remarks>
+    protected int verifyDatasource()
+    {
+        #TreeNodeSysNodeType
+
+        if ( firstNode.treeNodeType().id() == #SysNodeTypeFormDatasource ||
+             firstNode.treeNodeType().id() == #SysNodeTypeQueryDatasource ||
+             firstNode.treeNodeType().id() == #SysNodeTypeSystemTable ||
+             firstNode.treeNodeType().id() == #SysNodeTypeTableCollection)
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    ///    Verifies that the command can be displayed in the context menu.
+    /// </summary>
+    /// <param name="menuItemName">
+    ///    The name of the command.
+    /// </param>
+    /// <param name="menuItemType">
+    ///    The type of the command.
+    /// </param>
+    /// <returns>
+    ///    1 if the command can be displayed; otherwise 0.
+    /// </returns>
+    public int verifyItem(identifierName menuItemName, MenuItemType menuItemType)
+    {
+        #resAppl
+        #define.pathProjects('<\\\\Projects\\\\')
+        #define.pathMethods('\\\\Methods>')
+
+        boolean         docNode;
+        UtilEntryLevel  utilEntryLevel;
+        ClassNode       classNode;
+        TreeNode        parentNode;
+        SysTestable     testable;
+        ListEnumerator  listEnumerator;
+        int firstNodeTypeId;
+
+        if (!firstNode ||
+            !this.selectionCount())
+        {
+            return 0;
+        }
+
+        if (strStartsWith(firstNode.treeNodePath(), #SystemDocPath))
+        {
+            docNode = true;
+        }
+
+        firstNodeTypeId = firstNode.treeNodeType().id();
+
+        switch (menuItemType)
+        {
+
+            case MenuItemType::Display:
+                switch (menuItemName)
+                {
+                                     // Security Debug Tool:
+                    // Only show SecObjectsInRole on role nodes under /security/roles
+                    //
+                    case menuitemDisplayStr(SysSecObjectsInRole):
+                        if ( this.selectionCount() == 1 )
+                        {
+                            if (
+                             _firstType == UtilElementType::SecRole
+                             ||
+                             _firstType == UtilElementType::SecDuty
+                             ||
+                             _firstType == UtilElementType::SecPrivilege
+                             ||
+                             _firstType == UtilElementType::ActionTool
+                             ||
+                             _firstType == UtilElementType::DisplayTool
+                             ||
+                             _firstType == UtilElementType::OutputTool
+                             ||
+                             _firstType == UtilElementType::WebUrlItem
+                             ||
+                             _firstType == UtilElementType::WebActionItem
+                             ||
+                             _firstType == UtilElementType::WebManagedContentItem
+                             ||
+                             firstNodeTypeId == #NT_OPERATION
+                             )
+                            {
+                                return 1;
+                            }
+                        }
+                        return 0;
+                    //
+                    // Security Debug Tool:
+                    // Only show SecObjectsAnalyze on role nodes under
+                    //
+                    case menuitemDisplayStr(SysSecObjectsAnalyze):
+                        if ( this.selectionCount() == 1 )
+                        {
+                            if (
+                             _firstType == UtilElementType::ActionTool
+                             ||
+                             _firstType == UtilElementType::DisplayTool
+                             ||
+                             _firstType == UtilElementType::OutputTool
+                             ||
+                             _firstType == UtilElementType::Form
+                             ||
+                             _firstType == UtilElementType::WebUrlItem
+                             ||
+                             _firstType == UtilElementType::WebActionItem
+                             ||
+                             _firstType == UtilElementType::WebManagedContentItem
+                             ||
+                             _firstType == UtilElementType::SecDuty
+                             ||
+                             _firstType == UtilElementType::SecPrivilege
+                             ||
+                             _firstType == UtilElementType::Table
+                             ||
+                             _firstType == UtilElementType::InfoPart
+                             ||
+                             _firstType == UtilElementType::Report
+                             ||
+                             _firstType == UtilElementType::WebControl
+                             ||
+                             _firstType == UtilElementType::SecCodePermission
+                             ||
+                             firstNodeTypeId == #NT_DBVIEW
+                             ||
+                             firstNodeTypeId == #NT_OPERATION
+                             ||
+                             firstNodeTypeId == #NT_SSRSREPORTDESIGN
+                            )
+                            {
+                                return 1;
+                            }
+                        }
+                        return 0;
+
+                    //
+                    // Only show 'Xref Analyzer' menu item when the Analyzer form is present
+                    //
+
+                    case menuitemDisplayStr(SysSecAnalysisAddIn):
+                        if (this.selectionCount() == 1 &&
+                            TreeNode::findNode(@'\Forms\SysSecAnalysis') != null)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    //
+                    // Only show 'Metadata Analyzer' menu item when the Analyzer form is present
+                    //
+                    case menuitemDisplayStr(SysSecAnalysisAddInMetadataAnalyzer):
+                        if (this.selectionCount() == 1                          &&
+                            (_firstType==UtilElementType::Form                  ||
+                             _firstType==UtilElementType::DisplayTool           ||
+                             _firstType==UtilElementType::OutputTool            ||
+                             _firstType==UtilElementType::ActionTool            ||
+                             _firstType==UtilElementType::WebActionItem         ||
+                             _firstType==UtilElementType::WebUrlItem            ||
+                             _firstType==UtilElementType::WebDisplayContentItem ||
+                             _firstType==UtilElementType::WebManagedContentItem ||
+                             _firstType==UtilElementType::WebOutputContentItem) &&
+                            TreeNode::findNode(@'\Forms\SysSecAnalysisMetadataAnalyzer') != null)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    //
+                    // Only show 'Reverse Engineer'menu item
+                    // on projects and perspective as we only want to reverse
+                    // engineer project elements
+                    //
+                    case menuitemDisplayStr( SysVisioAddIn ):
+                        if ( firstNode.handle() == classNum(ProjectNode) &&     // launch from project node
+                             match(#pathProjects,firstNode.treeNodePath()))
+                        {
+                            return 1;
+                        }
+
+                        if (firstNode.treeNodeType().id() == #NT_PERSPECTIVE)    // launch from perspective node
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(XRefReferencesUsedBy):
+                        if (this.selectionCount() == 1 &&
+                            !firstNode.AOTIsOld() &&                            //Does not work for old nodes
+                            xRefNames::existTreeNodeAnyLayer(this.first()))
+                            // xRefNames::existTreeNode(this.first(),true))     //only show Used By, if there are anything to show
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(XRefReferencesUsing):
+                        if (this.selectionCount() == 1 &&
+                            firstUtilNode &&
+                            !firstNode.AOTIsOld() &&                            //Does not work for old nodes
+                            xRefPaths::find(SysTreeNode::getPath(this.first())))       // only show Using, if anything are used
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(XRefNames):
+                        if (this.selectionCount() == 1 &&
+                            !firstNode.AOTIsOld() &&                            //Does not work for old nodes
+                            xRefNames::existTreeNode(this.first(),false))       // only show Names, if there are anything to show
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(SysTypeHierarchyBrowser):
+                        if (this.selectionCount() != 1 ||
+                            firstNode.AOTIsOld()                                //Does not work for old nodes
+                           )
+                        {
+                            return 0;
+                        }
+                        if (SysTypeHierarchy::treenode2Type(firstNode, firstApplObjectNode))
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(SysTableBrowser):
+                        if (this.selectionCount() != 1 ||
+                            firstNode.AOTIsOld()                               //Does not work for old nodes
+                           )
+                        {
+                            return 0;
+                        }
+                        if (!docNode &&
+                            _firstType==UtilElementType::Table)
+                        {
+                            return 1;
+                        }
+                        return this.verifyDatasource();
+
+                    case menuitemDisplayStr(SysTableForm):
+                        if (aUtilElementTypeSeleced[UtilElementType::Table + 1] &&
+                            !firstNode.AOTIsOld()                               //Does not work for old nodes
+                            )
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(SysDictIndexShowDuplicates):
+                        if (this.selectionCount() != 1 ||
+                            firstNode.AOTIsOld()                               //Does not work for old nodes
+                           )
+                        {
+                            return 0;
+                        }
+                        if (_firstType==UtilElementType::TableIndex)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(AxdWizard):
+                        if(this.selectionCount() != 1)
+                            return 0;
+
+                        if(_firstType == UtilElementType::Query)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(WorkflowAOTWizardApproval):
+                        if ((this.selectionCount() == 1) && (firstNode.treeNodePath() == #WorkflowApprovalTasksPath))
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(WorkflowAOTWizardTask):
+                        if ((this.selectionCount() == 1) && (firstNode.treeNodePath() == #WorkflowTasksPath))
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemDisplayStr(WorkflowAOTWizardType):
+                        if ((this.selectionCount() == 1) && (firstNode.treeNodePath() == #WorkflowTypesPath))
+                        {
+                            return 1;
+                        }
+                        return 0;
+                    case menuitemDisplayStr(SysBPStyleCheckAnalysis):
+                        if ((this.selectionCount() == 1) && (_firstType == UtilElementType::Form))
+                        {
+                            return 1;
+                        }
+                        return 0;
+                    case menuitemDisplayStr(SysLcsIssueSearchAotItem):
+                        if ((this.selectionCount() == 1) && (firstNode.treeNodeType().isRootElement()))
+                        {
+                            return 1;
+                        }
+                        return 0;
+                }
+                break;
+
+            case MenuItemType::Output:
+                switch (menuItemName)
+                {
+                    case menuitemOutputStr( SysXmlDocumentationCreateFile ):
+                        if ( firstNode.handle() == classNum(ProjectNode) &&     // Only launch from project node
+                             match(#pathProjects,firstNode.treeNodePath()))
+                        {
+                            return 1;
+                        }
+                        return 0;
+                }
+                break;
+
+            case MenuItemType::Action:
+                switch (menuItemName)
+                {
+                    case menuitemActionStr(SysUpgradeProjectMarkAsResolved):
+                        return SysUpgradeProjectMarkAsResolved::canMarkAsResolved(this, SysUpgradeConflictManuallyResolved::Resolved);
+                    case menuitemActionStr(SysUpgradeProjectMarkAsUnresolved):
+                        return SysUpgradeProjectMarkAsResolved::canMarkAsResolved(this, SysUpgradeConflictManuallyResolved::Unresolved);
+
+                    case menuitemActionStr(SysUpgradeProjectMarkAsResolvedRecursive):
+                        return SysUpgradeProjectMarkAsResolved::canMarkAsResolvedIncludeSubnodes(this, SysUpgradeConflictManuallyResolved::Resolved);
+                    case menuitemActionStr(SysUpgradeProjectMarkAsUnresolvedRecursi):
+                        return SysUpgradeProjectMarkAsResolved::canMarkAsResolvedIncludeSubnodes(this, SysUpgradeConflictManuallyResolved::Unresolved);
+
+                    case menuitemActionStr(SysUpgradeDetectConflictsRerun):
+                        return SysUpgradeDetectConflicts::canDetectConflictsRerun(this);
+
+                    case menuitemActionStr(SysUpgradeConflictCodeRuleAutoResolve):
+                        return SysUpgradeConflictCodeRuleAutoResolve::construct().showInContextMenu(this);
+
+                    case menuitemActionStr(SysUpgradeConflictCodeRuleRevertResolve):
+                        return SysUpgradeConflictCodeRuleRevertResolve::construct().showInContextMenu(this);
+
+                    case menuitemActionStr(SysUpgradeConflictCodeRuleCompareUpgrade):
+                        return SysUpgradeConflictCodeRuleCompareUpgrade::construct().showInContextMenu(this);
+
+                    case menuitemActionStr(SysUpgradeConflictCodeRuleCompareOrigina):
+                        return SysUpgradeConflictCodeRuleCompareOrigina::construct().showInContextMenu(this);
+
+                    case menuitemActionStr(xRefUpdate):
+                        if (!firstNode.AOTIsOld())
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysVersionControlCheckOut):
+                        if (versioncontrol &&
+                            versioncontrol.parmSysVersionControlSystem() &&
+                            this.selectionCount() == 1 && firstApplObjectNode &&
+                            !firstNode.AOTIsOld() &&                            //Does not work for old nodes
+                            !allowEdit)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysVersionControlUndoCheckOut):
+                        if (versioncontrol &&
+                            versioncontrol.parmSysVersionControlSystem() &&
+                            this.selectionCount() == 1 && firstApplObjectNode &&
+                            !firstNode.AOTIsOld() &&                            //Does not work for old nodes
+                            allowEdit)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(xRefUpdateTmpReferences):
+                        if (!docNode &&
+                            //this.selectionCount() == 1 &&
+                            firstUtilNode &&
+                            !firstNode.AOTIsOld())                            //Does not work for old nodes
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysSourceReplaceSyntax):
+                        if (!docNode &&
+                            firstUtilNode &&
+                            allowEdit &&
+                            !firstNode.AOTIsOld())                             //Does not work for old nodes
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysImpactAnalysis):
+                        if (!docNode &&
+                            firstNode.treeNodeType().isRootElement() &&
+                            !firstNode.AOTIsOld())                               //Does not work for old nodes
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysSourceNameWash):
+                        if (!docNode &&
+                            firstUtilNode &&
+                            allowEdit &&
+                            !firstNode.AOTIsOld() &&
+                            (_firstType &&
+                              (_firstType == UtilElementType::Table                 ||
+                               _firstType == UtilElementType::TableInstanceMethod   ||
+                               _firstType == UtilElementType::TableStaticMethod     ||
+                               _firstType == UtilElementType::Macro                 ||
+                               _firstType == UtilElementType::Class                 ||
+                               _firstType == UtilElementType::ClassInstanceMethod   ||
+                               _firstType == UtilElementType::ClassStaticMethod     ||
+                               _firstType == UtilElementType::Form                  ||
+                               _firstType == UtilElementType::Report                ||
+                               _firstType == UtilElementType::ReportTemplate        ||
+                               _firstType == UtilElementType::ReportSectionTemplate ||
+                               _firstType == UtilElementType::Query                 ||
+                               _firstType == UtilElementType::Job                   ||
+                               _firstType == UtilElementType::WebForm)))
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysBPCheck):
+                        if  (_firstType &&_firstType == UtilElementType::Job)
+                        {
+                            return 0;
+                        }
+                        if (firstNode.AOTIsOld())
+                        {
+                            return 0;
+                        }
+                        if (docNode)
+                        {
+                            return 0;
+                        }
+                        return 1;
+
+                    case menuitemActionStr(SysSourceReplaceText):
+                        if (!docNode &&
+                            allowEdit &&
+                            this.selectionCount() == 1 &&
+                            firstUtilNode &&
+                            !firstNode.AOTIsOld())                            //Does not work for old nodes
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(sysCompare):
+                        if (_firstType == UtilElementType::PrivateProject       ||
+                            _firstType == UtilElementType::SharedProject)
+                        {
+                            return 0;
+                        }
+                        if (this.selectionCount() == 2)
+                        {
+                            return 1;
+                        }
+                        if (this.selectionCount() == 1)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(sysCompileForward):
+                        if (this.selectionCount() == 1 &&
+                            !firstNode.AOTIsOld()      &&                         //Does not work for old nodes
+                            _firstType==UtilElementType::Class)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(sysTreenodeCopyToCurrentLayer):
+                        if (firstNode && firstNode.AOTIsOld() && firstNode.treeNodeType().isRootElement())
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysTreeNodeApplObjectOpenNewWindow):
+                        if (!docNode &&
+                            anyUtilElementTypeSeleced &&
+                            !firstNode.AOTIsOld())
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysTreeNodeOpenNewWindow),
+                         menuitemActionStr(SysTreeNodeShowProperties):
+
+                        if (docNode ||
+                            firstNode.treeNodeType().id() == 27 ||    //Project nodes
+                            firstNode.treeNodeType().id() == 29 ||
+                            firstNode.treeNodeType().id() == 30 ||
+                            firstNode.treeNodeType().id() == 31 )
+                        {
+                            return 0;
+                        }
+                        return 1;                                              //also for old
+
+                    case menuitemActionStr(SysTreeNodeParentOpenNewWindow):
+                        if (docNode ||
+                            firstNode.treeNodeType().id() == 27 ||    //Project nodes
+                            firstNode.treeNodeType().id() == 29 ||
+                            firstNode.treeNodeType().id() == 30 ||
+                            firstNode.treeNodeType().id() == 31 )
+                        {
+                            return 0;
+                        }
+                        if (!firstNode.AOTIsOld())
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    // Open using in window
+                    case menuitemActionStr(SysOpenNewWindowTable):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowTable::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowExtendedType):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowExtendedType::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowEnum):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowEnum::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowSecurityKey):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowSecurityKey::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowConfigurationKey):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowConfigurationKey::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowClass):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowClass::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowForm):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowForm::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowReport):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowReport::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowMenuItem):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowMenuItem::verifyItem(this);
+                    case menuitemActionStr(SysOpenNewWindowFieldGroup):
+                        return !firstNode.AOTIsOld() && SysOpenNewWindowFieldGroup::verifyItem(this);
+
+                    // old layer
+                    case menuitemActionStr(sysOpenOldSys):
+                    case menuitemActionStr(sysOpenOldSyp):
+                    case menuitemActionStr(sysOpenOldGls):
+                    case menuitemActionStr(sysOpenOldGlp):
+                    case menuitemActionStr(sysOpenOldFpk):
+                    case menuitemActionStr(sysOpenOldFpp):
+                    case menuitemActionStr(sysOpenOldSln):
+                    case menuitemActionStr(sysOpenOldSlp):
+                    case menuitemActionStr(sysOpenOldIsv):
+                    case menuitemActionStr(sysOpenOldIsp):
+                    case menuitemActionStr(sysOpenOldVar):
+                    case menuitemActionStr(sysOpenOldVap):
+                    case menuitemActionStr(sysOpenOldCus):
+                    case menuitemActionStr(sysOpenOldCup):
+                    case menuitemActionStr(sysOpenOldUsr):
+                    case menuitemActionStr(sysOpenOldUsp):
+                        utilEntryLevel = str2enum(utilEntryLevel, subStr(menuItemName, strLen(menuItemName)-2, 3));
+                        if (this.selectionCount() == 1 &&
+                            oldMask & (1 << utilEntryLevel))
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    // Test jobs
+                    case menuitemActionStr(SysTestToolbarOpen):
+                        if (this.selectionCount() == 1)
+                        {
+                            switch (firstNode.handle())
+                            {
+                                case classNum(ProjectNode):
+                                case classNum(ProjectGroupNode):
+                                    return 1;
+
+                                case classNum(ClassNode):
+                                    classNode = firstNode;
+                                    if (classNode &&
+                                        (SysTestProject::implementsSysTestable(classNode.iD()) ||
+                                         SysDictClass::isSuperclass(classNode.iD(), classNum(SysTestSuite))))
+
+                                    {
+                                        return 1;
+                                    }
+                                    return 0;
+
+                                case classNum(MemberFunction):
+                                    parentNode = firstNode.AOTparent();
+                                    if (parentNode &&
+                                        (parentNode.handle() == classNum(ClassNode) || parentNode is ClassNode) &&
+                                        SysTestProject::implementsSysTestable(parentNode.applObjectId()))
+                                    {
+                                        testable = classfactory.createClass(parentNode.applObjectId(), false) as SysTestable;
+                                        if (testable)
+                                        {
+                                            listEnumerator = testable.testMethods().getEnumerator();
+                                            while (listEnumerator.moveNext())
+                                            {
+                                                if (listEnumerator.current() == firstNode.treeNodeName())
+                                                    return 1;
+                                            }
+                                        }
+                                    }
+                                    return 0;
+                            }
+                        }
+                        return 0;
+
+                    case menuitemActionStr(AxdGenerateAxdQuery):
+                        if(this.selectionCount() != 1)
+                            return 0;
+
+                        if(_firstType == UtilElementType::Form     ||
+                           _firstType == UtilElementType::Report   ||
+                           _firstType == UtilElementType::WebForm )
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(AifRegisterService):
+                        if(this.selectionCount() != 1)
+                            return 0;
+
+                        if(_firstType == UtilElementType::Service)
+                        {
+                            return 1;
+                        }
+                        return 0;
+
+                    case menuitemActionStr(SysXppILIncrementalBuild):
+                    case menuitemActionStr(SysXppILFullBuild):
+                        // enable for AOT root node only
+                        return firstNode.treeNodeType().id() == 1;
+                    case menuitemActionStr(SysSecSecurityApply):
+                        return SysSecHelper::showApplyChangesContextMenu(firstNode);
+                }
+        }
+    //    infolog.mayReloadMenu(true);
+
+        if (firstNode.AOTIsOld())
+            return 0;
+        return 1;
+    }
+
+
+    /// <summary>
+    ///    Appends a <c>SysContextMenu</c> object to the input <paramref name="_menuFunctionArgs" />
+    ///    parameter, unless one is already present.
+    /// </summary>
+    /// <param name="_menuFunctionArgs">
+    ///    An instance of the <c>Args</c> class.
+    /// </param>
+    /// <returns>
+    ///    true, if the context menu is started from a <c>SysContextMenu</c> (or a descendant class);
+    ///    otherwise false.
+    /// </returns>
+    /// <remarks>
+    ///    This method inquires whether the input _<paramref name="menuFunctionArgs" /> has an argument named
+    ///    <c>parmObject</c>.
+    ///    If it does have a <c>parmObject</c>, true is returned if the object referenced
+    ///    by <c>parmObject</c> is of type <c>SysContextMenu</c> (or a descendant class).
+    ///    If it does not have
+    ///    a <c>parmObject</c>, this method appends <c>parmObject</c> with a <c>SysContextMenu</c> object, and
+    ///    true is returned.
+    /// </remarks>
+    public static boolean startedFrom(Args _menuFunctionArgs)
+    {
+        SysContextMenu sysContextMenu;
+        classId cid1, cid2;
+
+        if (!_menuFunctionArgs)
+            return false;
+
+        if (_menuFunctionArgs.parmObject())
+        {
+            cid1 = classIdGet(_menuFunctionArgs.parmObject());
+            cid2 = classIdGet(sysContextMenu);
+
+            if (SysDictClass::isEqualOrSuperclass(cid1,cid2))
+                return true;
+        }
+
+        if (match('sysContextMenu>',_menuFunctionArgs.parm()))
+        {
+            sysContextMenu = new SysContextMenuAOT();
+            _menuFunctionArgs.parmObject(sysContextMenu);
+            return true;
+        }
+        return false;
+    }
+}

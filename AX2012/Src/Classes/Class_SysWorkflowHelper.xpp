@@ -1,0 +1,1315 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+public class SysWorkflowHelper
+{
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_className">
+    /// A <c>className</c> value.
+    /// </param>
+    /// <param name="_classId">
+    /// A <c>classId</c> value.
+    /// </param>
+    /// <param name="_isInterface">
+    /// A Boolean value.
+    /// </param>
+    /// <returns>
+    /// An instance of the <c>Object</c> class.
+    /// </returns>
+    public server static Object createInstance(
+        className _className,
+        classId _classId,
+        boolean _isInterface = true)
+    {
+        classId classId;
+        SysDictClass dictClass;
+        Object instance;
+
+        setPrefix(classStr(SysWorkflowHelper) + '-' + staticMethodStr(SysWorkflowHelper, createInstance));
+
+        // Get class Id from class name
+        classId = className2Id(_className);
+        try
+        {
+            // Create the object
+            dictClass = new SysDictClass(classId);
+            if (_isInterface && !dictClass.isImplementing(_classId))
+            {
+                // Unable to create provider object
+                throw error(strFmt("@SYS106825", _className) + strFmt("%1 %2 %3", _className, _classId, _isInterface)  );
+            }
+            else if (!_isInterface && !dictClass.isExtending(_classId))
+            {
+                // Unable to create provider object
+                throw error(strFmt("@SYS106825", _className) + strFmt("%1 %2 %3", _className, _classId, _isInterface));
+            }
+            instance = dictClass.makeObject();
+        }
+        catch
+        {
+            // Unable to create provider object
+            throw error(strFmt("@SYS106825", _className) + strFmt("%1 %2 %3", _className, _classId, _isInterface));
+        }
+
+        return instance;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_userId">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <param name="_configTable">
+    /// A <c>WorkflowVersionTable</c> record.
+    /// </param>
+    /// <param name="_delegatedUsers">
+    /// A set.
+    /// </param>
+    /// <returns>
+    /// A <c>userId</c> value.
+    /// </returns>
+    private static userId findDelegate(WorkflowUser _userId, WorkflowVersionTable _configTable, Set _delegatedUsers)
+    {
+        WorkflowWorkItemDelegationParameters delegationParameters;
+        WorkflowTrackingMessage trackingMessage;
+        userId delegateUser, delegateUserReturn;
+        SetEnumerator userEnumerator;
+        utcdatetime delegateDate = DateTimeUtil::utcNow();
+        str users;
+        boolean delegationParameterFound = false;
+
+        while select
+            Type,
+            DelegateTo,
+            CategoryName,
+            ConfigurationSequenceNumber
+        from delegationParameters where
+                delegationParameters.User == _userId && delegationParameters.Enabled == NoYes::Yes &&
+                delegationParameters.FromDate < delegateDate && delegationParameters.ToDate > delegateDate
+        {
+            switch (delegationParameters.Type)
+            {
+                case WorkflowWorkItemDelegationType::All:
+                    delegateUser = delegationParameters.DelegateTo;
+                    delegationParameterFound = true;
+                    break;
+                case WorkflowWorkItemDelegationType::Category:
+                    if (delegationParameters.CategoryName == _configTable.workflowTable().CategoryName)
+                    {
+                        delegateUser = delegationParameters.DelegateTo;
+                        delegationParameterFound = true;
+                    }
+                    break;
+                case WorkflowWorkItemDelegationType::Configuration:
+                    if (delegationParameters.ConfigurationSequenceNumber == _configTable.workflowTable().SequenceNumber)
+                    {
+                        delegateUser = delegationParameters.DelegateTo;
+                        delegationParameterFound = true;
+                    }
+                    break;
+                default:
+                    throw error(strFmt("@SYS122124", enum2str(delegationParameters.Type)));
+            }
+
+            if (delegateUser)
+            {
+                if (_delegatedUsers.in(delegateUser))
+                {
+                    userEnumerator = _delegatedUsers.getEnumerator();
+                    while(userEnumerator.moveNext())
+                    {
+                        if (!users)
+                        {
+                            users = userEnumerator.current();
+                        }
+                        else
+                        {
+                            users = users + '->' +  userEnumerator.current();
+                        }
+                    }
+                    users = users + '->' +  delegateUser;
+                    trackingMessage = strFmt("@SYS122125", users);
+                    throw error(trackingMessage);
+                }
+                else
+                {
+                    _delegatedUsers.add(delegateUser);
+                    delegateUserReturn = SysWorkflowHelper::findDelegate(delegateUser, _configTable, _delegatedUsers);
+
+                    if(delegateUserReturn)
+                    {
+                        delegateUser = delegateUserReturn;
+                    }
+                }
+            }
+
+            // found candidate delegation record, break out of loop
+            if (delegationParameterFound)
+            {
+                break;
+            }
+        }
+        return delegateUser;
+    }
+
+    public client server static ClassFactory getClassFactory()
+    {
+        if (!classfactory)
+        {
+            classfactory = new ClassFactory();
+        }
+
+        return classfactory;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_companyId">
+    /// A <c>CompanyId</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>CompanyId</c> value.
+    /// </returns>
+    public static CompanyId getCompanyId(
+        CompanyId _companyId)
+    {
+        return _companyId != '' && strCmp(_companyId, curext()) != 0 ? _companyId : curext();
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_templateName">
+    /// A <c>workflowTypeName</c> value.
+    /// </param>
+    /// <returns>
+    /// An instance of the <c>WorkflowConfigDataChangeEventHandler</c> class.
+    /// </returns>
+    public static WorkflowConfigDataChangeEventHandler getConfigDataChangeEventHandler(workflowTypeName _templateName)
+    {
+        SysDictWorkflowType sysDictWorkflowTemplate = SysDictWorkflowType::newTypeName(_templateName);
+        SysDictClass            sysDictClass;
+        ;
+
+        if (sysDictWorkflowTemplate && sysDictWorkflowTemplate.configDataChangeEventHandler())
+        {
+            sysDictClass = new SysDictClass(className2Id(sysDictWorkflowTemplate.configDataChangeEventHandler()));
+            if (sysDictClass.isImplementing(classNum(WorkflowConfigDataChangeEventHandler)))
+                return SysWorkflowHelper::getClassFactory().createClass(className2Id(sysDictWorkflowTemplate.configDataChangeEventHandler()));
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Converts a <c>utcdatetime</c> value to a <c>System.DateTime</c> value.
+    /// </summary>
+    /// <param name="xppDateTime">
+    /// The <c>utcdatetime</c> to convert.
+    /// </param>
+    /// <returns>
+    /// A <c>System.DateTime</c> value.
+    /// </returns>
+    public static System.DateTime getDateTime(utcdatetime xppDateTime)
+    {
+        int dtyear;
+        int dtmonth;
+        int dtday;
+        int dthour;
+        int dtmin;
+
+        dtyear = DateTimeUtil::year(xppDateTime);
+        dtmonth = DateTimeUtil::month(xppDateTime);
+        dtday = DateTimeUtil::day(xppDateTime);
+        dthour = DateTimeUtil::hour(xppDateTime);
+        dtmin = DateTimeUtil::minute(xppDateTime);
+
+        return new System.DateTime(dtyear, dtmonth, dtday, dthour, dtmin, 0, System.DateTimeKind::Utc);
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_workflowTemplateName">
+    /// A <c>workflowTypeName</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>LanguageId</c> value.
+    /// </returns>
+    public server static LanguageId getDefaultLanguageId(
+        workflowTypeName _workflowTemplateName)
+    {
+        SysDictWorkflowType template = SysDictWorkflowType::newTypeName(_workflowTemplateName);
+        LanguageId languageId;
+        UserInfo userInfo;
+        ;
+
+        if (template != null)
+        {
+            switch (template.associationType())
+            {
+                case WorkflowAssociationType::Global:
+                case WorkflowAssociationType::Other:
+                    languageId = SystemParameters::find().SystemLanguageId;
+                    break;
+
+                case WorkflowAssociationType::Company:
+                    languageId = CompanyInfo::languageId();
+                    break;
+            }
+        }
+        else
+            languageId = SystemParameters::find().SystemLanguageId;
+
+        if (!languageId)
+        {
+            select Language from userInfo
+                where userInfo.Id == curUserId();
+            languageId = userInfo.Language;
+        }
+
+        return languageId;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_user">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <param name="_configTable">
+    /// A <c>WorkflowVersionTable</c> record.
+    /// </param>
+    /// <returns>
+    /// A <c>WorkflowUser</c> value.
+    /// </returns>
+    public server static WorkflowUser getDelegate(
+        WorkflowUser _user,
+        WorkflowVersionTable _configTable)
+    {
+
+        userId delegateUser;
+        Set delegatedUsers = new Set(Types::String);
+
+        delegatedUsers.add(_user);
+        delegateUser = SysWorkflowHelper::findDelegate(_user, _configTable, delegatedUsers);
+
+        return strLen(delegateUser) > 0 ? delegateUser : _user;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_workflowUser">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>DirPartyRecId</c> value.
+    /// </returns>
+    public static DirPartyRecId getDirPartyFromUserId(WorkflowUser _workflowUser)
+    {
+        DirPersonUser userRelationsTable;
+        ;
+
+        userRelationsTable = DirPersonUser::find(_workflowUser);
+
+        if ((userRelationsTable.RecId == 0) || (!userRelationsTable.PersonParty))
+            throw error(strFmt("@SYS122672", _workflowUser));
+
+        return userRelationsTable.PersonParty;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_userId">
+    /// A <c>userId</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>DirPartyName</c> value.
+    /// </returns>
+    public static DirPartyName getDirPartyNameFromUserId(userId _userId)
+    {
+        DirPartyName        partyName;
+        DirPersonUser       userRelationsTable;
+        ;
+
+        if (_userId)
+        {
+            userRelationsTable = DirPersonUser::find(_userId);
+
+            if (userRelationsTable.RecId && userRelationsTable.PersonParty)
+                partyName = DirPartyTable::findRec(userRelationsTable.PersonParty).Name;
+
+            if (!partyName)
+                partyName = _userId;
+        }
+
+        return partyName;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_workflowContext">
+    /// An instance of the <c>WorkflowContext</c> class.
+    /// </param>
+    /// <param name="_templateName">
+    /// A <c>workflowTypeName</c> value.
+    /// </param>
+    /// <param name="_user">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>Common</c> record.
+    /// </returns>
+    public server static Common getDocument(
+        WorkflowContext _workflowContext,
+        workflowTypeName _templateName,
+        WorkflowUser _user = curUserId())
+    {
+        UserInfo userInfo;
+        Common rec;
+        container args;
+        container result = [rec];
+        container recContainer;
+        RunAsPermission permission;
+
+        select firstonly Enable from userInfo where userInfo.Id == _user;
+        if (userInfo && userInfo.Enable)
+        {
+            args = [_workflowContext.pack(), _templateName];
+
+            // Only perform a RunAs if user is different then current user
+            if (_user == curUserId())
+            {
+                result = SysWorkflowHelper::getDocumentAsUser(args);
+            }
+            else
+            {
+                // BP deviation documented
+                permission = new RunAsPermission(_user);
+                permission.assert();
+
+                // Need use the runas method; we want to run as the user where as the worklflowRunAs runs as the execution account
+                // BP deviation documented
+                result = runAs(_user, classNum(SysWorkflowHelper), staticMethodStr(SysWorkflowHelper, getDocumentAsUser), args);
+                CodeAccessPermission::revertAssert();
+            }
+
+            // unpack the rec id
+            [recContainer] = result;
+            rec = con2Buf(recContainer);  // con2Buf() needed to support unpacking buffers participating in SC/sc hierarchies
+        }
+
+        return rec;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_args">
+    /// A container.
+    /// </param>
+    /// <returns>
+    /// A container.
+    /// </returns>
+    private static container getDocumentAsUser(
+        container _args)
+    {
+        QueryRun queryRun;
+        Common rec;
+        container packedWorkflowContext;
+        WorkflowContext workflowContext;
+        workflowTypeName templateName;
+        ;
+
+        [packedWorkflowContext, templateName] = _args;
+        workflowContext = WorkflowContext::create(packedWorkflowContext);
+
+        queryRun = SysWorkflowHelper::getDocumentQueryRun(workflowContext, templateName);
+
+        rec = queryRun.get(workflowContext.parmTableId());
+        return [buf2Con(rec)];  // buf2Con() needed to support packing buffers participating in SC/sc hierarchies
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_workflowContext">
+    /// An instance of the <c>WorkflowContext</c> class.
+    /// </param>
+    /// <param name="_templateName">
+    /// A <c>workflowTypeName</c> value.
+    /// </param>
+    /// <returns>
+    /// An instance of the <c>QueryRun</c> class.
+    /// </returns>
+    public server static QueryRun getDocumentQueryRun(
+        WorkflowContext _workflowContext,
+        workflowTypeName _templateName)
+    {
+        QueryRun queryRun;
+        QueryBuildRange queryBuildRange;
+        Query query;
+        WorkflowDocument workflowDocument;
+        SysDictWorkflowType workflowTemplate;
+        WorkflowVersionTable versionTable;
+
+        try
+        {
+            workflowTemplate = new SysDictWorkflowType(_templateName);
+        }
+        catch
+        {
+            throw error(strFmt("@SYS106830", versionTable.workflowTable().TemplateName));
+        }
+
+        workflowDocument = SysWorkflowHelper::createInstance(workflowTemplate.document(), classNum(WorkflowDocument), false);
+        query = workflowDocument.getQuery();
+        if (!query)
+        {
+            throw error("@SYS96001");
+        }
+
+        queryBuildRange = SysQuery::findOrCreateRange(query.dataSourceNo(1), fieldNum(Common, RecId));
+        queryBuildRange.value(int642str(_workflowContext.parmRecId()));
+
+        queryRun = new QueryRun(query);
+        queryRun.allowCrossCompany(query.allowCrossCompany());
+        changecompany(SysWorkflowHelper::getCompanyId(_workflowContext.parmCompanyId()))
+        {
+            queryRun.next();
+        }
+
+        return queryRun;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_line">
+    /// An Integer value.
+    /// </param>
+    /// <returns>
+    /// A <c>WorkflowFaultMessage</c> value.
+    /// </returns>
+    public server static WorkflowFaultMessage getInfoLogMessage(int _line)
+    {
+        System.Exception clrException;
+        str message;
+        str clrExMsg;
+        str seperator = ' ';
+        int i;
+        ;
+
+        new InteropPermission(InteropKind::ClrInterop).assert();
+
+        // BP deviation documented
+        clrException = CLRInterop::getLastException();
+        if (clrException != null)
+        {
+            error(clrException.get_Message());
+            clrException = clrException.get_InnerException();
+
+            i = infologLine() - 1;
+            if (i > _line)
+            {
+                clrExMsg = clrException.get_Message();
+                message = strFmt('%1\n%2', infolog.text(i), clrExMsg);
+            }
+            else
+            {
+            message = clrException.get_Message();
+        }
+        }
+        else
+        {
+            // get the current line
+            message = SysInfologMessageStruct::construct(infolog.text(infologLine())).message();
+            // append the inner messages
+            for (i = infologLine() - 1; i > _line; i--)
+            {
+                message += seperator + SysInfologMessageStruct::construct(infolog.text(i)).message();
+            }
+        }
+        CodeAccessPermission::revertAssert();
+
+        return message;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_labelText">
+    /// A String value.
+    /// </param>
+    /// <param name="_user">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <returns>
+    /// A String value.
+    /// </returns>
+    public server static str getLocalizedLabelText(str _labelText, WorkflowUser _user)
+    {
+        UserInfo userInfoTable;
+        str text;
+        ;
+
+        select Language from userInfoTable where userInfoTable.Id == _user;
+        if (userInfoTable.RecId != 0)
+        {
+            // try user's language
+            text = SysLabel::labelId2String2(_labelText, userInfoTable.Language);
+            if (strLen(text) == 0)
+            {
+                // default to the company language
+                text = SysLabel::labelId2String2(_labelText, CompanyInfo::languageId());
+            }
+        }
+        else
+        {
+            text = SysLabel::labelId2String2(_labelText, CompanyInfo::languageId());
+        }
+
+        return text;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_level">
+    /// A <c>WorkflowNotificationLevel</c> enumeration value.
+    /// </param>
+    /// <param name="_type">
+    /// A <c>WorkflowNotificationType</c> enumeration value.
+    /// </param>
+    /// <param name="_user">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>EventSubject</c> value.
+    /// </returns>
+    private server static EventSubject getNotificationSubject(
+        WorkflowNotificationLevel _level,
+        WorkflowNotificationType _type,
+        WorkflowUser _user)
+    {
+        EventSubject subject;
+
+        switch (_level)
+        {
+            case WorkflowNotificationLevel::Workflow:
+                switch (_type)
+                {
+                    case WorkflowNotificationType::Started:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122081"), _user);
+                        break;
+                    case WorkflowNotificationType::Completed:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122082"), _user);
+                        break;
+                    case WorkflowNotificationType::Error:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122083"), _user);
+                        break;
+                    case WorkflowNotificationType::UnrecoverableError:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122084"), _user);
+                        break;
+                    case WorkflowNotificationType::Canceled:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122085"), _user);
+                        break;
+                    default:
+                        throw error(strFmt("@SYS122121", enum2str(_type)));
+                }
+                break;
+            case WorkflowNotificationLevel::Approval:
+                switch (_type)
+                {
+                    case WorkflowNotificationType::Started:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122094"), _user);
+                        break;
+                    case WorkflowNotificationType::Completed:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122097"), _user);
+                        break;
+                    case WorkflowNotificationType::Denied:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122100"), _user);
+                        break;
+                    case WorkflowNotificationType::ChangeRequested:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122096"), _user);
+                        break;
+                    case WorkflowNotificationType::Return:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122095"), _user);
+                        break;
+                    default:
+                        throw error(strFmt("@SYS122121", enum2str(_type)));
+                }
+                break;
+            case WorkflowNotificationLevel::Task:
+                switch (_type)
+                {
+                    case WorkflowNotificationType::Started:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122086"), _user);
+                        break;
+                    case WorkflowNotificationType::Completed:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122097"), _user);
+                        break;
+                    case WorkflowNotificationType::Denied:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122092"), _user);
+                        break;
+                    case WorkflowNotificationType::ChangeRequested:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122096"), _user);
+                        break;
+                    case WorkflowNotificationType::Return:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122095"), _user);
+                        break;
+                    default:
+                        throw error(strFmt("@SYS122121", enum2str(_type)));
+                }
+                break;
+            case WorkflowNotificationLevel::ApprovalWorkItem:
+                switch (_type)
+                {
+                    case WorkflowNotificationType::Completed:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122097"), _user);
+                        break;
+                    case WorkflowNotificationType::Delegated:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122098"), _user);
+                        break;
+                    case WorkflowNotificationType::Escalated:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122099"), _user);
+                        break;
+                    default:
+                        throw error(strFmt("@SYS122121", enum2str(_type)));
+                }
+                break;
+            case WorkflowNotificationLevel::TaskWorkItem:
+                switch (_type)
+                {
+                    case WorkflowNotificationType::Completed:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122089"), _user);
+                        break;
+                    case WorkflowNotificationType::Delegated:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122090"), _user);
+                        break;
+                    case WorkflowNotificationType::Escalated:
+                        subject = SysWorkflowHelper::getLocalizedLabelText(literalStr("@SYS122091"), _user);
+                        break;                default:
+                        throw error(strFmt("@SYS122121", enum2str(_type)));
+                }
+                break;
+            default:
+                throw error(strFmt("@SYS122122", enum2str(_level)));
+        }
+
+        return subject;
+    }
+
+    /// <summary>
+    ///    Microsoft internal use only.
+    /// </summary>
+    /// <returns>A string value.</returns>
+    public static str getPartitionKey()
+    {
+        return getcurrentpartition();
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_party">
+    /// A <c>DirPartyRecId</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>WorkflowUser</c> value.
+    /// </returns>
+    public static WorkflowUser getUserIdFromDirParty(DirPartyRecId _party)
+    {
+        DirPersonUser userRelationsTable;
+
+        select User from userRelationsTable where userRelationsTable.PersonParty == _party;
+
+        if (userRelationsTable.RecId == 0)
+            throw error(strFmt("@SYS122673", _party));
+
+        return userRelationsTable.User;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_versionTable">
+    /// A <c>WorkflowVersionTable</c> record.
+    /// </param>
+    /// <param name="workflowAssociationType">
+    /// A <c>WorkflowAssociationType</c> enumeration value.
+    /// </param>
+    /// <returns>
+    /// A <c>SysEmailId</c> value.
+    /// </returns>
+    public server static SysEmailId getWorkflowEmailId(WorkflowVersionTable _versionTable, WorkflowAssociationType workflowAssociationType)
+    {
+        SysEmailId emailId;
+
+        if (_versionTable.WorkItemEmailId)
+        {
+            emailId = _versionTable.WorkItemEmailId;
+        }
+        else
+        {
+            switch (workflowAssociationType)
+            {
+                case WorkflowAssociationType::Global:
+                case WorkflowAssociationType::Other:
+                    emailId = SysWorkflowParameters::find().WorkItemEmailId;
+                    break;
+
+                case WorkflowAssociationType::Company:
+                    changeCompany(_versionTable.WorkflowTable().DataArea)
+                    {
+                        emailId = WorkflowParameters::find().WorkItemEmailId;
+                    }
+                    break;
+            }
+        }
+        return emailId;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_action">
+    /// A <c>SysUtilElementName</c> value.
+    /// </param>
+    /// <param name="_tableId">
+    /// A table ID.
+    /// </param>
+    /// <param name="_recId">
+    /// A record ID.
+    /// </param>
+    /// <param name="_user">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <param name="_workflowTemplateName">
+    /// A <c>workflowTypeName</c> value.
+    /// </param>
+    /// <returns>
+    /// A <c>LanguageTxtText</c> value.
+    /// </returns>
+    public server static LanguageTxtText getWorkflowMessageText(
+        SysUtilElementName  _action,
+        tableId _tableId,
+        recId _recId,
+        WorkflowUser _user,
+        workflowTypeName _workflowTemplateName)
+    {
+        WorkflowMessageText messageTextTable;
+        UserInfo userInfoTable;
+        LanguageTxtText messageText = '';
+
+        select Language from userInfoTable where userInfoTable.Id == _user;
+        if (userInfoTable.RecId != 0)
+        {
+            // try user's language
+            messageTextTable = WorkflowMessageText::find(_action, _tableId, _recId, userInfoTable.Language);
+            if (messageTextTable.RecId == 0)
+            {
+                // get default language
+                messageTextTable = WorkflowMessageText::find(_action, _tableId, _recId, SysWorkflowHelper::getDefaultLanguageId(_workflowTemplateName));
+            }
+        }
+        else
+        {
+            messageTextTable = WorkflowMessageText::find(_action, _tableId, _recId, SysWorkflowHelper::getDefaultLanguageId(_workflowTemplateName));
+        }
+
+        if (messageTextTable.RecId != 0)
+        {
+            messageText = messageTextTable.Txt;
+        }
+        else
+        {
+            //Check if message exists (without any language filter)
+            if(WorkflowMessageText::findAnyLanguage(_action, _tableId, _recId).RecId != 0)
+            {
+                //Message exists but not in the user-specific or default language
+                throw error("@SYS345066");
+            }
+        }
+
+        return messageText;
+    }
+
+    /// <summary>
+    ///    Microsoft internal use only.
+    /// </summary>
+    /// <param name="_context">An instance of the <c>SysWorkflowNotificationContext</c> class.</param>
+    private server static void internalSendNotifications(
+        SysWorkflowNotificationContext _context)
+    {
+        WorkflowVersionTable configTable;
+        WorkflowElementTable elementTable;
+        WorkflowConfigNotification configNotification;
+        WorkflowConfigNotificationSettings notificationSettings;
+        WorkflowAssociationType workflowAssociationType;
+        EventNotificationWorkflow notification;
+        SysWorkflowElement workflowElement;
+        SysDictWorkflowType sysDictWorkflowTemplate;
+        LanguageTxtText messageText = '';
+        menuItemName menuItemName = '';
+        WorkflowDocument workflowDocument;
+        DataSourceName dataSourceName;
+        EventSubject subject;
+        Common documentData;
+        tableId tableId;
+        recId recId;
+        Query query;
+        SysWorkflowUsers users;
+        SysWorkflowDocument sysWorkflowDocument;
+        SysEmailId emailId;
+        int i;
+        int line = infologLine();
+        WorkflowElementName elementName;
+        WorkflowElementType elementType;
+
+        setPrefix(classStr(SysWorkflowHelper) + '-' + staticMethodStr(SysWorkflowHelper, internalSendNotifications));
+
+        try
+        {
+            if (_context.parmIsElement())
+            {
+                elementTable = WorkflowElementTable::find(_context.parmNotificationId());
+                if (!elementTable)
+                {
+                    throw error("@SYS106828");
+                }
+                tableId = elementTable.TableId;
+                recId = elementTable.RecId;
+                configNotification = elementTable.getNotification();
+
+                workflowElement = SysWorkflowElement::newElementTable(elementTable);
+                if (!workflowElement)
+                {
+                    throw error(strFmt("@SYS110280", elementTable.ElementType, elementTable.ElementName));
+                }
+
+                elementName = workflowElement.elementTable().ElementName;
+                elementType = workflowElement.elementTable().ElementType;
+
+                menuItemName = workflowElement.documentMenuItem();
+                configTable = elementTable.workflowVersionTable();
+                workflowDocument = SysWorkflowHelper::getClassFactory().createClass(className2Id(workflowElement.document()));
+                if (!workflowDocument)
+                {
+                    throw error("@SYS108554");
+                }
+
+                if (strLen(menuItemName) > 0)
+                {
+                    dataSourceName = workflowElement.documentFormDatasourceName();
+                }
+            }
+            else
+            {
+                configTable = WorkflowVersionTable::find(_context.parmNotificationId());
+                if (!configTable)
+                {
+                    throw error("@SYS111590");
+                }
+                tableId = configTable.TableId;
+                recId = configTable.RecId;
+                configNotification = configTable.getNotification();
+
+                sysDictWorkflowTemplate = new SysDictWorkflowType(configTable.workflowTable().TemplateName);
+                if (!sysDictWorkflowTemplate)
+                {
+                        throw error(strFmt("@SYS106830", configTable.workflowTable().TemplateName));
+                }
+
+                workflowDocument = SysWorkflowHelper::getClassFactory().createClass(className2Id(sysDictWorkflowTemplate.document()));
+                if (!workflowDocument)
+                {
+                    throw error("@SYS108554");
+                }
+
+                menuItemName = sysDictWorkflowTemplate.documentMenuItem();
+
+                if (strLen(menuItemName) > 0)
+                {
+                    dataSourceName = sysDictWorkflowTemplate.documentFormDatasourceName();
+                }
+            }
+
+            query = workflowDocument.getQuery();
+            if (!query)
+            {
+                throw error("@SYS96001");
+            }
+
+            notificationSettings = configNotification.getNotification(_context.parmAction());
+            if (notificationSettings && notificationSettings.parmEnabled() == NoYes::Yes)
+            {
+                users = SysWorkflowParticipantProvider::resolveParticipants(
+                    _context.parmWorkflowContext(),
+                    notificationSettings.parmAssignTo(),
+                    configTable,
+                    _context.parmOriginator(),
+                    _context.parmNotificationId());
+
+                sysDictWorkflowTemplate = SysDictWorkflowType::newTypeName(configTable.workflowTable().TemplateName);
+                workflowAssociationType = sysDictWorkflowTemplate.associationType();
+                emailId = SysWorkflowHelper::getWorkflowEmailId(configTable, sysDictWorkflowTemplate.associationType());
+
+                for (i = 1; i <= users.getCount(); i++)
+                {
+                    try
+                    {
+                        documentData.clear();
+                        // verify that the user has access to the data - does a runas
+                        sysWorkflowDocument = SysWorkflowDocument::newDocument(
+                            _context.parmWorkflowContext(),
+                            configTable.workflowTable().TemplateName,
+                            users.getUser(i));
+                        sysWorkflowDocument.parmDisplayMenuItem(menuItemName);
+                        documentData = sysWorkflowDocument.getDocument();
+                    }
+                    catch
+                    {
+                        SysWorkflowHelper::writeEventLogEntry(strFmt("@SYS136742", _context.parmWorkflowInstanceNumber(), strFmt("@SYS126833", SysWorkflowHelper::getInfoLogMessage(line))));
+                        infolog.clear(infologLine() -1);
+                    }
+
+                    if (!documentData)
+                    {
+                        continue;
+                    }
+
+                    subject = SysWorkflowHelper::getNotificationSubject(_context.parmNotificationLevel(), _context.parmNotificationType(), users.getUser(i));
+                    notification = EventNotificationWorkflow::newInfoNoDrillDown(
+                        users.getUser(i),
+                        subject,
+                        emailId,
+                        null,
+                        '',
+                        true); // the user's access has already been verified
+
+                    messageText = SysWorkflowHelper::getWorkflowMessageText(
+                        _context.parmAction(),
+                        tableId,
+                        recId,
+                        users.getUser(i),
+                        configTable.workflowTable().TemplateName);
+
+                    notification.parmMessage(WorkflowDocumentField::substitutePlaceholderAsUser(
+                        users.getUser(i),
+                        _context.parmWorkflowContext().parmCompanyId(),
+                        _context.parmWorkflowContext().parmTableId(),
+                        _context.parmWorkflowContext().parmRecId(),
+                        configTable.workflowTable().TemplateName,
+                        configTable.Owner,
+                        _context.parmOriginator(),
+                        users.getUser(i),
+                        messageText,
+                        _context.parmWorkflowContext().parmWorkflowCorrelationId(),
+                        elementName,
+                        elementType));
+
+                    // get the record if does not exist
+                    notification.parmRecord(documentData);
+                    if (strLen(dataSourceName) > 0)
+                    {
+                        notification.parmDataSourceName(dataSourceName);
+                    }
+
+                    if (strLen(menuItemName) > 0)
+                    {
+                        notification.parmMenuFunction(new MenuFunction(menuItemName, MenuItemType::Display));
+                    }
+
+                    if (_context.parmIsDueDate())
+                    {
+                        notification.parmDueDateTime(DateTimeUtil::date(_context.parmDueDate()));
+                    }
+
+                    try
+                    {
+                        notification.create(workflowAssociationType != WorkflowAssociationType::Company);
+                    }
+                    catch
+                    {
+                        SysWorkflowHelper::writeEventLogEntry(strFmt("@SYS136742", _context.parmWorkflowInstanceNumber(), strFmt("@SYS126833", SysWorkflowHelper::getInfoLogMessage(line))));
+                        infolog.clear(infologLine() -1);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            SysWorkflowHelper::writeEventLogEntry(strFmt("@SYS136742", _context.parmWorkflowInstanceNumber(), strFmt("@SYS126833", SysWorkflowHelper::getInfoLogMessage(line))));
+            infolog.clear(infologLine() -1);
+        }
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_context">
+    /// An instance of the <c>SysWorkflowNotificationContext</c> class.
+    /// </param>
+    /// <param name="_allowTransaction">
+    /// A Boolean value.
+    /// </param>
+    public server static void sendNotifications(
+        SysWorkflowNotificationContext _context,
+        boolean _allowTransaction = false)
+    {
+
+        setPrefix(classStr(SysWorkflowHelper) + '-' + staticMethodStr(SysWorkflowHelper, sendNotifications));
+
+        if (!_allowTransaction && appl.ttsLevel() != 0)
+        {
+            throw error("@SYS340316");
+        }
+        else
+        {
+            SysWorkflowHelper::internalSendNotifications(_context);
+        }
+    }
+
+    /// <summary>
+    /// Makes an asynchronus call that creates a connection to the notification hub on the service bus
+    /// and sends the notification message to the appropriate user.
+    /// </summary>
+    /// <param name="_recipient">
+    /// The user ID to notify.
+    /// </param>
+    /// <param name="_sender">
+    /// The user ID of the notifier.
+    /// </param>
+    /// <param name="_subject">
+    /// The subject to include in the notification message.
+    /// </param>
+    /// <param name="_body">
+    /// The body to include in the notification message.
+    /// </param>
+    /// <param name="_workItemTable">
+    /// <c>WorkflowWorkItemTable</c> record of the work item where the source of the message.
+    /// </param>
+    /// <param name="_launchArgs">
+    /// The arguments that will be passed as a context to the notification.
+    /// </param>
+    /// <param name="_sendTileUpdate">
+    /// true if the toast message will reflect on the tile; otherwise, false.
+    /// </param>
+    public static void sendPushNotification(UserId                  _recipient,
+                                            UserId                  _sender,
+                                            Description             _subject,
+                                            Description             _body,
+                                            WorkflowWorkItemTable   _workItemTable,
+                                            str                     _launchArgs = '',
+                                            boolean                 _sendTileUpdate = true)
+    {
+        SysWindowsAzureNotificationDataContract dataContract = new SysWindowsAzureNotificationDataContract();
+        SysWindowsAzureNotificationController   controller = new SysWindowsAzureNotificationController();
+
+        if ((_workItemTable.Status == WorkflowWorkItemStatus::Pending ||
+            _workItemTable.Status == WorkflowWorkItemStatus::Delegated) &&
+            (_workItemTable.Type == WorkflowWorkItemType::WorkItem ||
+            _workItemTable.Type == WorkflowWorkItemType::Escalated ||
+            _workItemTable.Type == WorkflowWorkItemType::FinalApprover))
+        {
+            dataContract.parmSender(_sender);
+            dataContract.parmRecipient(_recipient);
+            dataContract.parmSubject(_subject);
+            dataContract.parmBody(_body);
+            dataContract.parmLaunchArgs(_launchArgs);
+            dataContract.parmSendTileUpdate(_sendTileUpdate);
+            dataContract.parmModule(SysWindowsAppModule::Approvals);
+            controller.setDataContract(dataContract);
+            controller.parmAlwaysInitializeAndValidateOnServer(true);
+            controller.parmLoadFromSysLastValue(false);
+            controller.run();
+        }
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_workflowContext">
+    /// An instance of the <c>WorkflowContext</c> class.
+    /// </param>
+    /// <param name="_templateName">
+    /// A <c>workflowTypeName</c> value.
+    /// </param>
+    /// <param name="_actionMenuName">
+    /// A <c>menuItemName</c> value.
+    /// </param>
+    /// <param name="_displayMenuName">
+    /// A <c>menuItemName</c> value.
+    /// </param>
+    /// <param name="_user">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <returns>
+    /// A Boolean value.
+    /// </returns>
+    public server static boolean userHasPermission(
+        WorkflowContext _workflowContext,
+        workflowTypeName _templateName,
+        menuItemName _actionMenuName,
+        menuItemName _displayMenuName,
+        WorkflowUser _user)
+    {
+        UserInfo userInfo;
+        container args;
+        container result;
+        boolean permission = false;
+
+        args = [_workflowContext.pack(), _templateName, _actionMenuName, _displayMenuName, _user];
+
+        // Only perform a RunAs if user is different then current user
+        if (_user == curUserId())
+        {
+            result = SysWorkflowHelper::userHasPermissionAsUser(args);
+        }
+        else
+        {
+            select firstonly Enable from userInfo where userInfo.Id == _user;
+            if (userInfo && userInfo.Enable)
+            {
+                // BP deviation documented
+                new RunAsPermission(_user).assert();
+                // Need use the runas method; we want to run as the user where as the worklflowRunAs runs as the execution account
+                // BP deviation documented
+                result = runAs(_user, classNum(SysWorkflowHelper), staticMethodStr(SysWorkflowHelper, userHasPermissionAsUser), args, _workflowContext.parmCompanyId());
+                CodeAccessPermission::revertAssert();
+            }
+        }
+        [permission] = result;
+        return permission;
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_args">
+    /// A container.
+    /// </param>
+    /// <returns>
+    /// A container.
+    /// </returns>
+    private server static container userHasPermissionAsUser(
+        container _args)
+    {
+        Common rec;
+        container args;
+        container result;
+        container packedWorkflowContext;
+        container recContainer;
+        UserInfo userInfo;
+        SysDictMenu sysDictMenu;
+        menuItemName actionMenuName;
+        menuItemName displayMenuName;
+        workflowTypeName templateName;
+        userId userId;
+        boolean permission = false;
+
+        [packedWorkflowContext, templateName, actionMenuName, displayMenuName, userId] = _args;
+        args = [packedWorkflowContext, templateName];
+
+        // verify action menu
+        sysDictMenu = SysDictMenu::newMenuItem(actionMenuName, MenuItemType::Action);
+        select firstonly Enable from userInfo where userInfo.Id == userId;
+        permission = userInfo.Enable && Global::hasMenuItemAccess(actionMenuName, MenuItemType::Action);
+
+        if (!permission)
+        {
+            return [permission];
+        }
+
+         // verify display menu
+        sysDictMenu = SysDictMenu::newMenuItem(displayMenuName, MenuItemType::Display);
+        permission = userInfo.Enable && Global::hasMenuItemAccess(displayMenuName, MenuItemType::Display);
+
+        if (!permission)
+        {
+            return [permission];
+        }
+
+        result = SysWorkflowHelper::getDocumentAsUser(args);
+
+        [recContainer] = result;
+        rec = con2Buf(recContainer); // con2Buf() needed to support unpacking buffers participating in SC/sc hierarchies
+        if (rec.RecId != 0)
+        {
+            permission = true;
+        }
+        else
+        {
+            permission = false;
+        }
+
+        return [permission];
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_submittingUser">
+    /// A <c>WorkflowUser</c> value.
+    /// </param>
+    /// <param name="_workflowConfigTable">
+    /// A <c>WorkflowVersionTable</c> record.
+    /// </param>
+    /// <param name="_activatingFromWeb">
+    /// A <c>NoYes</c> enumeration value.
+    /// </param>
+    public static void verifyActivationPermission(WorkflowUser _submittingUser, WorkflowVersionTable _workflowConfigTable, NoYes _activatingFromWeb)
+    {
+    }
+
+    /// <summary>
+    /// Microsoft internal use only.
+    /// </summary>
+    /// <param name="_message">
+    /// A String value.
+    /// </param>
+    public server static void writeEventLogEntry(str _message)
+    {
+        System.Diagnostics.EventLog ev;
+        System.Boolean sourceExists;
+        System.Diagnostics.EventLogEntryType entryType;
+        System.String msg;
+        #Workflow
+        ;
+
+        new InteropPermission(InteropKind::ClrInterop).assert();
+        // BP deviation documented
+        sourceExists = System.Diagnostics.EventLog::SourceExists(#EventLogSourceName, #EventLogLocalMachineName);
+        if (sourceExists)
+        {
+            // BP deviation documented
+            ev = new System.Diagnostics.EventLog(#EventLogName, #EventLogLocalMachineName, #EventLogSourceName);
+            try
+            {
+                // BP deviation documented
+                entryType = CLRInterop::parseClrEnum(#EventLogEntryType, #EventLogEntryTypeError);
+                msg = _message;
+                // BP deviation documented
+                ev.WriteEntry(msg, entryType);
+            }
+            catch
+            {
+                exceptionTextFallThrough();
+            }
+            if (ev != null)
+            {
+                // BP deviation documented
+                ev.Close();
+            }
+        }
+
+        CodeAccessPermission::revertAssert();
+    }
+}

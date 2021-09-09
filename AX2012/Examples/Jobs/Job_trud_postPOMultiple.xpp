@@ -1,0 +1,33 @@
+static void trud_postPOMultiple(Args _args)
+{
+    PurchFormLetter                 purchFormLetter;
+
+    //PurchTable _purchTable = PurchTable::find("000592");
+    PurchTable          purchTable;
+    Map                 mapPurchTable;
+
+    ttsBegin;
+    // Confirm order
+    //purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+    //purchFormLetter.update(_purchTable,'');
+
+    // Invoice order
+    purchFormLetter = purchFormLetter::construct(DocumentStatus::Invoice);
+
+    mapPurchTable = new Map(typeName2Type(extendedTypeStr(RecId)), Types::Record);
+    purchTable = PurchTable::find("001228");
+    mapPurchTable.insert(purchTable.RecId, purchTable);
+
+    purchTable = PurchTable::find("001229");
+    mapPurchTable.insert(purchTable.RecId, purchTable);
+
+    purchFormLetter.parmDataSourceRecordsPacked(mapPurchTable.pack());
+    purchFormLetter.initNewPurchParmUpdate();
+    purchFormLetter.sumBy(AccountOrder::Account);
+    purchFormLetter.reArrangeNow(true);
+    purchFormLetter.update(purchTable,
+                           "In4f9231",
+                           systemDateGet(), PurchUpdate::All);
+
+    ttsAbort;
+}

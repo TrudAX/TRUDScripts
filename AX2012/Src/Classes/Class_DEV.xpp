@@ -1,0 +1,890 @@
+class DEV
+{
+
+    static void buf2Buf(Common _dest, Common _source, container _fieldsToExclude = conNull())
+    {
+        DictTable   dictDest    = new DictTable(_dest.TableId);
+        DictTable   dictSource  = new DictTable(_source.TableId);
+        int         i;
+        int         sourceId;
+        FieldId     fieldId;
+        ;
+
+        for (i = 1; i <= dictDest.fieldCnt(); i++)
+        {
+            fieldId = dictDest.fieldCnt2Id(i);
+            if (! conFind(_fieldsToExclude, fieldId))
+            {
+                if (! dictDest.fieldObject(fieldId).isSystem())
+                {
+                    sourceId = dictSource.fieldName2Id(dictDest.fieldName(fieldId));
+                    if (sourceId)
+                    {
+                        _dest.(dictDest.fieldCnt2Id(i)) = _source.(sourceId);
+                    }
+                }
+            }
+        }
+    }
+
+    static void buf2BufMerge(Common _dest, Common _source)
+    {
+        DictTable   dictDest    = new DictTable(_dest.TableId);
+        DictTable   dictSource  = new DictTable(_source.TableId);
+        int         i;
+        int         sourceId;
+        ;
+
+        for (i = 1; i <= dictDest.fieldCnt(); i++)
+        {
+            sourceId = dictSource.fieldName2Id(dictDest.fieldName(dictDest.fieldCnt2Id(i)));
+            if (sourceId && ! _dest.(dictDest.fieldCnt2Id(i)))
+            {
+                _dest.(dictDest.fieldCnt2Id(i)) = _source.(sourceId);
+            }
+        }
+    }
+
+    #define.PathPrefixLen       (4)
+    #localmacro.ClientPrefix    '(C)' #endmacro
+    #localmacro.ServerPrefix    '(S)' #endmacro
+    #localmacro.RegexPatternFmt '^\\s*\\S+\\s+\%1\\.\%2.+\%1\\.(\%3\\.\%4|\%5\\.(\%6|\%7|\%8))\\(.+?\\n(.*)' #endmacro
+    #define.RegexResultStr      ('$3')
+    #define.DotNetAppNamespace  ('Dynamics.Ax.Application')
+    public static void callStack2infolog(str _prefix = "@SYS65092", Counter _skipLevels = 0)
+    {
+        System.Text.RegularExpressions.MatchCollection  matches;
+        System.Text.RegularExpressions.Match            oneMatch;
+        System.Diagnostics.StackTrace                   stackTrace;
+        container                                       stack;
+        TreeNodePath                                    correctPath;
+        TreeNodePath                                    stackPath;
+        Counter                                         n;
+        str                                             regexPattern;
+        str                                             clrStack;
+        int                                             skipLevels = max(0, _skipLevels);
+        int                                             line;
+        ;
+        setPrefix(_prefix);
+        if (xSession::isCLRSession())
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+            stackTrace = new System.Diagnostics.StackTrace(true);
+            clrStack = stackTrace.ToString();
+            stackTrace = null;
+            regexPattern = strFmt(  #RegexPatternFmt,
+                                    strReplace(#DotNetAppNamespace, '.', '\\.'),
+                                    strReplace(funcName(), '::', '\\.'),
+                                    classStr(Info),
+                                    methodStr(Info, Add),
+                                    classStr(Global),
+                                    staticMethodStr(Global, error),
+                                    staticMethodStr(Global, warning),
+                                    staticMethodStr(Global, info)
+                                 );
+            matches = System.Text.RegularExpressions.Regex::Matches(clrStack, regexPattern, System.Text.RegularExpressions.RegexOptions::Singleline);
+            n = matches.get_Count();
+            if (n > 0)
+            {
+                oneMatch = matches.get_Item(0);
+                clrStack = oneMatch.Result(#RegexResultStr);
+                oneMatch = null;
+            }
+            matches = null;
+            CodeAccessPermission::revertAssert();
+            info(clrStack);
+        }
+        else
+        {
+            stack = xSession::xppCallStack();
+            for (n = 3 + skipLevels * 2; n <= conLen(stack); n += 2)
+            {
+                stackPath   = conPeek(stack,n);
+                line        = conPeek(stack,n+1);
+                correctPath = stackPath;
+                if (line)
+                {
+                    if (    substr(stackPath, 1, #PathPrefixLen) == #ClientPrefix
+                        ||  substr(stackPath, 1, #PathPrefixLen) == #ServerPrefix
+                       )
+                    {
+                        correctPath = substr(stackPath, #PathPrefixLen + 1, maxint());
+                    }
+                    info(strFmt('%1 %2', stackPath, line),'', SysInfoAction_Editor::newLineColumn(correctPath, line));
+                }
+                else
+                {
+                    info(strFmt('%1', stackPath));
+                }
+            }
+        }
+    }
+
+
+    public static client server boolean canBeConverted(
+        UnitOfMeasureSymbol     _fromUnitOfMeasure,
+        UnitOfMeasureSymbol     _toUnitOfMeasure,
+        ItemId                  _ItemId)
+    {
+        return unitofMeasureConverter::canBeConverted(UnitOfMeasure::unitOfMeasureIdBySymbol(_fromUnitOfMeasure),
+                                                        UnitOfMeasure::unitOfMeasureIdBySymbol(_toUnitOfMeasure),
+                                                        InventTable::itemProduct(_itemId));
+    }
+
+    static void checkCursorEmpty(Common  _common, str _someText = '')
+    {
+        ;
+        if (! _common.RecId)
+        {
+            if (_someText)
+            {
+                error(_someText);
+            }
+            throw error(StrFmt("@SYS102242", TableId2Name(_common.TableId)));
+        }
+    }
+
+    static boolean checkFieldNotEmpty(Common _table, fieldId _fieldId)
+    {
+        boolean  res = true;
+        ;
+        if (! _table.(_fieldId))
+        {
+            res = checkFailed(strFmt("@SYS84753", fieldId2pname(_table.TableId, _fieldId)  ));
+        }
+
+
+        return res;
+    }
+
+    static Object cObject(Object  _obj)
+    {
+        return _obj;
+    }
+
+    public static client server real convertQty(
+        real                    _value,
+        UnitOfMeasureSymbol     _fromUnitOfMeasure,
+        UnitOfMeasureSymbol     _toUnitOfMeasure,
+        ItemId                  _ItemId,
+        NoYes                   _roundAbsoluteValue = true,
+        DEVConversionErrorMessage   _errorMessage = DEVConversionErrorMessage::Error
+        )
+    {
+        if (_errorMessage == DEVConversionErrorMessage::Warning && ! DEV::canBeConverted(_fromUnitOfMeasure, _toUnitOfMeasure, _itemId) )
+        {
+            warning(strFmt(
+            "@SYS50546",
+            _fromUnitOfMeasure,
+            _toUnitOfMeasure));
+        }
+        return UnitOfMeasureConverter::convert(_value,
+                                            UnitOfMeasure:: unitOfMeasureIdBySymbol(_fromUnitOfMeasure),
+                                            UnitOfMeasure:: unitOfMeasureIdBySymbol(_toUnitOfMeasure),
+                                            _roundAbsoluteValue, InventTable::itemProduct(_ItemId), _roundAbsoluteValue ,
+                                            _errorMessage == DEVConversionErrorMessage::Error ? false : true
+                                            );
+    }
+
+    static void copyRanges(QueryBuildDataSource _qbdsTarget, QueryBuildDataSource _qbdsSource)
+    {
+        int     idx;
+        ;
+
+        for (idx = 1; idx <= _qbdsSource.rangeCount(); idx++)
+        {
+            _qbdsTarget.addRange(_qbdsSource.range(idx).field()).value(_qbdsSource.range(idx).value());
+        }
+    }
+
+    server static Integer countTotalQuick(QueryRun _queryRun)
+    {
+        container               queryPack = _queryRun.pack();
+        Query                   countQuery;
+        QueryRun                countQueryRun;
+        QueryBuildDataSource    qbds;
+        QueryBuildFieldList     qbfl;
+        Common                  common;
+        Integer                 counter;
+        Integer                 loops;
+        int                     i;
+        ;
+        countQueryRun   = new QueryRun(queryPack);
+        countQuery      = countQueryRun.query();
+        for (i = 1; i <= countQuery.dataSourceCount(); i++)
+        {
+            qbds            = countQuery.dataSourceNo(i);
+            qbds.update(false);
+            qbds.sortClear();
+            qbfl = qbds.fields();
+            qbfl.dynamic(false);
+            qbfl.clearFieldList();
+            qbds.addSelectionField(FieldNum(Common,recId),SelectionField::COUNT);
+        }
+
+        countQueryRun   = new QueryRun(countQuery);
+
+        while (countQueryRun.next())
+        {
+            common  = countQueryRun.get(countQuery.dataSourceNo(1).table());
+            counter += common.recId;
+            loops++;
+        }
+
+        return counter;
+    }
+
+    static Notes datasourceRangesAsText(QueryBuildDataSource _sourceDS)
+    {
+        int                     rangeId;
+        QueryBuildRange         qbr;
+        str                     ret;
+        ;
+
+        for (rangeId = 1; rangeId <= _sourceDS.rangeCount(); rangeId ++)
+        {
+            qbr = _sourceDS.range(rangeId);
+
+            if (qbr.value() && qbr.status() != RangeStatus::Hidden)
+            {
+                if (ret)
+                {
+                    ret += '; ';
+                }
+                ret += strFmt('%1 = %2', fieldid2pname(_sourceDS.table(), qbr.field()), qbr.value());
+            }
+        }
+
+        return ret;
+    }
+
+    static client server utcDateTime date2DateTime(TransDate _date, boolean _isEndOfDay = false)
+    {
+        return DateTimeUtil::newDateTime(_date, _isEndOfDay ? timeMax() : 0, DateTimeUtil::getUserPreferredTimeZone());
+    }
+
+
+    static client server date dateTime2Date(utcDateTime _dateTime)
+    {
+        return DateTimeUtil::date(DateTimeUtil::applyTimeZoneOffset(_dateTime,
+                                                                    DateTimeUtil::getUserPreferredTimeZone()));
+    }
+
+
+    static void dsAllowEditExceptFields(FormDataSource _formDataSource, boolean _allowEdit, container _fieldListExclude=connull())
+    {
+        FormDataObject  fdo;
+        FormObjectSet   fos;
+        DictTable       dictTable = new DictTable(_formDataSource.table());
+        DictField       dictField;
+        int             fieldCount = dictTable.fieldCnt();
+        int             i;
+        int             j;
+        ;
+
+        fos = _formDataSource;
+
+        for (i = 1; i <= fieldCount; i++)
+        {
+            dictField = new DictField(dictTable.id(), dictTable.fieldCnt2Id(i));
+            if (! confind(_fieldListExclude, dictField.id())
+                    && ! dictField.isSystem())
+            {
+                for (j = 1; j <= dictField.arraySize(); j++)
+                {
+                    fdo = fos.object(fieldId2ext(dictField.id(), j));
+                    if (! confind(_fieldListExclude, fieldId2ext(dictField.id(), j)))
+                    {
+                        if (fdo)
+                        {
+                            fdo.allowEdit(_allowEdit);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static container dsGetDisabledFields(FormDataSource _formDataSource)
+    {
+        FormDataObject  fdo;
+        FormObjectSet   fos;
+        DictTable       dictTable = new DictTable(_formDataSource.table());
+        DictField       dictField;
+        int             fieldCount = dictTable.fieldCnt();
+        int             i;
+        container       res;
+        int             j;
+        ;
+
+        fos = _formDataSource;
+
+        for (i = 1; i <= fieldCount; i++)
+        {
+            dictField = new DictField(dictTable.id(), dictTable.fieldCnt2Id(i));
+            if (! dictField.isSystem() && dictField.allowEdit())
+            {
+                for (j = 1; j <= dictField.arraySize(); j++)
+                {
+                    fdo = fos.object(fieldId2ext(dictField.id(), j));
+                    if (! fdo.allowEdit())
+                    {
+                        res += fieldId2ext(dictField.id(), j);
+                    }
+                }
+
+
+            }
+        }
+        return res;
+    }
+
+    static void dsRefresh(Common                    _record,
+                          DEVSysDSRefreshAction    _action,
+                          NoYes                     _savePosition = NoYes::Yes,
+                          NoYes                     _forceActive  = NoYes::Yes
+                          )
+    {
+        FormDataSource  formDataSource = _record.datasource();
+        Common          record;
+        DictTable       dt = new DictTable(_record.TableId);
+        ;
+
+        if (formDataSource)
+        {
+            switch (_action)
+            {
+                case DEVSysDSRefreshAction::RereadRefresh:
+                    formDataSource.reread();
+                    formDataSource.refresh();
+                    break;
+                case DEVSysDSRefreshAction::Research:
+                    formDataSource.research(_savePosition);
+                    break;
+                case DEVSysDSRefreshAction::ExecuteQuery:
+                    if (_savePosition)
+                    {
+                        record = dt.makeRecord();
+                        record.data(_record);
+                    }
+                    formDataSource.executeQuery();
+                    if (_savePosition)
+                    {
+                        formDataSource.findRecord(record);
+                    }
+                    break;
+            }
+            if (_forceActive)
+            {
+                formDataSource.active();
+            }
+        }
+    }
+
+    static server int execProcServer(str _statement)
+    {
+        Connection  connection = new Connection();
+        Statement   statement  = connection.createStatement();
+        Int         error;
+        ;
+
+        new SqlStatementExecutePermission(_statement).assert();
+        //BP Deviation documented
+        error = statement.executeUpdate(_statement);
+
+        CodeAccessPermission::revertAssert();
+
+        return error;
+    }
+
+    static LogisticsElectronicAddress findLogElAddressByDirTypeAndDesc( RefRecId                    _dirPartyRecId,
+                                                            LogisticsElectronicAddressMethodType _type,
+                                                            Description                          _description = '')
+    {
+        LogisticsElectronicAddress      logisticsElectronicAddress;
+        DirPartyLocation                dirPartyLocation;
+        ;
+
+        select firstOnly logisticsElectronicAddress
+            where logisticsElectronicAddress.Type == _type &&
+                 (logisticsElectronicAddress.Description == _description ||  ! _description)
+        //BP Deviation Documented
+        join dirPartyLocation
+            order by IsPrimary desc
+            where dirPartyLocation.Location == logisticsElectronicAddress.Location &&
+                  dirPartyLocation.Party    == _dirPartyRecId;
+
+        return logisticsElectronicAddress;
+
+    }
+
+    static Object getFormRunFromFormArgs(FormRun  _element, str _formName)
+    {
+        Object      res;
+        FormRun     formRun;
+        ;
+        if (_element && _element.args() && _element.args().caller() &&
+            SysDictClass::isEqualOrSuperclass(classidget(_element.args().caller()), classnum(FormRun)))
+
+        {
+            formRun = _element.args().caller();
+            if (formRun.name() == _formName)
+            {
+                res = formRun;
+            }
+        }
+
+        return res;
+    }
+
+    static void insertRecord(Common _record)
+    {
+        if (_record.validateWrite())
+        {
+            _record.insert();
+        }
+        else
+        {
+            throw error(strFmt("@DEV6887", tableId2pname(_record.TableId)));
+        }
+    }
+
+    static void insertRecordCheck(Common _record)
+    {
+        if (! _record.validateWrite())
+        {
+            throw error(strFmt("@DEV6887", tableId2pname(_record.TableId)));
+        }
+    }
+
+    static void insertToSQLDB(Common _common)
+    {
+        /*
+        Common                                          commonOrig;
+        System.Data.SqlClient.SqlCommand                sqlCommand;
+        System.Data.SqlClient.SqlConnection             sqlConnection;
+        System.Data.SqlClient.SqlParameterCollection    parameterCollection;
+        System.Data.SqlClient.SqlParameter              sqlParameter;
+        System.Byte[]                                   bytes;
+        SysSQLSystemInfo                                SQLSystemInfo = SysSQLSystemInfo::construct();
+        DictTable                                       dictTable;
+        int                                             j;
+        DictField                                       dictField;
+        str                                             fieldsStr,
+                                                        valuesStr,
+                                                        parameterId;
+        Map                                             valuesMap,
+                                                        sizeMap;
+        //AnyTypeValue                                    AnyTypeValue;
+        System.String                                   sysStr;
+        container                                       anyTypeValueCon;
+        MapEnumerator                                   valuesMapEnumerator;
+        System.IO.MemoryStream                          memStream;
+        RecId                                           ret;
+        TreeNode                                        treeNode;
+        str                                             insertStr;
+        #AOT
+        ;
+
+        dictTable = new DictTable(_common.TableId);
+        valuesMap = new Map(Types::Integer, Types::Container);
+        sizeMap   = new Map(Types::Integer, Types::Integer);
+
+        for (j = 1; j <= dictTable.fieldCnt(); j++)
+        {
+            dictField = new DictField(_common.TableId, dictTable.fieldCnt2Id(j));
+
+            if (!dictField.isSql() || !_common.(dictField.id()))
+            {
+                continue;
+            }
+
+            if (dictField)
+            {
+                if (dictField.baseType() == Types::String)
+                {
+                    sizeMap.insert(j, dictField.stringLen());
+                }
+
+                if (fieldsStr)
+                {
+                    fieldsStr += strFmt(',[%1]', dictField.name(DbBackend::Sql));
+                    valuesStr += strFmt(',@FLD%1', j);
+                }
+                else
+                {
+                    fieldsStr = strFmt('[%1]', dictField.name(DbBackend::Sql));
+                    valuesStr = strFmt('@FLD%1', j);
+                }
+
+                AnyTypeValueCon = [_common.(dictField.id())];
+
+                if (dictField.name() == identifierStr(RecId))
+                {
+                    ret = conPeek(AnyTypeValueCon, 1);
+                }
+
+                valuesMap.insert(j, AnyTypeValueCon);
+            }
+        }
+
+        sqlConnection = new System.Data.SqlClient.SqlConnection(strFmt("Data Source=%1;Initial Catalog=%2;Integrated Security=True",
+                                                                       SQLSystemInfo.getLoginServer(),
+                                                                       SQLSystemInfo.getloginDatabase()));
+
+        sqlCommand    = new System.Data.SqlClient.SqlCommand(strFmt('INSERT INTO %1 (%2) VALUES (%3)', dictTable.name(DbBackend::Sql), fieldsStr, valuesStr), sqlConnection);
+
+
+
+        parameterCollection = sqlCommand.get_Parameters();
+
+        valuesMapEnumerator = valuesMap.getEnumerator();
+
+        while (valuesMapEnumerator.moveNext())
+        {
+            parameterId  = strFmt('@FLD%1', valuesMapEnumerator.currentKey());
+            AnyTypeValueCon = valuesMapEnumerator.currentValue();
+
+            switch (typeOf(conPeek(AnyTypeValueCon, 1)))
+            {
+                case Types::Enum    :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::Int);
+                    sqlParameter.set_Value(enum2int(conPeek(AnyTypeValueCon, 1)));
+                    break;
+
+                case Types::Time    :
+                case Types::Integer :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::Int);
+                    sqlParameter.set_Value(conPeek(AnyTypeValueCon, 1));
+                    break;
+
+                case Types::Int64    :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::BigInt);
+                    sqlParameter.set_Value(conPeek(AnyTypeValueCon, 1));
+                    break;
+
+                case Types::Guid    :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::UniqueIdentifier);
+                    sqlParameter.set_Value(conPeek(AnyTypeValueCon, 1));
+                    break;
+
+                case Types::Real    :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::Real);
+                    sqlParameter.set_Value(conPeek(AnyTypeValueCon, 1));
+                    break;
+
+                case Types::Date        :
+                case Types::UtcDateTime :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::DateTime);
+                    sqlParameter.set_Value(conPeek(AnyTypeValueCon, 1));
+                    break;
+
+                case Types::String    :
+                    if (sizeMap.exists(valuesMapEnumerator.currentKey()))
+                    {
+                        sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::NVarChar, sizeMap.lookup(valuesMapEnumerator.currentKey()));
+                    }
+                    else
+                    {
+                        sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::NVarChar, -1);
+                    }
+
+                    sqlParameter.set_Value(conPeek(AnyTypeValueCon, 1));
+                    break;
+
+                case Types::BLOB :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::VarBinary);
+                    memStream = Binary::constructFromContainer(conPeek(AnyTypeValueCon, 1)).getMemoryStream();
+                    bytes = memStream.ToArray();
+                    memStream.Close();
+                    sqlParameter.set_Value(bytes);
+                case Types::Container :
+                    sqlParameter = parameterCollection.Add(parameterId, System.Data.SqlDbType::VarBinary);
+                    memStream = Binary::constructFromContainer(new ContainerClass(conPeek(AnyTypeValueCon, 1)).toBlob()).getMemoryStream();
+                    bytes = memStream.ToArray();
+                    memStream.Close();
+                    sqlParameter.set_Value(bytes);
+                    break;
+                default :
+                    sqlParameter = parameterCollection.Add(parameterId, conPeek(AnyTypeValueCon, 1));
+                    break;
+            }
+        }
+
+        if (memStream)
+        {
+            memStream.Dispose();
+        }
+
+        sqlConnection.Open();
+        insertStr = sqlCommand.get_CommandText();
+           info(strFmt('%1', insertStr));
+       // sqlCommand.ExecuteNonQuery();
+        sqlCommand.Dispose();
+
+        sqlConnection.Close();
+        sqlConnection.Dispose();
+        */
+    }
+
+    /*
+    //----------------------------------------------------------------------
+    validateWrite()
+
+    if (this.DEV_RentConditionJourLineNum &&
+            ! DEV::isQueryHasRecord(this.alk_lookupRentConditionJourLineNumQuery( this.DEV_RentConditionJourLineNum)))
+        {
+            ret = checkFailed(strfmt("incorrect value in field %1",
+                            fieldid2pname(tablenum(PurchLine),
+                            fieldnum(PurchLine, ItemId))));
+        }
+    //----------------------------------------------------------------------
+    Query alk_lookupRentConditionJourLineNumQuery(DEV_RentConditionJourLineNum  _commersionConditionCode = '')
+    {
+        Query                   query           = new Query();
+        QueryBuildDataSource    qbds, qbds2;
+        ;
+
+        qbds = query.addDataSource(tablenum(DEV_RentConditionJournalLine));
+        qbds.addRange(fieldnum(DEV_RentConditionJournalLine, RentConditionJourLineNum)).value(_commersionConditionCode);
+
+        qbds.fetchMode(QueryFetchMode::One2One);
+
+        qbds = qbds.addDataSource(tablenum(DEV_RentConditionContract));
+        qbds.relations(true);
+        qbds.fetchMode(QueryFetchMode::One2One);
+        qbds.joinMode(JoinMode::ExistsJoin);
+
+        qbds2 = qbds.addDataSource(tableNum(DEV_RentConditionJournal));
+        qbds2.relations(true);
+        qbds2.fetchMode(QueryFetchMode::One2One);
+        qbds2.joinMode(JoinMode::InnerJoin);
+
+
+        return query;
+    }
+    //----------------------------------------------------------------------
+    boolean ctm_lookupRentConditionJourLineNum(FormControl _formControl)
+    {
+        SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(DEV_RentConditionJournalLine), _formControl);
+        Query                   query           = this.ctm_lookupRentConditionJourLineNumQuery();
+        ;
+
+
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.ctm_addAutoLookupFields(identifierstr(AutoLookup), fieldnum(DEV_RentConditionJournalLine, RentConditionJourLineNum));
+        sysTableLookup.performFormLookup();
+
+        return true;
+    }
+    //----------------------------------------------------------------------
+    */
+
+    static boolean isQueryHasRecord(Query  _q)
+    {
+        QueryRun    qr = new QueryRun(_q);
+        boolean     res;
+        ;
+        if (qr.next())
+        {
+            res = true;
+        }
+
+        return res;
+    }
+
+    static boolean isUserInRole(Description  _roleName)
+    {
+        boolean                 res;
+        SecurityUserRole        securityUserRole;
+        SecurityRole            securityRole;
+        ;
+        select RecId from securityUserRole
+            where  securityUserRole.User    == curUserId()
+            join RecId from securityRole
+                where  securityRole.RecId == securityUserRole.SecurityRole
+                    && (   securityRole.AotName == _roleName
+                    )    ;
+        if (securityUserRole.RecId)
+        {
+            res = true;
+        }
+
+        return res;
+    }
+
+    static void  purchTableConfirm(PurchTable  _purchTable)
+    {
+        PurchFormLetter                 purchFormLetter;
+        if (_purchTable.RecId &&
+            _purchTable.DocumentState == VersioningDocumentState::Approved)
+        {
+            purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+            purchFormLetter.update(_purchTable,'');
+        }
+    }
+
+    static Qty qty(Qty  _qty, UnitOfMeasureSymbol  _unit)
+    {
+        return decRound(_qty, UnitOfMeasure::unitOfMeasureDecimalPrecision(
+                UnitOfMeasure::unitOfMeasureIdBySymbol(_unit)));
+    }
+
+    static void runButtonWithRecord(FormFunctionButtonControl _button, Common _record,
+                                               Object _obj = null)
+    {
+        MenuFunction        mf;
+        Args                argsLocal = new Args();
+        ;
+        mf = new MenuFunction(_button.menuItemName(), _button.menuItemType());
+        argsLocal.caller(_button.owner());
+        argsLocal.record(_record);
+        if (_obj)
+        {
+            argsLocal.object(_obj);
+        }
+        mf.run(argsLocal);
+    }
+
+    static void trud_stop()
+    {
+        ;
+
+    }
+
+    static void trud_stopHandler(XppPrePostArgs _args)
+    {
+        ;
+
+        if (
+        true &&
+        curuserid() == 'Denis' )
+        {
+            switch (Box::yesNoCancel('Yes - continue, No - stop, Cancel - ttsbegin', DialogButton::No))
+            {
+                case DialogButton::Yes:
+
+                    break;
+                case DialogButton::No:
+                    throw error('trud stop');
+                case DialogButton::Cancel:
+                    //BP Deviation Documented
+                    ttsbegin;
+                    break;
+                default :
+                  throw error(Error::wrongUseOfFunction(funcName()));
+            }
+
+        }
+
+    }
+
+    static boolean validateCondition(anytype _condition, str _message, boolean _isThrowError = false)
+    {
+        boolean  res = true;
+        ;
+
+        if (! _condition)
+        {
+            if (_isThrowError)
+            {
+                throw error(_message);
+            }
+            else
+            {
+                res = checkFailed(_message);
+            }
+        }
+        return res;
+    }
+
+    static void validateCursor(Common  _cursor)
+    {
+        DictTable   dictSource  = new DictTable(_cursor.TableId);
+        int         i;
+        boolean     res = true;
+        ;
+
+        for (i = 1; i <= dictSource.fieldCnt(); i++)
+        {
+            res  = _cursor.validateField(dictSource.fieldCnt2Id(i)) && res;
+        }
+        res = _cursor.validateWrite() && res;
+
+        if (! res)
+        {
+            throw error(StrFmt("@DEV4190", dictSource.label()));
+        }
+
+    }
+
+    static boolean validateCursorField(Common _table, fieldId _fieldId, boolean _isThrow = true)
+    {
+        boolean res = true;
+        ;
+        if (! _table.(_fieldId))
+        {
+            if (_isThrow)
+            {
+                throw error(strFmt("@SYS84753", fieldId2pname(_table.TableId, _fieldId)  ));
+            }
+            else
+            {
+                res = checkFailed(strFmt("@SYS84753", fieldId2pname(_table.TableId, _fieldId)  ));
+            }
+        }
+
+        return res;
+    }
+
+    static boolean validateCursorFieldsOnly(Common  _cursor)
+    {
+        DictTable   dictSource  = new DictTable(_cursor.TableId);
+        int         i;
+        boolean     res = true;
+        int         fieldId;
+        ;
+
+        for (i = 1; i <= dictSource.fieldCnt(); i++)
+        {
+            fieldId = dictSource.fieldCnt2Id(i);
+            if (dictSource.fieldObject(fieldId).mandatory() && ! _cursor.(fieldId))
+            {
+                res  = _cursor.validateField(fieldId) && res;
+            }
+        }
+
+        return res;
+
+    }
+
+    static void validateDeleteCheck(Common _record)
+    {
+        if (! _record.validateDelete())
+        {
+            throw error(strFmt("@SYS305924", tableId2pname(_record.TableId)));
+        }
+    }
+
+    static void validateWriteRecordCheck(Common _record)
+    {
+        if (! _record.validateWrite())
+        {
+            throw error(strFmt("@CCM152", tableId2pname(_record.TableId)));
+        }
+    }
+
+    static void w(anytype _i, str _addition = '')
+    {
+        ;
+        if (_addition)
+        {
+            info(StrFmt('%1, %2', _i, _addition));
+        }
+        else
+        {
+            info(StrFmt('%1',_i));
+        }
+        infolog.viewUpdate();
+    }
+}

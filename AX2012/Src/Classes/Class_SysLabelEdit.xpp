@@ -1,0 +1,906 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysLabelEdit
+{
+    TmpSysLabel tmpSysLabel;
+    SysLabel    sysLabel;
+    Map         propertyModuleMap;
+    Map         propertyModuleIdMap;
+    Map         labelMap;
+    MapIterator labelIterator;
+    SetIterator languageSetIterator;
+    int         hits;
+    LabelType   likeLabel;
+
+    #define.version(1)
+
+    // Comment structure: -Property:[Value]-PropertyN:[ValueN]#[Comment]
+    // Symbol '#' is used to end the property section.
+
+    #define.patternPropertyValue('\\-\\%1\\:\\%2')
+
+    #define.propertyPattern('\-\%1\:\%2')
+    #define.propertyModule('Module')
+
+    #define.propertyEndKey('\#')
+    #define.propertyStartKey('\-')
+    #define.propertyValueKey('\:')
+
+
+
+
+    private void allLabelObjects()
+    {
+        LanguageTable   languageTable;
+
+        labelMap = new Map(Types::String, Types::Class);
+
+        while select LanguageId from languageTable
+            index Key
+            where languageTable.LabelFile == true
+        {
+            labelMap.insert(languageTable.LanguageId, new SysLabel(languageTable.LanguageId));
+        }
+
+        labelIterator = new MapIterator(labelMap);
+    }
+
+    protected LabelDescription commentPropAdd(LabelDescription  _comment,
+                                              SysPropertyName   _sysPropertyName,
+                                              str               _propertyValue,
+                                              str               _defaultPropertyValue)
+    {
+        str                 oldPropertyValue;
+        LabelDescription    ret;
+        ;
+        ret                 = _comment;
+        oldPropertyValue    = this.commentPropFind(ret, _sysPropertyName);
+
+        if (oldPropertyValue != _propertyValue)
+        {
+            if (oldPropertyValue)
+            {
+                ret = this.commentPropRemove(ret, _sysPropertyName);
+            }
+
+            if (_propertyValue && _propertyValue != _defaultPropertyValue)
+            {
+                if (this.commentPropExists(ret))
+                {
+                    ret = strfmt(#propertyPattern, _sysPropertyName, any2str(_propertyValue)) + ret;
+                }
+                else
+                {
+                    ret = strfmt(#propertyPattern, _sysPropertyName, any2str(_propertyValue)) + #propertyEndKey + ret;
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    public LabelDescription commentPropBuild(LabelDescription _comment, SysLabelApplModule _sysLabelApplModule)
+    {
+        LabelDescription ret = _comment;
+        ;
+        // Property Module
+        this.commentPropModuleBuildMaps();
+        if (propertyModuleIdMap.exists(_sysLabelApplModule))
+        {
+            ret = this.commentPropAdd(ret, #propertyModule, propertyModuleIdMap.lookup(_sysLabelApplModule), propertyModuleIdMap.lookup(SysLabelApplModule::None));
+        }
+
+        return ret;
+    }
+
+    protected boolean commentPropExists(LabelDescription _comment, SysPropertyName _sysPropertyName = '')
+    {
+        #define.patternPropertyOne( '\\-\%1\\::n*\\#')
+        #define.patternPropertyMany('\\-\%1\\::n*\\-')
+        #define.patternPropertyAnyOne( '<\\-:n*\\::n*\\#')
+        #define.patternPropertyAnyMany('<\\-:n*\\::n*\\-')
+
+        boolean ret;
+
+        if (_sysPropertyName)
+        {
+            if (match(strfmt(#patternPropertyOne,  _sysPropertyName), _comment) ||
+                match(strfmt(#patternPropertyMany, _sysPropertyName), _comment))
+            {
+                ret = true;
+            }
+        }
+        else
+        {
+            if (match(#patternPropertyAnyOne, _comment) ||
+                match(#patternPropertyAnyMany, _comment))
+            {
+                ret = true;
+            }
+        }
+
+        return ret;
+    }
+
+    protected str commentPropFind(LabelDescription _comment, SysPropertyName _sysPropertyName)
+    {
+        str                 propertyValue;
+        int                 startPos;
+        int                 valuePos;
+        int                 endPos;
+        boolean             found;
+        ;
+
+        if (this.commentPropExists(_comment, _sysPropertyName))
+        {
+            endPos      = strfind(_comment, #propertyEndKey, startPos, strlen(_comment));
+            do
+            {
+                startPos++;
+                startPos = strfind(_comment, #propertyStartKey, startPos, endPos);
+
+                if (startPos)
+                {
+                    if (startPos < endPos)
+                    {
+                        valuePos = strfind(_comment, #propertyValueKey, startPos, endPos);
+
+                        if (_sysPropertyName == substr(_comment, startPos+1, valuePos-startPos-1))
+                        {
+                            found    = true;
+                            startPos = valuePos + 1;
+                            valuePos = strfind(_comment, #propertyStartKey, startPos, endPos);
+
+                            if (!valuePos)
+                            {
+                                valuePos = endPos + 1;
+                            }
+
+                            propertyValue = substr(_comment, startPos, valuePos-startPos-1);
+                        }
+                    }
+                    else
+                    {
+                        found = true;
+                    }
+                }
+                else
+                {
+                    found = true;
+                }
+            }
+            while (!found);
+        }
+
+        return propertyValue;
+    }
+
+
+    protected void commentPropModuleBuildMaps()
+    {
+        DictEnum            dictEnum;
+        SysLabelApplModule  id;
+        str                 name;
+        int                 i;
+
+        if (!propertyModuleMap ||
+            !propertyModuleIdMap)
+        {
+            propertyModuleMap   = new Map(Types::String, Types::Enum);
+            propertyModuleIdMap = new Map(Types::Enum, Types::String);
+
+            dictEnum = new DictEnum(enumnum(SysLabelApplModule));
+            for (i=dictEnum.values(); i >= 0; i--)
+            {
+                name = dictEnum.index2Symbol(i);
+                id   = dictEnum.index2Value(i);
+
+                propertyModuleMap.insert(name, id);
+                propertyModuleIdMap.insert(id, name);
+            }
+        }
+    }
+
+    protected SysLabelApplModule commentPropModuleFind(LabelDescription _comment)
+    {
+        SysLabelApplModule  ret;
+        str                 propertyValue;
+        ;
+        propertyValue                   = this.commentPropFind(_comment, #propertyModule);
+        if (propertyValue)
+        {
+            this.commentPropModuleBuildMaps();
+
+            if (propertyModuleMap.exists(propertyValue))
+            {
+                ret = propertyModuleMap.lookup(propertyValue);
+            }
+        }
+
+        return ret;
+    }
+
+    protected LabelDescription commentPropRemove(LabelDescription _comment, str _propertyName = '')
+    {
+        LabelDescription ret;
+        int              startPos;
+        int              valuePos;
+        int              endPos;
+        int              propertyCnt;
+        ;
+        if  (_propertyName)
+        {
+            if (this.commentPropExists(_comment, _propertyName))
+            {
+                endPos      = strfind(_comment, #propertyEndKey, startPos, strlen(_comment));
+                do
+                {
+                    startPos = strfind(_comment, #propertyStartKey, startPos, endPos);
+                    if (startPos)
+                    {
+                        if (startPos < endPos)
+                        {
+                            valuePos = strfind(_comment, #propertyValueKey, startPos, endPos);
+                            propertyCnt++;
+
+                            if (_propertyName == substr(_comment, startPos+1, valuePos-startPos-1))
+                            {
+                                valuePos = strfind(_comment, #propertyStartKey, valuePos+1, endPos);
+
+                                if (valuePos)
+                                {
+                                    ret = strdel(_comment, startPos, valuePos-startPos);
+                                }
+                                else
+                                {
+                                    if (propertyCnt == 1)
+                                    {
+                                        endPos++;
+                                    }
+
+                                    ret = strdel(_comment, startPos, endPos-startPos);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ret = _comment;
+                        }
+                    }
+                    else
+                    {
+                        startPos = endPos;
+                        ret      = _comment;
+                    }
+                    startPos++;
+                }
+                while (!ret && startPos < endPos);
+            }
+            else
+            {
+                ret = _comment;
+            }
+        }
+        else
+        {
+            if (this.commentPropExists(_comment))
+            {
+                endPos      = strfind(_comment, #propertyEndKey, startPos, strlen(_comment));
+                ret         = strdel(_comment, 1, endPos);
+            }
+            else
+            {
+                ret = _comment;
+            }
+        }
+
+        return ret;
+    }
+
+    public Set findEqualLabelSet(LanguageId _languageId, LabelType _text, LabelDescription _comment)
+    {
+        #define.patternObsolete('<OBSOLETE')
+        Set         labelIdSet = new Set(Types::String);
+        SysLabel    label;
+        LabelId     labelId;
+        ;
+        if (labelMap.exists(_languageId))
+        {
+            if (!match(#patternObsolete, _comment))
+            {
+                label   = labelMap.lookup(_languageId);
+
+                if (SysLabel::searchStringHasSpecialChars(_text))
+                {
+                    labelId = label.searchFirst(SysLabel::seachStringBuildExactStr(SysLabel::searchStringBuildSpecialCharString(_text)));
+                    while (labelId)
+                    {
+                        if (!strcmp(label.extractString(labelId), _text) &&
+                            ((SysLabel::isLabelId(label.extractComment(labelId)) &&
+                              _comment == '') ||
+                             !strcmp(label.extractComment(labelId), _comment)))
+                        {
+                            labelIdSet.add(labelId);
+                        }
+                        labelId = label.searchNext();
+                    }
+                }
+                else
+                {
+                    labelId = label.searchFirst(SysLabel::seachStringBuildExactStr(_text));
+                    while (labelId)
+                    {
+                        if (!strcmp(label.extractString(labelId), _text) &&
+                            ((SysLabel::isLabelId(label.extractComment(labelId)) &&
+                              _comment == '') ||
+                             !strcmp(label.extractComment(labelId), _comment)))
+                        {
+                            labelIdSet.add(labelId);
+                        }
+                        labelId = label.searchNext();
+                    }
+                }
+            }
+        }
+
+        return labelIdSet;
+    }
+
+
+    public int findHits()
+    {
+        ;
+        return hits;
+    }
+
+    public void findInsertLabel(LabelId _labelId, LanguageId _originalLanguageId = '')
+    {
+        SysLabel            label;
+        LabelDescription    labelDescription;
+        LabelString         labelString;
+        ;
+
+        if (_labelId &&
+            (!likeLabel || match(likeLabel, _labelId)))
+        {
+            hits++;
+
+            if (!languageSetIterator)
+            {
+                languageSetIterator = new SetIterator(labelMap.keySet());
+            }
+
+            languageSetIterator.begin();
+            while (languageSetIterator.more())
+            {
+                if (_originalLanguageId != languageSetIterator.value())
+                {
+                    label = labelMap.lookup(languageSetIterator.value());
+
+                    tmpSysLabel.clear();
+                    tmpSysLabel.LabelId         = _labelId;
+                    tmpSysLabel.Language        = label.languageId();
+
+                    if (label.exists(_labelId))
+                    {
+                        labelString = label.extractString(_labelId);
+
+                        if (!SysLabel::isLabelId(labelString))
+                        {
+                            tmpSysLabel.Label               = labelString;
+                            labelDescription                = label.extractComment(_labelId);
+
+                            tmpSysLabel.SysLabelApplModule  = this.commentPropModuleFind(labelDescription);
+                            tmpSysLabel.Description         = this.commentPropRemove(labelDescription);
+                        }
+                    }
+                    tmpSysLabel.insert();
+                }
+                languageSetIterator.next();
+            }
+        }
+    }
+
+
+
+    public LabelId findLabel(LanguageId _languageId, LabelType _text)
+    {
+        TmpSysLabel tmp;
+        LabelId     labelId;
+        int         length;
+        ;
+        tmpSysLabel.setTmpData(tmp);
+
+        hits        = 0;
+        sysLabel    = labelMap.lookup(_languageId);
+        likeLabel   = '';
+
+        if (_text &&
+            SysLabel::isLabelId(_text))
+        {
+            if (sysLabel.exists(_text))
+            {
+                labelId = _text;
+                hits++;
+
+                this.findInsertLabel(labelId);
+            }
+            labelId = '';
+        }
+        else
+        {
+            length = strlen(_text);
+            if (strEndsWith(_text, '*') &&
+                (SysLabel::isLabelId(strdel(_text, length, -1)) ||
+                 SysLabel::isLabelModuleId(strdel(_text, length, -1))))
+            {
+                if (match( ':d>', strdel(_text, length, -1)))    // A number is specified before '*', don't request numbers must exist after given number
+                {
+                    likeLabel = strfmt('<%1', strdel(_text, length, -1));
+                }
+                else                                            // A number is not specified before '*', require on eor more numbers in rest of labelId
+                {
+                    likeLabel = strfmt('<%1:d+', strdel(_text, length, -1));
+                    likeLabel = strReplace(likeLabel, '$', '[$]');
+                }
+                _text     = '';
+            }
+
+            labelId = sysLabel.searchFirst(_text);
+            if (labelId)
+            {
+                this.findInsertLabel(labelId);
+            }
+        }
+        return labelId;
+    }
+
+    public LabelId findNextLabel()
+    {
+        LabelId labelId;
+        int     timer   = timenow();
+        ;
+        do
+        {
+            labelId = sysLabel.searchNext();
+            this.findInsertLabel(labelId);
+        }
+        while (labelId  &&
+               timer + 1 > timenow());
+
+        return labelId;
+    }
+
+    public TmpSysLabel findResults()
+    {
+        return tmpSysLabel;
+    }
+
+    public boolean labelDelete(LabelId _labelId, boolean prompt = true)
+    {
+        SysLabelLog         sysLabelLog;
+        LabelType           text;
+        LabelDescription    comment;
+        SysLabel            label;
+        boolean             ok;
+        recId               recId;
+    ;
+        if (SysLabelInterval::labelIdInInterval(_labelId, LabelIntervalStatus::Released))
+        {
+            error("@SYS69759");
+        }
+        else
+        {
+            if (!prompt || Box::yesNo(strfmt("@SYS69760", _labelId), DialogButton::Yes) == DialogButton::Yes)
+            {
+                while select tmpSysLabel index LabelIdx
+                    where tmpSysLabel.LabelId == _labelId
+                {
+                    tmpSysLabel.delete();
+                }
+
+                labelIterator.begin();
+
+                while (labelIterator.more())
+                {
+                    label = labelIterator.value();
+
+                    if (label.exists(_labelId))
+                    {
+                        text    = label.extractString(_labelId);
+                        comment = label.extractComment(_labelId);
+
+                        ok = label.delete(_labelId);
+
+                        if (ok &&
+                            (text ||
+                             comment))
+                        {
+                            ttsbegin;
+
+                            sysLabelLog.clear();
+                            sysLabelLog.LabelId             = _labelId;
+                            sysLabelLog.LanguageId          = label.languageId();
+                            sysLabelLog.SysLabelLogStatus   = SysLabelLogStatus::Deleted;
+                            sysLabelLog.LabelType           = text;
+                            sysLabelLog.LabelDescription    = comment;
+                            sysLabelLog.SysLabelRefRecId    = recId;
+                            sysLabelLog.insert();
+
+                            if (!recId)
+                            {
+                                recId = sysLabelLog.RecId;
+
+                                sysLabelLog.SysLabelRefRecId = recId;
+                                sysLabelLog.update();
+                            }
+                            ttscommit;
+                        }
+                    }
+                    labelIterator.next();
+                }
+            }
+        }
+        return ok;
+    }
+
+
+    public boolean labelExists(LanguageId _languageId, LabelId _labelId)
+    {
+        SysLabel label = labelMap.lookup(_languageId);
+        if (label)
+            return label.exists(_labelId);
+        return false;
+    }
+
+    public LabelId labelInsert(
+        LanguageId          _languageId,
+        LabelType           _text,
+        LabelDescription    _comment,
+        SysLabelApplModule  _sysLabelApplModule,
+        LabelModuleId       _moduleId = SysLabel::defaultModuleId())
+    {
+        Set                 set;
+        SysLabelLog         sysLabelLog;
+        LabelId             labelId;
+        SysLabel            label               = labelMap.lookup(_languageId);
+        LabelDescription    labelDescription;
+        LabelType           text;
+        SysLabelFile        sysLabelFile;
+        LabelModuleId       tmpLabelModuleId;
+
+        // trim off pre- and post fixed spaces
+        if (_text)
+        {
+            text = Global::strLRTrim(_text);
+        }
+
+        if (text ||
+            _comment)
+        {
+            if (SysLabel::isLabelId(text))
+            {
+                throw error("@SYS88103");
+            }
+
+            if (strfind(text, '\n', 1, strlen(text)) || strfind(_comment, '\n', 1, strlen(_comment)))
+            {
+                throw error("@SYS86595", "@SYS71620");
+            }
+            if (strStartsWith(_comment, '@'))
+            {
+                throw error("@SYS302652");
+            }
+
+            labelDescription = this.commentPropBuild(_comment, _sysLabelApplModule);
+
+            set = this.findEqualLabelSet(_languageId, text, labelDescription);
+
+            if (!set.elements())
+            {
+                if (//!versioncontrol.ideIntegration() &&  //trud - we will always use intervals
+                    SysLabelInterval::intervalExist(_moduleId))
+                {
+                    labelId = SysLabelInterval::nextLabelId(_moduleId, labelMap);
+
+                    if (labelId)
+                    {
+                        this.labelModify(_languageId, labelId, text, labelDescription, _sysLabelApplModule);
+                    }
+                }
+                else
+                {
+                    if (versioncontrol.ideIntegration() &&
+                        versioncontrol.parmSysVersionControlSystem() &&
+                        versioncontrol.parmSysVersionControlSystem() is SysVersionControlSystemFileBased)
+                    {
+                        sysLabelFile = SysLabelFile::newLanguageModule(_languageId, _moduleId);
+                        tmpLabelModuleId = sysLabelFile.getTemporaryLabelFileId();
+                        if (!tmpLabelModuleId)
+                        {
+                            throw error(strfmt("@SYS300003", _moduleId));
+                        }
+                        labelId = label.insert(text, labelDescription, tmpLabelModuleId);
+                    }
+                    else
+                    {
+                        labelId = label.insert(text, labelDescription, _moduleId );
+                    }
+
+                    // If we didn't get a labelId, throw an error.
+                    if (!labelId)
+                    {
+                        throw error(strfmt("@SYS112135", text));
+                    }
+
+                    label.searchFirst(labelId);
+                    if (SysLabel::isLabelId(labelId))
+                    {
+                        ttsbegin;
+
+                        sysLabelLog.clear();
+                        sysLabelLog.LabelId             = labelId;
+                        sysLabelLog.LanguageId          = label.languageId();
+                        sysLabelLog.SysLabelLogStatus   = SysLabelLogStatus::Inserted;
+                        sysLabelLog.LabelType           = text;
+                        sysLabelLog.LabelDescription    = labelDescription;
+                        sysLabelLog.insert();
+
+                        ttscommit;
+                    }
+                    else
+                    {
+                        labelId = '';
+                    }
+                }
+            }
+            if (labelId)
+            {
+                this.findInsertLabel(labelId, label.languageId());
+            }
+        }
+        return labelId;
+    }
+
+
+    public boolean labelModify(
+        LanguageId          _languageId,
+        LabelId             _labelId,
+        LabelType           _text,
+        LabelDescription    _comment,
+        SysLabelApplModule  _sysLabelApplModule,
+        boolean             _checkUniqueness = true)
+    {
+        Set                 set;
+        SysLabelLogStatus   sysLabelLogStatus;
+        SysLabelLog         sysLabelLog;
+        SysLabel            label = labelMap.lookup(_languageId);
+        LabelDescription    labelDescription;
+        LabelType           text;
+
+        boolean             ok = false;
+        ;
+        // trim off pre- and post fixed spaces
+        if (_text)
+        {
+            text = Global::strLRTrim(_text);
+        }
+
+        if (SysLabel::isLabelId(text))
+        {
+            throw error("@SYS88103");
+        }
+        if (strfind(text, '\n', 1, strlen(text)) || strfind(_comment, '\n', 1, strlen(_comment)))
+        {
+            throw error("@SYS86595", _labelId );
+        }
+        if (strStartsWith(_comment, '@'))
+        {
+            throw error("@SYS302652");
+        }
+
+        if (label.exists(_labelId))
+        {
+            sysLabelLogStatus = SysLabelLogStatus::Modified;
+        }
+        else
+        {
+            sysLabelLogStatus = SysLabelLogStatus::Inserted;
+        }
+
+        labelDescription = this.commentPropBuild(_comment, _sysLabelApplModule);
+
+        if (text &&
+            _labelId != text &&
+            (strcmp(label.extractString(_labelId),  text) ||
+             strcmp(label.extractComment(_labelId), labelDescription)))
+        {
+            if (_checkUniqueness)
+            {
+                set = this.findEqualLabelSet(_languageId, text, labelDescription);
+
+                if (set.elements())
+                {
+                    throw error("@SYS76550");
+                }
+            }
+
+            if (sysLabelLogStatus != SysLabelLogStatus::Inserted &&
+                (label.extractComment(_labelId) ||
+                 (label.extractString(_labelId) &&
+                  label.extractString(_labelId) != _labelId)))
+            {
+                select firstonly reverse sysLabelLog
+                    index LabelIdx order by RecId desc
+                    where sysLabelLog.LabelId    == _labelId
+                       && sysLabelLog.LanguageId == label.languageId();
+
+                if (!sysLabelLog ||
+                    (sysLabelLog &&
+                     (sysLabelLog.LabelType        != label.extractString(_labelId) ||
+                      sysLabelLog.LabelDescription != label.extractComment(_labelId))))
+                {
+                    ttsbegin;
+
+                    sysLabelLog.clear();
+                    sysLabelLog.LabelId             = _labelId;
+                    sysLabelLog.LanguageId          = label.languageId();
+                    sysLabelLog.SysLabelLogStatus   = SysLabelLogStatus::Original;
+                    sysLabelLog.LabelType           = label.extractString(_labelId);
+                    sysLabelLog.LabelDescription    = label.extractComment(_labelId);
+                    sysLabelLog.insert();
+
+                    ttscommit;
+                }
+            }
+
+            if ((!_comment ||
+                 strcmp(label.extractComment(_labelId), labelDescription)) &&
+                SysLabelInterval::labelIdInInterval(_labelId, LabelIntervalStatus::Released))
+            {
+                error(strfmt("@SYS69761" + ' ' + "@SYS69762", fieldid2pname(tablenum(TmpSysLabel), fieldnum(TmpSysLabel, Description))));
+            }
+            else
+            {
+                ok = label.modify(_labelId, text, labelDescription);
+                if (ok)
+                {
+                    ttsbegin;
+
+                    sysLabelLog.clear();
+                    sysLabelLog.LabelId             = _labelId;
+                    sysLabelLog.LanguageId          = label.languageId();
+                    sysLabelLog.SysLabelLogStatus   = sysLabelLogStatus;
+                    sysLabelLog.LabelType           = text;
+                    sysLabelLog.LabelDescription    = labelDescription;
+                    sysLabelLog.insert();
+
+                    ttscommit;
+
+                }
+            }
+        }
+        return ok;
+    }
+
+    public boolean labelRestore( LanguageId _languageId, LabelId _labelId, LabelType _text, LabelDescription _comment)
+    {
+        boolean     ok;
+
+        if (labelMap.exists(_languageId))
+        {
+            ok = this.labelModify(_languageId, _labelId, _text, _comment, SysLabelApplModule::None);
+        }
+
+        return ok;
+
+    }
+
+    void new()
+    {
+        ;
+        this.allLabelObjects();
+    }
+
+    public Map parmLabelMap()
+    {
+        return labelMap;
+    }
+
+    public void parmLanguageSet(Set _set)
+    {
+        ;
+        if (_set)
+        {
+            languageSetIterator = new SetIterator(_set);
+        }
+    }
+
+    public boolean validateWrite(LabelType _text, LabelDescription _comment)
+    {
+        boolean ok = true;
+
+        if (!_text)
+        {
+            ok = checkFailed("@SYS73326");
+        }
+
+        //
+        // Comment is required for all labels created by Microsoft.
+        //
+        if (!_comment &&
+            currentAOLayer() <= UtilEntryLevel::slp)
+        {
+            ok = checkFailed("@SYS308838");
+        }
+
+        return ok;
+    }
+
+    static client server public dataAreaId lastValueDataAreaId()
+    {
+        return '';
+    }
+
+
+    static client server public identifierName lastValueDesignName()
+    {
+        return 'Advanced';
+    }
+
+    static client server public identifierName lastValueElementName()
+    {
+        return identifierstr(SysLabelSearch);
+    }
+
+    static client server public UtilElementType lastValueType()
+    {
+        return UtilElementType::Form;
+    }
+
+    static client server public userId lastValueUserId()
+    {
+        return curuserid();
+    }
+
+    static client server public int lastValueVersion()
+    {
+        return #version;
+    }
+
+    public static client void moduleIdLookup(FormStringControl _formStringControl)
+    {
+        SetIterator     setIterator;
+        TmpSysLabel     tmpModuleId;
+        SysTableLookup  sysTableLookup = SysTableLookup::newParameters(tablenum(TmpSysLabel), _formStringControl, false);
+        ;
+
+        setIterator = new SetIterator(SysLabel::findModules());
+        setIterator.begin();
+        while (setIterator.more())
+        {
+            tmpModuleId.clear();
+            tmpModuleId.LabelId = setIterator.value();
+            tmpModuleId.insert();
+            setIterator.next();
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpModuleId);
+        sysTableLookup.addLookupfield(fieldnum(TmpSysLabel, LabelId));
+        sysTableLookup.setLabel("@SYS58384");
+
+        sysTableLookup.performFormLookup();
+    }
+
+    static public boolean validateModuleId(LabelModuleId _labelModuleId)
+    {
+        boolean ok;
+        Set     set = SysLabel::findModules();
+
+        if (set.in(_labelModuleId))
+        {
+            ok = true;
+        }
+        return ok;
+    }
+}

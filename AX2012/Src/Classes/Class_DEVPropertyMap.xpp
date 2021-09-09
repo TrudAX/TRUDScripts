@@ -1,0 +1,181 @@
+class DEVPropertyMap
+{
+    TreeNode    treeNode;
+    str         treeNodeProperties;
+    str         propLine;
+    str         key, value;
+    Map         propertyMap;
+    int         lineCount;
+    boolean     IsETDArray;
+
+    #define.edt("ExtendedDataType")
+
+    private void debug_showPropertyMap()
+    {
+        MapIterator     mapIterator = new MapIterator(propertyMap);
+        str             buffer;
+
+        while (mapIterator.more())
+        {
+          //  buffer += strfmt('%1 - %2', CIT_Dev::padr(mapIterator.key(), 25), mapIterator.value()) + '\n';
+            mapIterator.next();
+        }
+
+        info(buffer);
+    }
+
+    private void extractPair(boolean _alltrim = true)
+    {
+        int     dividerPos = strscan(propLine, '#', 1, strlen(propLine));
+
+        ;
+
+        key   = substr(propLine, 1, dividerPos - 1);
+        value = substr(propLine, dividerPos + 1, strlen(propline) - dividerPos);
+
+        if (_alltrim)
+        {
+            key   = strlrtrim(key);
+            value = strlrtrim(value);
+        }
+    }
+
+    void finalize()
+    {
+    }
+
+    private boolean getLine()
+    {
+        propLine = strLine(treeNodeProperties, lineCount);
+        lineCount++;
+
+        return propLine != '';
+    }
+
+    public str getProperty(str _propName)
+    {
+        ;
+
+        return propertyMap.lookup(_propName);
+    }
+
+    private boolean isPair()
+    {
+        return this.isTokenFound('#');
+    }
+
+    private boolean isTokenFound(str _token)
+    {
+        return strscan(propLine, _token, 1, strlen(propLine));
+    }
+
+    void new(TreeNode _treeNode = null)
+    {
+        ;
+
+        if (_treeNode != null)
+        {
+            treeNode           = _treeNode;
+            treeNodeProperties = treeNode.AOTgetProperties();
+            this.parse();
+        }
+    }
+
+    private void parse()
+    {
+        propertyMap = new Map(Types::STRING, Types::STRING);
+        lineCount   = 0;
+        IsETDArray  = false;
+
+        while (this.getLine())
+        {
+            if (this.isPair())
+            {
+                this.extractPair();
+                propertyMap.insert(key, value);
+            }
+            else
+            {
+                // Свойство ExtendedDataType хранится в виде массива из двух элементов
+                if (this.isTokenFound(#edt))
+                {
+                    IsETDArray = true;
+                    // Добраться до первого элемента массива, откидывая все строки без символа '#'
+                    while (! this.isPair())
+                    {
+                        this.getLine();
+                    }
+
+                    this.extractPair();
+                    propertyMap.insert(#edt, value);
+                    // Отбросить все оставшиеся элементы массива
+                    while (this.isPair())
+                    {
+                        this.getLine();
+                    }
+                }
+            }
+        }
+    }
+
+    public void save()
+    {
+        str newProps;
+        lineCount   = 0;
+
+        while (this.getLine())
+        {
+            if (this.isPair())
+            {
+                this.extractPair(false);
+                newProps += key + '#' + propertyMap.lookup(strlrtrim(key)) + '\n';
+            }
+            else
+            {
+                // Свойство ExtendedDataType хранится в виде массива из двух элементов
+                if (this.isTokenFound(#edt))
+                {
+                    newProps += propline + '\n';    // ExtendedDataType
+                    this.getLine();
+                    newProps += propline + '\n';    // ARRAY
+                    this.getLine();
+                    this.extractPair(false);
+                    newProps += key + '#' + propertyMap.lookup(#edt) + '\n';     //First array element
+                    this.getLine();
+                    newProps += propline + '\n';    // Second array element
+                    this.getLine();
+                    newProps += propline + '\n';    // ENDARRAY
+                }
+                else
+                {
+                    newProps += propline + '\n';    // Any other lines
+                }
+            }
+        }
+
+        newProps += '\n';
+
+        treeNode.AOTsetProperties(newProps);
+        treeNode.AOTsave();
+    }
+
+    public void setNode(TreeNode _treeNode)
+    {
+        ;
+
+        treeNode           = _treeNode;
+        treeNodeProperties = treeNode.AOTgetProperties();
+
+        this.parse();
+    }
+
+    public void setProperty(str _propName, str _propValue, boolean _autosave = false)
+    {
+        propertyMap.remove(_propName);
+        propertyMap.insert(_propName, _propValue);
+        if (_autosave)
+        {
+            this.save();
+        }
+    }
+}

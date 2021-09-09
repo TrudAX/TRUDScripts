@@ -1,0 +1,312 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysBPCheckExtendedType extends SysBPCheckBase
+{
+    SysDictType sysDictType;
+    SysDictType sysDictTypeExtend;
+    SysDictEnum sysDictEnum;
+
+    public void check()
+    {
+        if (parameters.CheckTableAndRecIdReferences)
+        {
+            this.checkTableIdAndRecIdInheritance();
+        }
+
+        super();
+    }
+
+    boolean checkConfigurationKey()
+    {
+        Counter         counter;
+        DictRelation    dictRelation;
+        SysDictField    externField;
+        Set             thisSet;
+        Set             externSet;
+
+        boolean ret;
+
+        ret = super();
+
+        ret = ret && sysBPCheck.checkConfigurationKey(sysDictType.configurationKeyId());
+
+        if (ret)
+        {
+            dictRelation = sysDictType.relationObject(1);
+            if (dictRelation)
+            {
+                thisSet = this.getSetOfConfigurationKeyId(sysDictType.configurationKeyId());
+
+                for (counter = 1; counter <= dictRelation.lines(); counter++)
+                {
+                    externField = new SysDictField(dictRelation.table(), dictRelation.lineExternTableValue(counter));
+                    if (externField)
+                    {
+                        externSet = this.getSetOfConfigurationKeyId(externField.configurationKeyId());
+
+                        if (!SysDictConfigurationKey::isSetsOfConfigurationKeyIdOk(thisSet, externSet))
+                        {
+                            sysBPCheck.addWarning(#BPErrorConfigurationKeySetsNotOk, 0, 0, strFmt("@SYS74534",
+                                                  counter,
+                                                  sysDictType.name(), SysDictConfigurationKey::configurationKeyIdSet2KeySet(thisSet).toString(),
+                                                  externField.name(), SysDictConfigurationKey::configurationKeyIdSet2KeySet(externSet).toString()));
+                            ret = false;
+                        }
+                    }
+                    else
+                    {
+                        sysBPCheck.addError(#BPErrorTypeFieldNotExistInTable, 0, 0, strFmt("@SYS55418", dictRelation.lineExternTableValue(counter), dictRelation.table()));
+                        ret = false;
+                    }
+                }
+            }
+        }
+
+        return ret;
+
+    }
+
+    boolean checkHelpUse()
+    {
+        boolean     ret;
+        SysDictType tmpSysDictType      = new SysDictType(sysDictType.extend());
+        boolean     parentLabelAbstract = (sysDictType ? sysDictType.label() == '' : false);
+
+        ret = super();
+
+        ret = ret && sysBPCheck.checkHelpBasics(sysDictType.helpLabelId(), sysDictType.label(), #propertyHelpText, !parentLabelAbstract && this.checkLabelMandatory());
+
+        if (ret && sysDictType.helpDefined())
+        {
+            if (sysDictTypeExtend)
+            {
+                if (sysDictType.helpDefined() == sysDictTypeExtend.helpLabelId()) // Type's Help is a copy of its Extended (..) Data Type's Help
+                {
+                    sysBPCheck.addError(#BPErrorTypeHelpIsCopyOfExtendedHelp, 0, 0, "@SYS55449", #propertyHelpText);
+                    ret = false;
+                }
+            }
+            else // only check the enum if it is a stand alone (not via a Extended Type)
+            {
+                if (sysDictEnum)
+                {
+                    if (sysDictType.helpDefined() == sysDictEnum.helpDefined()) // Type's Help is a copy of the Enum's Help
+                    {
+                        sysBPCheck.addError(#BPErrorTypeHelpIsCopyOfEnumHelp, 0, 0, "@SYS55451", #propertyHelpText);
+                        ret = false;
+                    }
+                }
+            }
+        }
+
+        return ret;
+
+    }
+
+
+
+
+    private boolean checkLabelMandatory ()
+    {
+        SysDictType tmpSysDictType;
+        ;
+
+        tmpSysDictType = new SysDictType(sysDictType.id());
+        while (tmpSysDictType.extend())
+        {
+            tmpSysDictType = new SysDictType(tmpSysDictType.extend());
+        }
+
+        return tmpSysDictType.enumId() ? !isSysId(tmpSysDictType.enumId()) : !isSysId(tmpSysDictType.id());
+
+    }
+
+    boolean checkLabelUse()
+    {
+        boolean     ret;
+
+        ret = super();
+
+        ret = ret && sysBPCheck.checkLabelBasics(sysDictType.labelLabel(), #propertyLabel, this.checkLabelMandatory(), sysDictType.labelDefined());
+
+        if (ret && sysDictType.labelDefined())
+        {
+            if (sysDictTypeExtend)
+            {
+                if (sysDictType.labelDefined() == sysDictTypeExtend.labelLabel()) // Type's Label is a copy of its Extended (..) Data Type's Label
+                {
+                    sysBPCheck.addError(#BPErrorTypeLabelIsCopyOfExtendedHelp, 0, 0, "@SYS55448", #propertyLabel);
+                    ret = false;
+                }
+            }
+            else // only check the enum if it is a stand alone (not via an Extended Type)
+            {
+                if (sysDictEnum)
+                {
+                    if (sysDictType.labelDefined() == sysDictEnum.labelDefined()) // Type's Label is a copy of the Enum's Label
+                    {
+                        sysBPCheck.addError(#BPErrorTypeLabelIsCopyOfEnumHelp, 0, 0, "@SYS55450", #propertyLabel);
+                        ret = false;
+                    }
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    boolean checkProperties()
+    {
+        boolean ret;
+        boolean rightJustified;
+
+        ret = super();
+
+        if (sysDictType.baseType() == Types::Enum &&
+            !sysDictEnum)
+        {
+            sysBPCheck.addError(#BPErrorEnumNotExist, 0, 0, strFmt("@SYS57821", sysDictType.enumId()), #propertyEnumType);
+        }
+
+        //sysDictType.stringRight returns false for all non-strings
+        rightJustified = sysDictType.stringRight();
+        if (rightJustified)
+        {
+            sysBPCheck.addError(#BPErrorEnumRightJustified, 0, 0, "@SYS107157", #propertyEnumType);
+        }
+
+        return ret;
+    }
+
+
+    boolean checkReference()
+    {
+        int             arrayIndex;
+        DictRelation    dictRelation;
+        DictTable       externTable;
+        DictField       externField;
+
+        boolean ret;
+
+        ret = super();
+
+        // Check to see if a field of this datatype are long enough to hold the values in the related table
+        if (ret)
+        {
+            for (arrayIndex = 1; arrayIndex <= sysDictType.arraySize(); arrayIndex++)
+            {
+                dictRelation = sysDictType.relationObject(arrayIndex);
+                if (dictRelation)
+                {
+                    externTable = new DictTable(dictRelation.table()); // externTable
+                    if (externTable)
+                    {
+                        externField = externTable.fieldObject(dictRelation.lineExternTableValue(1)); // the relation field are allways No. 1
+                        if (!externField) // Field with ID '%1' does not exist in table '%2'
+                        {
+                            sysBPCheck.addError(#BPErrorTypeFieldNotExistInTable, 0, 0, strFmt("@SYS55418", dictRelation.lineExternTableValue(1), externTable.name()));
+                            ret = false;
+                        }
+                        else
+                        if (sysDictType.stringLen() < externField.stringLen()) // The fields in the relation are incompatible. '%1.%2' are '%3' characters too short.
+                        {
+                            sysBPCheck.addError(#BPErrorTypeFieldsIncompatible, 0, 0, strFmt("@SYS55422",'', sysDictType.name(), externField.stringLen() - sysDictType.stringLen()));
+                            ret = false;
+                        }
+                    }
+                    else
+                    {
+                        sysBPCheck.addError(#BPErrorTypeExternTableUnknown, 0, 0, strFmt("@SYS55416", dictRelation.externTable())); // Table with ID '%1' does not exist
+                        ret = false;
+                    }
+                }
+            }
+        }
+
+        return ret;
+
+    }
+
+    boolean checkTableIdAndRecIdInheritance()
+    {
+        boolean ret;
+    ;
+
+        if (sysDictType.id()     != extendedTypeNum(RefRecId) &&
+            sysDictType.extend() == extendedTypeNum(RecId))
+        {
+            sysBPCheck.addError(#BPErrorTypeExtendsRecId, 0, 0, "@SYS92962");
+            ret = false;
+        }
+
+        if (sysDictType.id()     != extendedTypeNum(RefTableId) &&
+            sysDictType.extend() == extendedTypeNum(TableId))
+        {
+            sysBPCheck.addError(#BPErrorTypeExtendsTableId, 0, 0, "@SYS92963");
+            ret = false;
+        }
+
+        return ret;
+    }
+
+    public void dispose()
+    {
+        super();
+        sysDictType = null;
+        sysDictTypeExtend = null;
+        sysDictEnum = null;
+    }
+
+    private Set getSetOfConfigurationKeyId(ConfigurationKeyId _configurationKeyId)
+    {
+        SysDictConfigurationKey sysDictConfigurationKey;
+        Set set;
+        ;
+
+        sysDictConfigurationKey = new SysDictConfigurationKey(_configurationKeyId);
+        if (sysDictConfigurationKey)
+        {
+            set = sysDictConfigurationKey.getSetOfParentConfigurationKeyId();
+            set.add(_configurationKeyId);
+        }
+        else
+        {
+            set = new Set(Types::Integer);
+        }
+
+        return set;
+    }
+
+    public boolean init()
+    {
+        super();
+
+        sysDictType = SysDictType::newName(sysBPCheck.treeNode().treeNodeName());
+
+        if (sysDictType)
+        {
+            if (match('<tutorial', sysDictType.name()) ||
+                match('<DEL_', sysDictType.name()))
+            {
+                return false;
+            }
+            else
+            {
+                sysDictTypeExtend = new SysDictType(sysDictType.extend());
+                sysDictEnum       = new SysDictEnum(sysDictType.enumId());
+
+                if (sysDictType.name() != sysBPCheck.treeNode().treeNodeName())
+                {
+                    error(strFmt("@SYS60291",classStr(SysDictType), sysDictType.name(), sysBPCheck.treeNode().treeNodeName()));
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            error(strFmt("@SYS19384", classStr(SysDictType)));
+            return false;
+        }
+        return true;
+    }
+
+}

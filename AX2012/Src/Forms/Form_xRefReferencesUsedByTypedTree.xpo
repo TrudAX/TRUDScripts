@@ -1,0 +1,803 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #xRefReferencesUsedByTypedTree
+  PROPERTIES
+    Name                #xRefReferencesUsedByTypedTree
+    Origin              #{74487556-6372-4ED8-9CF1-7264FAAFEB74}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #/*
+      #    A tree control shows the other methods the method override or are overridden by, explicit as implicit.
+      #    User can navigate this tree to see other potential calls to the method.
+      #*/
+      #final class FormRun extends ObjectRun
+      #{
+      #    TreeNode  treeNode;
+      #
+      #    SysFormSplitter_X formSplitter;
+      #    SysTypeHierarchy  hierarchy;
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #/*
+      #    This form shows where the supplied type oriented application object are used; who it is "Used by"
+      #    The supplied application object can be
+      #    * a treeNode
+      #    * an external xRefNames buffer
+      #    * an external xRefPaths buffer
+      #    * an external UtilElements buffer
+      #*/
+      #void init()
+      #{
+      #    QueryBuildDataSource xRefReferencesQueryBuildDataSource;
+      #    xRefPaths            elementArgsXRefPaths;
+      #
+      #    startLengthyOperation();
+      #
+      #    if (SysContextMenu::startedFrom(element.args()))   // started from SysContextMenu
+      #    {
+      #        if (element.args().dataset() != tablenum(xRefPaths) &&
+      #            element.args().dataset() != tablenum(xRefNames))
+      #        {
+      #            treeNode = element.args().parmObject().first();
+      #            element.args().record(xRefPaths::find(treeNode.treeNodePath()));
+      #        }
+      #    }
+      #    else    // started with a button (or from a menu!)
+      #    if (element.args().dataset() == tablenum(UtilElements))
+      #    {
+      #        treeNode = xUtilElements::getNodeInTree(element.args().record());
+      #        element.args().record(xRefPaths::find(treeNode.treeNodePath()));
+      #    }
+      #
+      #    super();
+      #
+      #    formSplitter = new SysFormSplitter_X(split, treeGroup);
+      #    element.lock();
+      #
+      #    // if started with a xRefPaths, then relate to the referencePathRecId
+      #    if (element.args().dataset() == tablenum(xRefPaths))
+      #    {
+      #        xRefReferencesQueryBuildDataSource = xRefReferences_ds.query().dataSourceNo(1); // Name(tablestr(xRefReferences)
+      #        xRefReferencesQueryBuildDataSource.clearDynalinks();
+      #        xRefReferencesQueryBuildDataSource.addDynalink(fieldnum(xRefReferences,ReferencePathRecId),
+      #                                                  element.args().record(),
+      #                                                  fieldnum(xRefPaths,RecId));
+      #
+      #        nameButton.enabled(true);
+      #        if (!treeNode)
+      #        {
+      #            elementArgsXRefPaths = element.args().record();
+      #            treeNode = elementArgsXRefPaths.treeNode();
+      #        }
+      #    }
+      #    if (element.args().dataset() == tablenum(xRefNames))
+      #    {
+      #        nameButton.enabled(false);
+      #    }
+      #
+      #    // if it is a type based entry show the variable name declared for the types
+      #    if (treeNode && SysTreeNode::isType(treeNode))
+      #    {
+      #        xRefNames_nameGrid.visible(true);
+      #    }
+      #    else
+      #    {
+      #        xRefNames_nameGrid.visible(false);
+      #    }
+      #
+      #    element.resetSize();
+      #    element.unLock();
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #void run()
+      #{
+      #    #TreeNodeSysNodeType
+      #
+      #    if (treeNode &&
+      #        ((treeNode.treeNodeType().isUtilElement() && treeNode.utilElement().RecordType == UtilElementType::ClassInstanceMethod) ||
+      #         (treeNode.TreeNodeType().id() == #NT_KERNELDOCFUNCTIONNODE && !strContains(treeNode.AOTtoolTip(), 'static '))))     //  instance system class method
+      #    {
+      #        tree.linesAtRoot(true);
+      #        hierarchy = SysTypeHierarchy::newFormTreeControl(tree);
+      #        infolog.globalCache().set(formstr(xRefReferencesUsedByTypedTree), 0, new ObjectIdent(this));
+      #        hierarchy.onItemCreated += eventHandler(xRefUpdate::setIcon);
+      #        this.setupSimpleChart();
+      #    }
+      #    else
+      #    {   //Hides application heirarchy tree when node is not of correct type to display tree for.
+      #        treeGroup.width(0);
+      #        split.enabled(false);
+      #    }
+      #
+      #    super();
+      #}
+    ENDSOURCE
+    SOURCE #setIcon
+      #void setIcon(FormTreeItem _item)
+      #{
+      #    SysTypeHierarchyProvider provider = SysTypeHierarchyProviderGeneric::newName(_item.text());
+      #    SysDictClass dictClass = provider as SysDictClass;
+      #    xRefNames    xRefNamesCaller;
+      #    xRefReferences xRefReferencesCaller;
+      #    int image;
+      #    #resource
+      #
+      #    if (dictClass)
+      #    {
+      #        select firstonly TypeName, Name, Kind, RecId from xRefNamesCaller
+      #            where xRefNamesCaller.TypeName == dictClass.name() &&
+      #                  xRefNamesCaller.Name     == treeNode.treeNodeName() &&
+      #                  xRefNamesCaller.Kind     == xRefKind::ClassInstanceMethod
+      #        join xRefNameRecId, Reference from xRefReferencesCaller
+      #            where xRefReferencesCaller.xRefNameRecId == xRefNamesCaller.RecId &&
+      #                  xRefReferencesCaller.Reference == XRefReference::Call;
+      #    }
+      #
+      #    if (xRefNamesCaller)
+      #    {
+      #        image = dictClass && TreeNode::findNode(dictClass.path()+'\\'+treeNode.treeNodeName()) ?
+      #                #RES_NODE_INHSYS_OK :
+      #                #RES_NODE_INHSYS_NULL;
+      #
+      #    }
+      #    else
+      #    {
+      #        image = dictClass && TreeNode::findNode(dictClass.path()+'\\'+treeNode.treeNodeName()) ?
+      #                #RES_NODE_TRIGGER_NOTEMPTY :
+      #                #RES_NODE_TRIGGER_EMPTY;
+      #    }
+      #
+      #
+      #    if (image)
+      #    {
+      #        _item.image(hierarchy.parmImageList().image(image));
+      #        _item.selectedImage(_item.image());
+      #    }
+      #}
+      #
+    ENDSOURCE
+    SOURCE #setupSimpleChart
+      #void setupSimpleChart()
+      #{
+      #    //We only get here for class methods. The parent is always the class
+      #    TreeNode applObjectTreeNode = treeNode.AOTparent();
+      #
+      #    if (applObjectTreeNode)
+      #    {
+      #        hierarchy.populateFromTreenode(applObjectTreeNode);
+      #    }
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #XRefReferences
+          Table               #xRefReferences
+          AllowEdit           #No
+          AllowCreate         #No
+          AllowDelete         #No
+          InsertAtEnd         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #xRefPaths
+          Table               #xRefPaths
+          AllowEdit           #No
+          AllowCreate         #No
+          AllowDelete         #No
+          JoinSource          #XRefReferences
+          LinkType            #InnerJoin
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #xRefNames
+          Table               #xRefNames
+          AllowEdit           #No
+          AllowCreate         #No
+          AllowDelete         #No
+          JoinSource          #XRefReferences
+          LinkType            #InnerJoin
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+    xRefPaths XRefReferences
+    xRefNames XRefReferences
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SYS27530
+      WindowResize        #Dynamic
+      WindowType          #Workspace
+      SetCompany          #No
+      DataSource          #XRefReferences
+      ArrangeWhen         #Auto
+      HideIfEmpty         #No
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1879048190
+          HierarchyParent     #ThisCalled
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1252698792
+          HierarchyParent     #ThisCalled
+          DataSource          #XRefReferences
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDblClick
+            #public int mouseDblClick(int _x, int _y, int _button, boolean _Ctrl, boolean _Shift)
+            #{
+            #    int ret = super(_x, _y, _button, _ctrl, _shift);
+            #    ;
+            #    editButton.clicked();
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #NameRegister
+          AutoDeclaration     #Yes
+          Width               #Column width
+          ElementPosition     #715827882
+          FrameType           #None
+          FramePosition       #Center
+          DataSource          #XRefReferences
+          Columns             #3
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #References
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          FrameType           #None
+          Columns             #3
+          Columnspace         #0
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Split
+          AutoDeclaration     #Yes
+          Width               #4
+          Height              #Column height
+          ElementPosition     #1610612734
+          HierarchyParent     #References
+          FrameType           #None
+          HideIfEmpty         #No
+          AlignChild          #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDown
+            #int mouseDown(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    return formSplitter.mouseDown(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseMove
+            #int mouseMove(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return formSplitter.mouseMove(x,y,button,ctrl,shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseUp
+            #int mouseUp(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    return formSplitter.mouseUp(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ThisCalled
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1879048190
+          HierarchyParent     #References
+          FrameType           #None
+          DataSource          #XRefReferences
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #TreeGroup
+          AutoDeclaration     #Yes
+          Width               #200
+          Height              #Column height
+          ElementPosition     #1073741823
+          HierarchyParent     #References
+          FrameType           #None
+          Caption             #@SYS26859
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUBUTTON
+        PROPERTIES
+          Name                #MorphXtools
+          HelpText            #@SYS68574
+          ElementPosition     #1879048190
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS28637
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    SysContextMenu toolsMenu;
+            #    PopupMenu popupMenu;
+            #    int x,y;
+            #
+            #    toolsMenu = new SysContextMenuxRefReferences(xRefReferences);
+            #
+            #    popupMenu = toolsMenu.buildMenu(this.hWnd());
+            #    [x,y] = WinAPI::clientToScreen(this.hWnd(),this.widthValue(),0);
+            #    toolsMenu.runMenu(popupMenu.draw(x,y),toolsMenu,element,xRefReferences);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #dummy
+          HelpText            #@SYS28637
+          ElementPosition     #1073741823
+          HierarchyParent     #MorphXtools
+          Text                #@SYS68574
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #EditButton
+          AutoDeclaration     #Yes
+          HelpText            #@SYS1300
+          ElementPosition     #1610612734
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS16569
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    xRefReferences xRefReferencesEdit;
+            #
+            #    for (xRefReferencesEdit = getFirstSelection(xRefReferences_ds);
+            #         xRefReferencesEdit;
+            #         xRefReferencesEdit = xRefReferences_ds.getNext())
+            #    {
+            #        SysUtil::editPathLogicalPos(xRefReferencesEdit.path(),xRefReferencesEdit.Line,xRefReferencesEdit.Column);
+            #    }
+            #}
+            #
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #SDSinCurrentLayer
+          ElementPosition     #2102744403
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          Label               #inCurrentLayer
+          DataSource          #XRefReferences
+          DataMethod          #SDSinCurrentLayer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #xRefNames_kind
+          Skip                #Yes
+          ElementPosition     #1073741823
+          HierarchyParent     #NameRegister
+          LabelPosition       #Above
+          DataSource          #xRefNames
+          DataField           #kind
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #xRefReferences_Reference
+          ElementPosition     #1073741823
+          HierarchyParent     #Grid
+          DataSource          #XRefReferences
+          DataField           #Reference
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #XRefReferences_Column
+          ElementPosition     #2013265918
+          HierarchyParent     #Grid
+          DataSource          #XRefReferences
+          DataField           #Column
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #XRefReferences_Line
+          ElementPosition     #1879048190
+          HierarchyParent     #Grid
+          DataSource          #XRefReferences
+          DataField           #line
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #NameButton
+          AutoDeclaration     #Yes
+          ElementPosition     #1073741823
+          HierarchyParent     #ButtonGroup
+          MenuItemName        #XRefNames
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #TreeLabel
+          VerticalSpacing     #0
+          ElementPosition     #1073741823
+          HierarchyParent     #TreeGroup
+          Text                #@SYS26859
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #CIT_getSourceLine
+          AllowEdit           #No
+          ElementPosition     #2125114024
+          HierarchyParent     #Grid
+          DataSource          #XRefReferences
+          DataMethod          #SDSgetSourceLine
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDblClick
+            #//CIT000, DEV-CIT-0002, Утилиты разработки, 30.09.2009, kirp
+            #int mouseDblClick(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret = super(x, y, button, ctrl, shift);
+            #    ;
+            #    editButton.clicked();
+            #    return ret;
+            #}
+            #
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #xRefNames_name
+          Skip                #Yes
+          ElementPosition     #1610612734
+          HierarchyParent     #NameRegister
+          LabelPosition       #Above
+          DataSource          #xRefNames
+          DataField           #name
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #xRefNames_nameGrid
+          AutoDeclaration     #Yes
+          ElementPosition     #2080374782
+          HierarchyParent     #Grid
+          DataSource          #xRefNames
+          DataField           #name
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #xRefNames_typeName
+          Skip                #Yes
+          ElementPosition     #1879048190
+          HierarchyParent     #NameRegister
+          LabelPosition       #Above
+          DataSource          #xRefNames
+          DataField           #typeName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #xRefPaths_Path
+          ElementPosition     #1610612734
+          HierarchyParent     #Grid
+          DataSource          #xRefPaths
+          DataField           #Path
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDblClick
+            #int mouseDblClick(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret = super(x, y, button, ctrl, shift);
+            #
+            #    editButton.clicked();
+            #    return ret;
+            #}
+            #
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TREE
+        PROPERTIES
+          Name                #Tree
+          Width               #Column width
+          Height              #Column height
+          HelpText            #@SYS67740
+          ElementPosition     #1610612734
+          HierarchyParent     #TreeGroup
+          LinesAtRoot         #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #expanding
+            #public boolean expanding(int _idx, FormTreeExpand _action, anytype _data)
+            #{
+            #    if (_action==FormTreeExpand::Expand)
+            #    {
+            #        hierarchy.treeExpanding(_idx);
+            #    }
+            #    return false;
+            #}
+          ENDSOURCE
+          SOURCE #selectionChanged
+            #public void selectionChanged(FormTreeItem _oldItem, FormTreeItem _newItem, FormTreeSelect _how)
+            #{
+            #    xRefPaths xRefPathsNew;
+            #    xRefNames xRefNamesNew;
+            #    QueryBuildDataSource xRefReferencesQueryBuildDataSource;
+            #
+            #    super(_oldItem, _newItem, _how);
+            #
+            #    xRefNamesNew = xRefNames::find(xRefKind::ClassInstanceMethod, tree.getItem(tree.getSelection()).text(), treeNode.treeNodeName());
+            #
+            #    if (!xRefPathsNew)
+            #        xRefPathsNew.RecId = -1;    // no relations are to be shown (just hope none records have recid = -1!)
+            #
+            #    xRefReferencesQueryBuildDataSource = xRefReferences_q.dataSourceNo(1);
+            #    xRefReferencesQueryBuildDataSource.clearDynalinks();
+            #    xRefReferencesQueryBuildDataSource.addDynalink(fieldnum(xRefReferences,xRefNameRecId),
+            #                                                       xRefNamesNew,
+            #                                                       fieldnum(xRefNames,RecId));
+            #
+            #    xRefReferences_ds.executeQuery();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

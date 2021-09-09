@@ -1,0 +1,309 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : DEVLabelsCreateInfo unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEVLabelsCreateInfo
+    EnforceFKRelation 1
+    PROPERTIES
+      Name                #DEVLabelsCreateInfo
+      Label               #Labels Create Info
+      TitleField1         #PropertyName
+      TitleField2         #LabelActionType
+      CreateRecIdIndex    #Yes
+      PrimaryIndex        #SurrogateKey
+      ClusterIndex        #SurrogateKey
+      DeveloperDocumentation  #This table holds the labels create info
+      Origin              #{ED5D62B3-DE3D-462B-BDE4-FE6EACFC5DB5}
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #Column
+        INT
+        PROPERTIES
+          Name                #Column
+          Label               #@SYS5771
+          Table               #DEVLabelsCreateInfo
+          Origin              #{DE6F1E04-3930-4BB3-9990-98BC4571A2FB}
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #ElementPath
+        STRING
+        PROPERTIES
+          Name                #ElementPath
+          Label               #Element Path
+          Table               #DEVLabelsCreateInfo
+          Origin              #{571D768E-B611-43BA-AC5B-8C3367E4A418}
+          ExtendedDataType    #TreeNodePath
+          StringSize          #400
+        ENDPROPERTIES
+        
+      FIELD #IsProcessed
+        ENUM
+        PROPERTIES
+          Name                #IsProcessed
+          Label               #Is Processed
+          Table               #DEVLabelsCreateInfo
+          Origin              #{C3BDB034-85D2-427E-ADEC-C96A1F1E4746}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #LabelActionType
+        ENUM
+        PROPERTIES
+          Name                #LabelActionType
+          Table               #DEVLabelsCreateInfo
+          Origin              #{F417F2B3-79D0-47F1-A6E2-76BE9615A3AE}
+          EnumType            #DEVLabelActionType
+        ENDPROPERTIES
+        
+      FIELD #Line
+        INT
+        PROPERTIES
+          Name                #Line
+          Label               #@SYS70473
+          Table               #DEVLabelsCreateInfo
+          Origin              #{86053801-26B9-4305-B8C7-E1782D15CE2B}
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #NewLabel
+        STRING
+        PROPERTIES
+          Name                #NewLabel
+          Label               #New Label
+          Table               #DEVLabelsCreateInfo
+          Origin              #{5BCAD941-8642-41A3-B804-AF68AE26D10C}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #NewLabelValue
+        STRING
+        PROPERTIES
+          Name                #NewLabelValue
+          Label               #New Label Value
+          Table               #DEVLabelsCreateInfo
+          Origin              #{02E4B060-F6AB-46A7-8EEE-6DF490A2CB81}
+          ExtendedDataType    #NotesLine
+          StringSize          #254
+        ENDPROPERTIES
+        
+      FIELD #PropertyName
+        STRING
+        PROPERTIES
+          Name                #PropertyName
+          Label               #Property Name
+          Table               #DEVLabelsCreateInfo
+          Origin              #{F5EA4C0B-A9CE-4611-845F-EA31F02419E1}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #SpacesOnEnd
+        INT
+        PROPERTIES
+          Name                #SpacesOnEnd
+          Label               #Spaces On End
+          Table               #DEVLabelsCreateInfo
+          Origin              #{403FEC7F-0183-42AE-806A-68BBD9401B82}
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #TextValue
+        STRING
+        PROPERTIES
+          Name                #TextValue
+          Label               #Text Value
+          Table               #DEVLabelsCreateInfo
+          Origin              #{89854B9D-CBFB-4930-B594-36D24837A119}
+          ExtendedDataType    #NotesLine
+          StringSize          #254
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Column
+          #ElementPath
+          #IsProcessed
+          #LabelActionType
+          #Line
+          #NewLabel
+          #NewLabelValue
+          #PropertyName
+          #SpacesOnEnd
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #GridGroup
+        PROPERTIES
+          Name                #GridGroup
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #IsProcessed
+          #ElementPath
+          #PropertyName
+          #Line
+          #Column
+          #LabelActionType
+          #TextValue
+          #NewLabel
+          #NewLabelValue
+          #SpacesOnEnd
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #TextValueIdx
+      PROPERTIES
+        Name                #TextValueIdx
+        Origin              #{50FD71C7-A338-4298-BBB9-2A2F694CFB22}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #TextValue
+      ENDINDEXFIELDS
+      
+      #UniqIdx
+      PROPERTIES
+        Name                #UniqIdx
+        AllowDuplicates     #No
+        Origin              #{F9DD7CAE-C7BC-4B87-A99F-296E2187F2A6}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #ElementPath
+        #PropertyName
+        #Line
+        #Column
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #insert
+        #public void insert()
+        #{
+        #    ;
+        #    this.SpacesOnEnd = strLen(this.TextValue) - strLen(strRTrim(this.TextValue));
+        #    super();
+        #}
+      ENDSOURCE
+      SOURCE #setLabelInSource
+        #void setLabelInSource()
+        #{
+        #    TreeNode    treeNode;
+        #    str         source;
+        #    int         newPos;
+        #
+        #    int getPosInSource(str  _source, int _row, int _column)
+        #    {
+        #        int pos;
+        #        int line;
+        #        int i;
+        #        str posText;
+        #        ;
+        #        for (i = 1; i <= _row - 1; i++)
+        #        {
+        #            pos = strFind(_source, '\n', pos + 1, maxInt());
+        #            if (! pos)
+        #            {
+        #                break;
+        #            }
+        #        }
+        #        if (! pos && _row != 1)
+        #        {
+        #            throw error(strFmt("Position not found. Path %1, Row %2, Col %3", this.ElementPath, _row, _column));
+        #        }
+        #
+        #        pos = pos + _column;
+        #
+        #        posText = subStr(_source, pos, strLen(this.TextValue));
+        #        if (posText != this.TextValue)
+        #        {
+        #            throw error(strFmt("Text is not equal. Path %1, Row %2, Col %3, Source text %4, Expected %5",
+        #                                this.ElementPath, _row, _column, posText, this.TextValue));
+        #        }
+        #
+        #        return pos;
+        #    }
+        #    ;
+        #
+        #    treeNode = TreeNode::findNode(this.ElementPath);
+        #
+        #    source = treeNode.AOTgetSource();
+        #    newPos = getPosInSource(source, this.Line, this.Column);
+        #
+        #    source = strDel(source, newPos, strLen(this.TextValue));
+        #    source = strIns(source, this.NewLabel, newPos);
+        #    info(source);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #setDevDocumentation
+        #static void setDevDocumentation()
+        #{
+        #    UtilElements        utilElements;
+        #    UtilElements        utilElementsEx;
+        #    TreeNode            treeNode;
+        #    str                 s;
+        #    Label   l = new Label();
+        #    ;
+        #    setPrefix('dev doc');
+        #    //info(l.extractString('@ROS77'));
+        #    //return;
+        #    while select utilElements
+        #        where utilElements.utilLevel == UtilEntryLevel::isv &&
+        #              utilElements.recordType == UtilElementType::Table
+        #    notexists join utilElementsEx
+        #        where utilElementsEx.recordType == utilElements.recordType &&
+        #              utilElementsEx.name       == utilElements.name &&
+        #              utilElementsEx.utilLevel < UtilEntryLevel::isv
+        #    {
+        #        try
+        #        {
+        #        setPrefix(utilElements.name);
+        #        //info(utilElements.name);
+        #        treeNode     = TreeNode::findNode('\\data dictionary\\tables\\'+utilElements.name);
+        #        if (treeNode && treeNode.AOTgetProperty('Label') && ! treeNode.AOTgetProperty('DeveloperDocumentation'))
+        #        {
+        #            s = strFmt('This table holds the %1', strLwr(l.extractString(treeNode.AOTgetProperty('Label'))));
+        #            treeNode.AOTsetProperty('DeveloperDocumentation', s);
+        #            treeNode.AOTsave();
+        #            info(s);
+        #            //return;
+        #        }
+        #        }
+        #        catch
+        #        {
+        #            exceptionTextFallThrough();
+        #        }
+        #    }
+        #
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

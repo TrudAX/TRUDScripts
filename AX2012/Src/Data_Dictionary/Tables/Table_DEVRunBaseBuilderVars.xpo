@@ -1,0 +1,398 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : DEVRunBaseBuilderVars unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEVRunBaseBuilderVars
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #DEVRunBaseBuilderVars
+      Label               #Class variables
+      TitleField1         #Name
+      TitleField2         #Type
+      SaveDataPerCompany  #No
+      PrimaryIndex        #NameIdx
+      ClusterIndex        #NameIdx
+      ModifiedDateTime    #Yes
+      ModifiedBy          #Yes
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+      Origin              #{AECFE25A-E253-48AE-8772-260C74A71AD0}
+      LegacyId            #50045
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #ContractGroupLabel2
+        STRING
+        PROPERTIES
+          Name                #ContractGroupLabel2
+          Label               #Contract Group Label
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{572E9A1A-3D6F-4C9F-83E0-FB702B2ACE76}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #ContractGroupName2
+        STRING
+        PROPERTIES
+          Name                #ContractGroupName2
+          Label               #Contract Group Name
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{916430F9-DD0A-42B6-8217-A7F12ECEC52B}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #DlgName
+        STRING
+        PROPERTIES
+          Name                #DlgName
+          Label               #Dialog variable name
+          HelpText            #DialogField variable name, e.g. dlgStartDate.
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{5BCCBDED-56A8-4CEC-92E4-1B79233A4F98}
+          LegacyId            #50004
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #IsExternalTable
+        ENUM
+        PROPERTIES
+          Name                #IsExternalTable
+          Label               #Is external table
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{79D5A804-8036-4E4C-BFC0-5453F6F936A5}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #Label
+        STRING
+        PROPERTIES
+          Name                #Label
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{2B239394-E704-443B-984C-2ECAA14BD7BA}
+          LegacyId            #50006
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #LabelHelp
+        STRING
+        PROPERTIES
+          Name                #LabelHelp
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{A0854E90-CABF-499E-8026-360EF7B3FD15}
+          LegacyId            #50007
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #LineNum
+        REAL
+        PROPERTIES
+          Name                #LineNum
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{A0A8A087-C1DC-40F7-B63C-3EC9E9AE36C8}
+          LegacyId            #50009
+          ExtendedDataType    #LineNum
+        ENDPROPERTIES
+        
+      FIELD #Mandatory
+        ENUM
+        PROPERTIES
+          Name                #Mandatory
+          HelpText            #Mandatory variable.
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{35E63049-DBEE-421A-B648-F6B210661FB2}
+          LegacyId            #50003
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #Name
+        STRING
+        PROPERTIES
+          Name                #Name
+          Label               #Variable name
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{D273A500-9B9D-4CD8-916D-7548BFE90E40}
+          LegacyId            #50001
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #OverwriteLabels
+        ENUM
+        PROPERTIES
+          Name                #OverwriteLabels
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{6C84CC54-CEEA-4FD1-9BCA-8DC9107100A2}
+          LegacyId            #50008
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #ParmName
+        STRING
+        PROPERTIES
+          Name                #ParmName
+          Label               #Parm method name
+          HelpText            #Parm method name, e.g. parmStartDate
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{81D5C8AE-FB0E-40A9-83A9-3C39E088A895}
+          LegacyId            #50005
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #Type
+        STRING
+        PROPERTIES
+          Name                #Type
+          Label               #Variable type
+          Table               #DEVRunBaseBuilderVars
+          Origin              #{5EF837C5-A0AE-4B83-8675-F249235FF7F7}
+          LegacyId            #50002
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AdditionalProperties
+        PROPERTIES
+          Name                #AdditionalProperties
+          Label               #@SYS23466
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #IsExternalTable
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #NameIdx
+      PROPERTIES
+        Name                #NameIdx
+        AllowDuplicates     #No
+        Origin              #{4D26442A-55A7-47BA-8766-869BB5C30311}
+        LegacyId            #50001
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #Name
+      ENDINDEXFIELDS
+      
+      #LineNumIdx
+      PROPERTIES
+        Name                #LineNumIdx
+        Origin              #{4D9BF0C5-32C4-4E6A-B0C5-58437841B51D}
+        LegacyId            #50002
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #LineNum
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #insert
+        #public void insert()
+        #{
+        #    ;
+        #    super();
+        #}
+      ENDSOURCE
+      SOURCE #modifiedField
+        #public void modifiedField(fieldId _fieldId)
+        #{
+        #    ;
+        #    super(_fieldId);
+        #
+        #    switch (_fieldId)
+        #    {
+        #        case fieldnum(DEVRunBaseBuilderVars, Type):
+        #            this.Name = strupr(substr(this.Name, 1, 1)) + substr(this.Name, 2, strlen(this.Name));
+        #            this.rebuildVarNames();
+        #            this.rebuildLabels();
+        #            break;
+        #
+        #        case fieldnum(DEVRunBaseBuilderVars, Name):
+        #            this.rebuildVarNames();
+        #            this.rebuildLabels();
+        #            break;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #moveDown
+        #DEVRunBaseBuilderVars moveDown(DEVRunBaseBuilderVars _builderVars)
+        #{
+        #    DEVRunBaseBuilderVars          after;
+        #    DEVRunBaseBuilderVars          cur;
+        #    LineNum                        num;
+        #    ;
+        #
+        #    //after.setTmpData(_builderVars);
+        #    //cur.setTmpData(_builderVars);
+        #
+        #    ttsbegin;
+        #
+        #    select forupdate after
+        #      order by LineNum
+        #      where after.LineNum > this.LineNum;
+        #
+        #    if (after && this && after.LineNum > this.LineNum)
+        #    {
+        #        cur.selectForUpdate();
+        #        select firstOnly forUpdate cur
+        #          where cur.RecId == this.RecId;
+        #
+        #        num                 = this.LineNum;
+        #        cur.LineNum         = after.LineNum;
+        #
+        #        after.LineNum   = num + (after.LineNum - num) / 2;
+        #
+        #        after.update();
+        #        cur.update();
+        #    }
+        #
+        #    ttscommit;
+        #
+        #    return cur;
+        #}
+      ENDSOURCE
+      SOURCE #moveUp
+        #DEVRunBaseBuilderVars moveUp(DEVRunBaseBuilderVars _builderVars)
+        #{
+        #    DEVRunBaseBuilderVars      before;
+        #    DEVRunBaseBuilderVars      save;
+        #    LineNum                    num;
+        #    ;
+        #
+        #    //before.setTmpData(_builderVars);
+        #
+        #    ttsbegin;
+        #
+        #    select forupdate before
+        #      order by LineNum desc
+        #      where before.LineNum < this.LineNum;
+        #
+        #    if (before && this && before.LineNum < this.LineNum)
+        #    {
+        #        num             = this.LineNum;
+        #        this.LineNum    = before.LineNum;
+        #
+        #        before.LineNum  = before.LineNum + (num - before.LineNum) / 2;
+        #        before.update();
+        #
+        #        this.update();
+        #        save = this.data();
+        #    }
+        #
+        #    ttscommit;
+        #
+        #    return save;
+        #}
+      ENDSOURCE
+      SOURCE #rebuildLabels
+        #void rebuildLabels()
+        #{
+        #    str         strlabel, strLabelHelp;
+        #    DictType    dictType;
+        #    DictEnum    dictEnum;
+        #    Dictionary  dict = new Dictionary();
+        #    ;
+        #
+        #    if (dict.typeName2Id(this.Type))
+        #    {
+        #        dictType = new DictType(dict.typeName2Id(this.Type));
+        #
+        #        if (dictType)
+        #        {
+        #            this.Label       = dictType.label();
+        #            this.LabelHelp   = dictType.help(true);
+        #        }
+        #    }
+        #    else if (dict.enumName2Id(this.Type))
+        #    {
+        #        dictEnum = new dictEnum(dict.enumName2Id(this.Type));
+        #
+        #        if (dictEnum)
+        #        {
+        #            this.Label       = dictEnum.label();
+        #            this.LabelHelp   = dictEnum.help(true);
+        #        }
+        #    }
+        #
+        #
+        #}
+      ENDSOURCE
+      SOURCE #rebuildVarNames
+        #void rebuildVarNames()
+        #{
+        #    SysElementName  parmName, dlgName;
+        #    ;
+        #
+        #    this.DlgName     = "dlg"     + strupr(substr(this.Name, 1, 1)) + substr(this.Name, 2, strlen(this.Name));
+        #    this.ParmName    = "parm"    + strupr(substr(this.Name, 1, 1)) + substr(this.Name, 2, strlen(this.Name));
+        #}
+      ENDSOURCE
+      SOURCE #lookupAOTQuery
+        #static void lookupAOTQuery(FormStringControl _control)
+        #{
+        #    SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(UtilElements), _control);
+        #    Query                   query = new Query();
+        #    QueryBuildDataSource    qbds = query.addDataSource(tablenum(UtilElements));
+        #    QueryBuildRange         qbr = qbds.addRange(fieldnum(UtilElements, RecordType));
+        #    ;
+        #
+        #    qbr.value(queryValue(UtilElementType::Query));
+        #
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, Name));
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, RecordType));
+        #    sysTableLookup.parmQuery(query);
+        #    sysTableLookup.performFormLookup();
+        #}
+      ENDSOURCE
+      SOURCE #lookupVarTypes
+        #static void lookupVarTypes(FormStringControl _control)
+        #{
+        #    SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(UtilElements), _control);
+        #    Query                   query = new Query();
+        #    QueryBuildDataSource    qbds = query.addDataSource(tablenum(UtilElements));
+        #    QueryBuildRange         qbr;
+        #    ;
+        #
+        #    qbr = qbds.addRange(fieldnum(UtilElements, RecordType));
+        #    qbr.value(queryValue(UtilElementType::ExtendedType));
+        #
+        #    qbr = qbds.addRange(fieldnum(UtilElements, RecordType));
+        #    qbr.value(queryValue(UtilElementType::Enum));
+        #
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, Name));
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, RecordType));
+        #    sysTableLookup.parmQuery(query);
+        #    sysTableLookup.performFormLookup();
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

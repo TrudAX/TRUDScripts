@@ -1,0 +1,996 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysVersionControlCheckIn
+  PROPERTIES
+    Name                #SysVersionControlCheckIn
+    Origin              #{0B180000-0000-1000-6C98-A7ECEC045D6B}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #    SysVersionControlTmpItem            item;
+      #    SysVersionControlTmpWorkItems       tmpWorkItems;
+      #    SysVersionControlAction             action;
+      #    SysVersionControlWorkItemProvider   workItemProvider;
+      #    SysFormSplitter_Y                   formSplitter;
+      #
+      #    // Controls whether or not the form should have modal behaviour
+      #    boolean                             setFormToModal;
+      #    boolean                             workItemsActivatedFirstTime;
+      #
+      #    SysVersionControlChangeListId       changeList;
+      #}
+    ENDSOURCE
+    SOURCE #addWorkItemById
+      #public void addWorkItemById(SysVersionControlWorkItemId idToAdd)
+      #{
+      #    SysVersionControlTmpWorkItems addedItem;
+      #
+      #    addedItem = workItemProvider.getItemById(idToAdd);
+      #
+      #    if (SysVersionControlTmpWorkItems::numberOfWorkItems(addedItem) == 0)
+      #    {
+      #        warning("@SYS341267");
+      #    }
+      #    else
+      #    {
+      #        select firstonly addedItem;
+      #
+      #        tmpWorkItems.id = addedItem.id;
+      #        tmpWorkItems.Title = addedItem.Title;
+      #        tmpWorkItems.State = addedItem.State;
+      #        tmpWorkItems.Type = addedItem.Type;
+      #
+      #        tmpWorkItems.insert();
+      #
+      #        sysVersionControlTmpWorkItems_ds.executeQuery();
+      #        sysVersionControlTmpWorkItems_ds.findRecord(tmpWorkItems);
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #close
+      #public void close()
+      #{
+      #    if (workItemProvider != null)
+      #    {
+      #        workItemProvider.flushCache();
+      #    }
+      #    super();
+      #}
+    ENDSOURCE
+    SOURCE #closeOk
+      #public void closeOk()
+      #{
+      #    SysVersionControlTmpItem localitem;
+      #    SysVersionControlReviews review;
+      #    boolean closeForm = true;
+      #;
+      #    //
+      #    // Remove deselected items from list
+      #    // and store them in local variable
+      #    //
+      #    while select item
+      #        where item.Selected == false
+      #    {
+      #        localitem.data(item);
+      #        localitem.insert();
+      #        item.delete();
+      #    }
+      #
+      #    try
+      #    {
+      #        switch (action)
+      #        {
+      #            case SysVersionControlAction::CheckIn:
+      #                if (gatedCheckin.value())
+      #                    versioncontrol.checkInChangelist(item, '', changeList, tmpWorkItems);
+      #                else
+      #                    versioncontrol.checkInChangelist(item, comment.valueStr(), changeList, tmpWorkItems);
+      #                break;
+      #
+      #            case SysVersionControlAction::Review:
+      #                review = versioncontrol.parmSysVersionControlSystem() as SysVersionControlReviews;
+      #                if (review)
+      #                    review.reviewChangeList(item, comment.valueStr(), filename.valueStr());
+      #                break;
+      #        }
+      #    }
+      #    catch
+      #    {
+      #        //
+      #        // If something failed, reinsert the deselected items,
+      #        // and keep the form running.
+      #        //
+      #
+      #        while select localitem
+      #        {
+      #            item.data(localitem);
+      #            item.insert();
+      #        }
+      #        closeForm = false;
+      #    }
+      #    if (closeForm)
+      #    {
+      #        super();
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #fetchData
+      #void fetchData(boolean _firsttime = false)
+      #{
+      #    SysVersionControlSystem sysVersionControlSystem = versioncontrol.parmSysVersionControlSystem();
+      #    SysVersionControlChangeLists sysVersionControlChangeLists = sysVersionControlSystem as SysVersionControlChangeLists;
+      #
+      #    if(sysVersionControlChangeLists && changeList)
+      #    {
+      #        item = sysVersionControlChangeLists.getPendingChangeListContents(changeList);
+      #    }
+      #    else
+      #    {
+      #        item = versioncontrol.getCheckedOutItems();
+      #    }
+      #
+      #    if (element.args() &&
+      #        element.args().caller())
+      #    {
+      #        // By default select all items
+      #        this.setSelected(true);
+      #    }
+      #    else
+      #    {
+      #        // Started from AOT context menu - only select the items from the AOT
+      #        this.setSelectedAotElements();
+      #    }
+      #
+      #    // BP deviation documented
+      #    sysVersionControlTmpItem.setTmp();
+      #    sysVersionControlTmpItem.checkRecord(false);
+      #    sysVersionControlTmpItem.setTmpData(item);
+      #    if (!_firsttime)
+      #        sysVersionControlTmpItem_ds.executeQuery();
+      #}
+    ENDSOURCE
+    SOURCE #filenameLookupFileName
+      #str filenameLookupFileName()
+      #{
+      #    return '';
+      #}
+    ENDSOURCE
+    SOURCE #filenameLookupFilter
+      #FilenameFilter filenameLookupFilter()
+      #{
+      #    SysVersionControlReviews review =versioncontrol.parmSysVersionControlSystem() as SysVersionControlReviews;
+      #
+      #    if (review)
+      #        return review.reviewFilenameLookupFilter();
+      #    return conNull();
+      #}
+    ENDSOURCE
+    SOURCE #filenameLookupInitialPath
+      #str filenameLookupInitialPath()
+      #{
+      #    return '';
+      #}
+    ENDSOURCE
+    SOURCE #filenameLookupTitle
+      #str filenameLookupTitle()
+      #{
+      #    return "@SYS88311";
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    SysVersionControlSystem vcs = versioncontrol.parmSysVersionControlSystem();
+      #    Object caller;
+      #
+      #    element.args().record(null);
+      #    super();
+      #    aotImage.imageList(new ImageListAppl_Aot().imageList());
+      #
+      #    this.initializeWorkItems(vcs);
+      #
+      #    if (element.args().parmEnumType() == enumnum(SysVersionControlAction))
+      #    {
+      #        action = element.args().parmEnum();
+      #
+      #        // If parm not empty, then the form should have modal behaviour
+      #        if (element.args().parm())
+      #        {
+      #            setFormToModal = str2enum(setFormToModal, element.args().parm());
+      #        }
+      #
+      #        switch (action)
+      #        {
+      #            case SysVersionControlAction::Review:
+      #                element.design().caption("@SYS60543");
+      #                filename.visible(true);
+      #                break;
+      #
+      #            default:
+      #                if (vcs && vcs.supportCheckInWizard())
+      #                {
+      #                    gatedCheckin.visible(true);
+      #                    //Check and disable the 'use checkin wizard' check box so checkins are forced through the checkin wizard.
+      #                    //Also disable the change description box because it should be disabled when using the checkin wizard.
+      #                    gatedCheckin.value(1);
+      #                    gatedCheckin.enabled(false);
+      #                    comment.visible(false);
+      #                }
+      #                break;
+      #        }
+      #
+      #        if (vcs && !vcs.supportChangeVersion())
+      #        {
+      #            overview_Version.visible(false);
+      #        }
+      #    }
+      #    else
+      #    {
+      #        throw error(Error::missingParameter(element));
+      #    }
+      #
+      #    caller = element.args().caller() as FormRun;
+      #    if (caller &&
+      #        formHasMethod(caller, identifierstr(changeList)))
+      #    {
+      #        changeList = caller.changeList();
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #initializeWorkItems
+      #private void initializeWorkItems(SysVersionControlSystem vcs)
+      #{
+      #    workItemsActivatedFirstTime = false;
+      #    workItemProvider = vcs.workItemProvider();
+      #    if (workItemProvider == null)
+      #    {
+      #        workItems.visible(false);
+      #    }
+      #    else
+      #    {
+      #        workItemProvider.flushCache();
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    this.fetchData();
+      #
+      #    DEVCommentsTool::processCheckInForm(element);
+      #
+      #    super();
+      #
+      #    if (setFormToModal)
+      #    {
+      #        element.wait(setFormToModal);
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #setSelected
+      #void setSelected(boolean _selected)
+      #{
+      #    while select forupdate item
+      #    {
+      #        item.Selected = _selected;
+      #        item.update();
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #setSelectedAotElements
+      #void setSelectedAotElements()
+      #{
+      #    LastAotSelection lastAotSelection = new LastAotSelection();
+      #    TreeNode treeNode;
+      #
+      #    treeNode = lastAotSelection.first();
+      #
+      #    element.setSelected(treeNode == null);
+      #
+      #    while (treeNode)
+      #    {
+      #        select forupdate item
+      #            where item.ItemPath == treeNode.treeNodePath();
+      #
+      #        if (item)
+      #        {
+      #            item.Selected = true;
+      #            item.update();
+      #        }
+      #
+      #        treeNode = lastAotSelection.next();
+      #    }
+      #
+      #    sysVersionControlTmpItem_ds.executeQuery();
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysVersionControlTmpItem
+          Table               #SysVersionControlTmpItem
+          AllowCreate         #No
+          AllowDelete         #No
+          InsertAtEnd         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #validateDelete
+          #public boolean validateDelete()
+          #{
+          #    //
+          #    // Do not display warning dialog, as this is a temporary form
+          #    //
+          #    return true;
+          #}
+        ENDSOURCE
+        SOURCE #init
+          #public void init()
+          #{
+          #    super();
+          #    this.query().dataSourceTable(tableNum(SysVersionControlTmpItem)).addSortField(fieldNum(SysVersionControlTmpItem, vcsDate),SortOrder::Descending);
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysVersionControlTmpWorkItems
+          Table               #SysVersionControlTmpWorkItems
+          AllowCreate         #No
+          AllowDelete         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Height              #Column height
+      Caption             #@SYS85680
+      WindowType          #Workspace
+      SetCompany          #No
+      BackgroundColor     #Window background
+      TopMargin           #0
+      BottomMargin        #0
+      LeftMargin          #0
+      RightMargin         #0
+      ViewEditMode        #Edit
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1431655764
+          HierarchyParent     #DialogCommit
+          Style               #DialogCommitContainer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #SelectGrp
+          ElementPosition     #1610612733
+          HierarchyParent     #ButtomGroup
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #ButtomGroup
+          ShowRowLabels       #No
+          DataSource          #SysVersionControlTmpItem
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #WorkItemsList
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #WorkItems
+          ShowRowLabels       #No
+          DataSource          #SysVersionControlTmpWorkItems
+          DataGroup           #CheckInActionData
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ButtomGroup
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #ModelElements
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #CommentGroup
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1288490187
+          HierarchyParent     #TopGroup
+          Caption             #@SYS7576
+          AlignChild          #No
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #DialogCommit
+          ElementPosition     #1431655764
+          Style               #DialogCommit
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #DialogContent
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #715827882
+          Style               #DialogContent
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ItemQueryGroup
+          ElementPosition     #1073741822
+          HierarchyParent     #WorkItems
+          ArrangeMethod       #Horizontal, flush right
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Overview
+          AllowEdit           #No
+          ElementPosition     #1717986916
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          DataSource          #SysVersionControlTmpItem
+          DataGroup           #ChangelistGrid
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #TopGroup
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #ModelElements
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TAB
+        PROPERTIES
+          Name                #MainTab
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #DialogContent
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #ModelElements
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #MainTab
+          Caption             #@SYS341269
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #WorkItems
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #MainTab
+          Caption             #@SYS341266
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #fetchWorkItemsData
+            #private void fetchWorkItemsData()
+            #{
+            #    tmpWorkItems = workItemProvider.getItemsAssignedToMe();
+            #    //BP Deviation documented
+            #    sysVersionControlTmpWorkItems.setTmp();
+            #    sysVersionControlTmpWorkItems.checkRecord(false);
+            #    sysVersionControlTmpWorkItems.setTmpData(tmpWorkItems);
+            #    sysVersionControlTmpWorkItems_ds.executeQuery();
+            #}
+          ENDSOURCE
+          SOURCE #pageActivated
+            #public void pageActivated()
+            #{
+            #    super();
+            #
+            #    if (workItemsActivatedFirstTime == false)
+            #    {
+            #        this.fetchWorkItemsData();
+            #        workItemsActivatedFirstTime = true;
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #AddToList
+          HelpText            #@SYS341271
+          ElementPosition     #1610612734
+          HierarchyParent     #ItemQueryGroup
+          Text                #@SYS341270
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    SysVersionControlWorkItemId idToAdd;
+            #
+            #    super();
+            #
+            #    idToAdd = workItemIdToAdd.value();
+            #
+            #    if (tmpWorkItems.containsItemById(idToAdd))
+            #    {
+            #        warning("@SYS341268");
+            #    }
+            #    else
+            #    {
+            #        element.addWorkItemById(idToAdd);
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #SelectAll
+          HelpText            #@SYS111701
+          ElementPosition     #1073741822
+          HierarchyParent     #SelectGrp
+          Text                #@SYS11696
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #
+            #    element.setSelected(true);
+            #    sysVersionControlTmpItem_ds.executeQuery();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #SelectNone
+          HelpText            #@SYS111702
+          ElementPosition     #1610612733
+          HierarchyParent     #SelectGrp
+          Text                #@SYS1369
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #
+            #    element.setSelected(false);
+            #    sysVersionControlTmpItem_ds.executeQuery();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #GatedCheckIn
+          AutoDeclaration     #Yes
+          Visible             #No
+          HelpText            #@SYS90671
+          ElementPosition     #1717986916
+          HierarchyParent     #TopGroup
+          Label               #@SYS90670
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    boolean ret;
+            #
+            #    ret = super();
+            #    comment.allowEdit(!this.value());
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #SysVersionControlTmpItem_Selected
+          ElementPosition     #858993458
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          DataSource          #SysVersionControlTmpItem
+          DataField           #Selected
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMMANDBUTTON
+        PROPERTIES
+          Name                #CommandCancel
+          ElementPosition     #1610612733
+          HierarchyParent     #ButtonGroup
+          Command             #264
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMMANDBUTTON
+        PROPERTIES
+          Name                #CommandOk
+          ElementPosition     #1073741822
+          HierarchyParent     #ButtonGroup
+          DefaultButton       #Yes
+          Command             #263
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    if (!comment.valueStr() && !gatedCheckin.value())
+            #    {
+            #        throw error(strFmt("@SYS84753","@SYS85716"));
+            #    }
+            #
+            #    if (action == SysVersionControlAction::Review &&
+            #        !filename.valueStr())
+            #    {
+            #        throw error(strFmt("@SYS84753","@SYS53125"));
+            #    }
+            #
+            #    //
+            #    // Verify at least one file is selected
+            #    //
+            #    select count(RecId) from item
+            #        where item.Selected ==true;
+            #
+            #    if (item.RecId == 0)
+            #    {
+            #        throw error("@SYS111699");
+            #    }
+            #
+            #    super();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Overview_Version
+          AutoDeclaration     #Yes
+          ElementPosition     #1288490187
+          HierarchyParent     #Overview
+          DataSource          #SysVersionControlTmpItem
+          DataField           #Version
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #WorkItemIdToAdd
+          AutoDeclaration     #Yes
+          ElementPosition     #1073741822
+          HierarchyParent     #ItemQueryGroup
+          ExtendedDataType    
+            ARRAY 
+              #SysVersionControlWorkItemId
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #WorkItemsList_ID
+          AllowEdit           #No
+          ElementPosition     #1073741823
+          HierarchyParent     #WorkItemsList
+          DataSource          #SysVersionControlTmpWorkItems
+          DataField           #ID
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Comment
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #CommentGroup
+          DisplayHeight       #5
+          MultiLine           #Yes
+          ShowLabel           #No
+          Mandatory           #Yes
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Filename
+          AutoDeclaration     #Yes
+          Visible             #No
+          Width               #Column width
+          ElementPosition     #858993458
+          HierarchyParent     #TopGroup
+          Mandatory           #Yes
+          ExtendedDataType    
+            ARRAY 
+              #FilenameSave
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #WorkItemsList_State
+          AllowEdit           #No
+          ElementPosition     #1610612733
+          HierarchyParent     #WorkItemsList
+          DataSource          #SysVersionControlTmpWorkItems
+          DataField           #State
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #WorkItemsList_Type
+          AllowEdit           #No
+          ElementPosition     #1879048188
+          HierarchyParent     #WorkItemsList
+          DataSource          #SysVersionControlTmpWorkItems
+          DataField           #Type
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL WINDOW
+        PROPERTIES
+          Name                #AOTImage
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #16
+          Height              #16
+          ElementPosition     #1288490187
+          HierarchyParent     #Grid
+          BackStyle           #Transparent
+          ShowLabel           #No
+          DataSource          #SysVersionControlTmpItem
+          DataField           #ImageRes
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

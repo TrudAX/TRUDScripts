@@ -1,0 +1,44 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+MCR
+
+; Microsoft Dynamics AX Macro: SysSecEntryPointManager unloaded
+; --------------------------------------------------------------------------------
+  JOBVERSION 1
+  
+  SOURCE #SysSecEntryPointManager
+    ##define.SecGeneratedRoleAOTNamePrefix('SysSecDevToolRole')
+    #
+    ##define.SecEntryPoint('SecEntryPoint')
+    ##define.SecEntryPointFormKey('SecEntryPointForm')
+    ##define.FormRunHookKey('SecEntryPointFormRunHook')
+    ##define.AssignOMOwnerKey('SecEntryPointAssignOM')
+    ##define.AssignOMKey('SecEntryPointAssignOM')
+    ##define.EntryPointRecorderKey('SecEntryPointRecorder')
+    #
+    ##define.SkipDefaultFormRunHookOnLoadFormKey('SecEntryPointFormRunHookOnLoadForm')
+    ##define.DisableSysAdminUserSetting('SecEntryPointDisableSysAdminRole')
+    ##define.ClientRecorderClassName('SysSecurityRecorder_1CC4B7A84D53')
+    ##define.OpenInWorkspaceKey('SecEntryPointWorksSpaceExecute')
+    #
+    ##define.EntryPointObjectKeyDisplayMenuItem('d')
+    ##define.EntryPointObjectKeyOutputMenuItem('o')
+    ##define.EntryPointObjectKeyActionMenuItem('a')
+    ##define.EntryPointObjectKeyWebURLItem('wu')
+    ##define.EntryPointObjectKeyWebActionItem('wa')
+    ##define.EntryPointObjectKeyWebContentItem('wc')
+    ##define.EntryPointObjectKeyServiceOperation('s')
+    #
+    ##define.RecordingFileXmlRoot('EntryPoints')
+    ##Define.RecordingFileXmlElement('EntryPoint')
+    ##Define.RecordingFileXmlElementTypeAttribute('Type')
+    ##Define.RecordingFileXmlElementAOTNameAttribute('AOTName')
+    ##Define.RecordingFileXmlElementOperationAttribute('Operation')
+  ENDSOURCE
+  PROPERTIES
+    Origin              #{518A3F99-465B-4EC3-9A45-1AE00BB896A6}
+  ENDPROPERTIES
+  
+
+END

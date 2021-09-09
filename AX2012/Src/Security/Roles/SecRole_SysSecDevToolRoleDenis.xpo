@@ -1,0 +1,52 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+SRO
+
+; Microsoft Dynamics AX ROLE : SysSecDevToolRoleDenis unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  ROLE #SysSecDevToolRoleDenis
+    PROPERTIES
+      Name                #SysSecDevToolRoleDenis
+      Label               #Security development tool role Denis
+      Description         #Auto-generated role for user Denis (Security development tool)
+      Origin              #{449925E1-E706-4751-A1A4-DE5973D57943}
+    ENDPROPERTIES
+    
+    DUTIES #Duties
+      DUTY #DEVContractManagement
+        PROPERTIES
+          Name                #DEVContractManagement
+        ENDPROPERTIES
+        
+      ENDDUTY
+      
+  ENDDUTIES
+  
+PRIVILEGES #Privileges
+ENDPRIVILEGES
+
+PERMISSIONSET #Permissions
+  PROPERTIES
+  ENDPROPERTIES
+  
+  TABLES #Tables
+  ENDTABLES
+  
+FORMS #Forms
+ENDFORMS
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ENDPERMISSIONSET
+
+SUBROLES #Sub Roles
+ENDSUBROLES
+
+ENDROLE
+
+
+END

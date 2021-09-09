@@ -1,0 +1,134 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : SysSecOrganizationsTmp unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #SysSecOrganizationsTmp
+    EnforceFKRelation 1
+    PROPERTIES
+      Name                #SysSecOrganizationsTmp
+      Label               #@SDT37
+      TableType           #InMemory
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      PrimaryIndex        #SurrogateKey
+      ClusterIndex        #SurrogateKey
+      DeveloperDocumentation  #This table holds the organization assignment
+      Origin              #{D766549E-F86F-436A-93A7-6770F2C05DE6}
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #OMHierarchyType
+        INT64
+        PROPERTIES
+          Name                #OMHierarchyType
+          Table               #SysSecOrganizationsTmp
+          Origin              #{E416CF9A-2C5F-4F8E-961C-5D2E925B7854}
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+      FIELD #OMInternalOrganization
+        INT64
+        PROPERTIES
+          Name                #OMInternalOrganization
+          Label               #@SYS130613
+          Table               #SysSecOrganizationsTmp
+          Origin              #{F98F0C08-CF2F-4523-9A39-FCA2AED25F1A}
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoSummary
+        PROPERTIES
+          Name                #AutoSummary
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #OMInternalOrganization
+          #OMHierarchyType
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #OMInternalOrganization
+          #OMHierarchyType
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #OMInternalOrganizationIdx
+      PROPERTIES
+        Name                #OMInternalOrganizationIdx
+        Origin              #{D29E3288-BE07-4CB4-83B0-C8977F93403C}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #OMInternalOrganization
+        #OMHierarchyType
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+      REFERENCE #OMHierarchyType
+        PROPERTIES
+          Name                #OMHierarchyType
+          Table               #OMHierarchyType
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          UseDefaultRoleNames #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #OMHierarchyType
+            RelatedField        #RecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #OrganizationAssignment
+        PROPERTIES
+          Name                #OrganizationAssignment
+          Table               #OMInternalOrganization
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Association
+          UseDefaultRoleNames #Yes
+          RelatedTableRole    #InternalOrganization
+          Role                #UserRoleOrganization
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #OMInternalOrganization
+            RelatedField        #RecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

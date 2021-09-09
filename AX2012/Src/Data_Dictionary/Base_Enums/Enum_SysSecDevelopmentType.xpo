@@ -1,0 +1,45 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBE
+
+; Microsoft Dynamics AX Enumtype : SysSecDevelopmentType unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #SysSecDevelopmentType
+    PROPERTIES
+      Name                #SysSecDevelopmentType
+      Label               #@SDT42
+      Help                #@SDT43
+      UseEnumValue        #Yes
+      Origin              #{5B6CA25E-023C-4600-A209-1D2A6974A984}
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #Role
+      PROPERTIES
+        Name                #Role
+        Label               #@SYS301892
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #Duty
+      PROPERTIES
+        Name                #Duty
+        Label               #@SYS342601
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #Privilege
+      PROPERTIES
+        Name                #Privilege
+        Label               #@SYS342600
+        EnumValue           #2
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+END

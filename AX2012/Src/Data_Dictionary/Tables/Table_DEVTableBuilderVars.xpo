@@ -1,0 +1,428 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : DEVTableBuilderVars unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEVTableBuilderVars
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #DEVTableBuilderVars
+      Label               #Class variables
+      TitleField1         #Name
+      TitleField2         #Type
+      SaveDataPerCompany  #No
+      PrimaryIndex        #NameIdx
+      ClusterIndex        #NameIdx
+      ModifiedDateTime    #Yes
+      ModifiedBy          #Yes
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+      DeveloperDocumentation  #This table holds the class variables
+      Origin              #{850112E1-6BD2-4D1E-8800-6DA7231A7033}
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #ContractGroupLabel2
+        STRING
+        PROPERTIES
+          Name                #ContractGroupLabel2
+          Label               #Contract Group Label
+          Table               #DEVTableBuilderVars
+          Origin              #{F9AC130F-B264-4888-91BB-337C04D88FDA}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #ContractGroupName2
+        STRING
+        PROPERTIES
+          Name                #ContractGroupName2
+          Label               #Contract Group Name
+          Table               #DEVTableBuilderVars
+          Origin              #{5602EDB4-0D9D-40BB-8057-9574A3A39729}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #DlgName
+        STRING
+        PROPERTIES
+          Name                #DlgName
+          Label               #Dialog variable name
+          HelpText            #DialogField variable name, e.g. dlgStartDate.
+          Table               #DEVTableBuilderVars
+          Origin              #{FC978905-9A0F-4056-B406-CA936D69655A}
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #IsExternalTable
+        ENUM
+        PROPERTIES
+          Name                #IsExternalTable
+          Label               #Is external table
+          Table               #DEVTableBuilderVars
+          Origin              #{45AEA89A-E838-4C95-B383-616E6F8D0303}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #IsPrimary
+        ENUM
+        PROPERTIES
+          Name                #IsPrimary
+          Label               #Primary
+          HelpText            #Primary key
+          Table               #DEVTableBuilderVars
+          Origin              #{31E77579-23E4-4928-B37A-1DC80EDDF68F}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #Label
+        STRING
+        PROPERTIES
+          Name                #Label
+          Table               #DEVTableBuilderVars
+          Origin              #{DE857AAA-C311-41C9-B5FA-DB3E70AF084A}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #LabelHelp
+        STRING
+        PROPERTIES
+          Name                #LabelHelp
+          Label               #Help
+          Table               #DEVTableBuilderVars
+          Origin              #{89EDC6E9-9466-402F-BA08-EEE95BDA4BEC}
+          ExtendedDataType    #Name
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #LineNum
+        REAL
+        PROPERTIES
+          Name                #LineNum
+          Table               #DEVTableBuilderVars
+          Origin              #{B60D9889-A3A4-4196-BB57-78EA27943818}
+          ExtendedDataType    #LineNum
+        ENDPROPERTIES
+        
+      FIELD #Mandatory
+        ENUM
+        PROPERTIES
+          Name                #Mandatory
+          HelpText            #Mandatory variable.
+          Table               #DEVTableBuilderVars
+          Origin              #{6133C49F-56B3-4AF4-AFA0-8B503C8DCD16}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #Name
+        STRING
+        PROPERTIES
+          Name                #Name
+          Label               #Field name
+          Table               #DEVTableBuilderVars
+          Origin              #{F6F9C05D-E4B0-48F6-B62D-2AD51580A3A4}
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #OverwriteLabels
+        ENUM
+        PROPERTIES
+          Name                #OverwriteLabels
+          Table               #DEVTableBuilderVars
+          Origin              #{BF55393F-EE52-4A4C-8FDB-8857BAB754B3}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #ParmName
+        STRING
+        PROPERTIES
+          Name                #ParmName
+          Label               #Parm method name
+          HelpText            #Parm method name, e.g. parmStartDate
+          Table               #DEVTableBuilderVars
+          Origin              #{EE7557A8-D00F-4F13-8399-6F21F3F685A9}
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #Type
+        STRING
+        PROPERTIES
+          Name                #Type
+          Label               #Field type
+          Table               #DEVTableBuilderVars
+          Origin              #{79D96CC6-FAA2-42EA-ADFD-4753F904133F}
+          ExtendedDataType    #SysElementName
+          StringSize          #40
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AdditionalProperties
+        PROPERTIES
+          Name                #AdditionalProperties
+          Label               #@SYS23466
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #IsExternalTable
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #GridGroup
+        PROPERTIES
+          Name                #GridGroup
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Type
+          #Name
+          #IsPrimary
+          #Mandatory
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #PropertiesGroup
+        PROPERTIES
+          Name                #PropertiesGroup
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Label
+          #LabelHelp
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #NameIdx
+      PROPERTIES
+        Name                #NameIdx
+        AllowDuplicates     #No
+        Origin              #{D2AC1F71-1D9B-45B3-85DE-0A90C809EF1D}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #Name
+      ENDINDEXFIELDS
+      
+      #LineNumIdx
+      PROPERTIES
+        Name                #LineNumIdx
+        Origin              #{FED98B83-EA61-433B-B4B5-72F459AC6894}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #LineNum
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #insert
+        #public void insert()
+        #{
+        #    ;
+        #    super();
+        #}
+      ENDSOURCE
+      SOURCE #modifiedField
+        #public void modifiedField(fieldId _fieldId)
+        #{
+        #    ;
+        #    super(_fieldId);
+        #
+        #    switch (_fieldId)
+        #    {
+        #        case fieldnum(DEVTableBuilderVars, Type):
+        #            this.Name = strupr(substr(this.Name, 1, 1)) + substr(this.Name, 2, strlen(this.Name));
+        #          //  this.rebuildVarNames();
+        #          //  this.rebuildLabels();
+        #            break;
+        #
+        #        case fieldnum(DEVTableBuilderVars, Name):
+        #           // this.rebuildVarNames();
+        #           // this.rebuildLabels();
+        #            break;
+        #        case fieldnum(DEVTableBuilderVars, IsPrimary):
+        #            if (this.IsPrimary)
+        #            {
+        #                this.Mandatory = true;
+        #            }
+        #            break;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #moveDown
+        #DEVTableBuilderVars moveDown(DEVTableBuilderVars _builderVars)
+        #{
+        #    DEVTableBuilderVars          after;
+        #    DEVTableBuilderVars          cur;
+        #    LineNum                        num;
+        #    ;
+        #
+        #    //after.setTmpData(_builderVars);
+        #    //cur.setTmpData(_builderVars);
+        #
+        #    ttsbegin;
+        #
+        #    select forupdate after
+        #      order by LineNum
+        #      where after.LineNum > this.LineNum;
+        #
+        #    if (after && this && after.LineNum > this.LineNum)
+        #    {
+        #        cur.selectForUpdate();
+        #        select firstOnly forUpdate cur
+        #          where cur.RecId == this.RecId;
+        #
+        #        num                 = this.LineNum;
+        #        cur.LineNum         = after.LineNum;
+        #
+        #        after.LineNum   = num + (after.LineNum - num) / 2;
+        #
+        #        after.update();
+        #        cur.update();
+        #    }
+        #
+        #    ttscommit;
+        #
+        #    return cur;
+        #}
+      ENDSOURCE
+      SOURCE #moveUp
+        #DEVTableBuilderVars moveUp(DEVTableBuilderVars _builderVars)
+        #{
+        #    DEVTableBuilderVars      before;
+        #    DEVTableBuilderVars      save;
+        #    LineNum                    num;
+        #    ;
+        #
+        #    //before.setTmpData(_builderVars);
+        #
+        #    ttsbegin;
+        #
+        #    select forupdate before
+        #      order by LineNum desc
+        #      where before.LineNum < this.LineNum;
+        #
+        #    if (before && this && before.LineNum < this.LineNum)
+        #    {
+        #        num             = this.LineNum;
+        #        this.LineNum    = before.LineNum;
+        #
+        #        before.LineNum  = before.LineNum + (num - before.LineNum) / 2;
+        #        before.update();
+        #
+        #        this.update();
+        #        save = this.data();
+        #    }
+        #
+        #    ttscommit;
+        #
+        #    return save;
+        #}
+      ENDSOURCE
+      SOURCE #rebuildLabels
+        #void rebuildLabels()
+        #{
+        #    str         strlabel, strLabelHelp;
+        #    DictType    dictType;
+        #    DictEnum    dictEnum;
+        #    Dictionary  dict = new Dictionary();
+        #    ;
+        #
+        #    if (dict.typeName2Id(this.Type))
+        #    {
+        #        dictType = new DictType(dict.typeName2Id(this.Type));
+        #
+        #        if (dictType)
+        #        {
+        #            this.Label       = dictType.label();
+        #            this.LabelHelp   = dictType.help(true);
+        #        }
+        #    }
+        #    else if (dict.enumName2Id(this.Type))
+        #    {
+        #        dictEnum = new dictEnum(dict.enumName2Id(this.Type));
+        #
+        #        if (dictEnum)
+        #        {
+        #            this.Label       = dictEnum.label();
+        #            this.LabelHelp   = dictEnum.help(true);
+        #        }
+        #    }
+        #
+        #
+        #}
+      ENDSOURCE
+      SOURCE #rebuildVarNames
+        #void rebuildVarNames()
+        #{
+        #    SysElementName  parmName, dlgName;
+        #    ;
+        #
+        #    this.DlgName     = "dlg"     + strupr(substr(this.Name, 1, 1)) + substr(this.Name, 2, strlen(this.Name));
+        #    this.ParmName    = "parm"    + strupr(substr(this.Name, 1, 1)) + substr(this.Name, 2, strlen(this.Name));
+        #}
+      ENDSOURCE
+      SOURCE #lookupAOTQuery
+        #static void lookupAOTQuery(FormStringControl _control)
+        #{
+        #    SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(UtilElements), _control);
+        #    Query                   query = new Query();
+        #    QueryBuildDataSource    qbds = query.addDataSource(tablenum(UtilElements));
+        #    QueryBuildRange         qbr = qbds.addRange(fieldnum(UtilElements, RecordType));
+        #    ;
+        #
+        #    qbr.value(queryValue(UtilElementType::Query));
+        #
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, Name));
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, RecordType));
+        #    sysTableLookup.parmQuery(query);
+        #    sysTableLookup.performFormLookup();
+        #}
+      ENDSOURCE
+      SOURCE #lookupVarTypes
+        #static void lookupVarTypes(FormStringControl _control)
+        #{
+        #    SysTableLookup          sysTableLookup = SysTableLookup::newParameters(tablenum(UtilElements), _control);
+        #    Query                   query = new Query();
+        #    QueryBuildDataSource    qbds = query.addDataSource(tablenum(UtilElements));
+        #    QueryBuildRange         qbr;
+        #    ;
+        #
+        #    qbr = qbds.addRange(fieldnum(UtilElements, RecordType));
+        #    qbr.value(queryValue(UtilElementType::ExtendedType));
+        #
+        #    qbr = qbds.addRange(fieldnum(UtilElements, RecordType));
+        #    qbr.value(queryValue(UtilElementType::Enum));
+        #
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, Name));
+        #    sysTableLookup.addLookupfield(fieldnum(UtilElements, RecordType));
+        #    sysTableLookup.parmQuery(query);
+        #    sysTableLookup.performFormLookup();
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

@@ -1,0 +1,613 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysBPCheckFormEditControl extends SysBPCheckFormBase
+{
+    #SysBPCheck
+    #Properties
+
+    public void check()
+    {
+        super();
+
+        if (parameters.CheckDisablingTechnique)
+        {
+            this.checkDisablingTechnique();
+        }
+
+        this.checkMenuItemName();
+        this.checkWebMenuItemName();
+        this.checkMinNoOfDecimals();
+        this.checkListPageControl(sysBPCheck.treeNode(), false);
+    }
+
+    boolean checkConfigurationKey()
+    {
+        boolean ret;
+
+        ret = super();
+
+        ret = ret && sysBPCheck.checkConfigurationKey(configurationKeyName2Id(findProperty(properties, #PropertyConfigurationKey)));
+
+        return ret;
+
+    }
+
+    /*
+        Fields the user shouldn't change, should be set like this:
+        allowEdit   No  so the user can't change the value.
+        Skip        Yes Set skip to yes if the user shouldn't enter the field on his or her tabbing through the form.
+        Enabled     Yes default The user can explicitly navigate to the field to see the help text or copy the field value.
+    */
+    boolean checkDisablingTechnique() // checkFormControlDisablingTechnique
+    {
+        identifierName allowEdit;
+        identifierName skip;
+        identifierName enabled;
+        boolean        ret = true;
+        ;
+
+        if (sysBPCheck.toBeUsed(SysBPWarningLevel::Warning))
+        {
+            allowEdit = findProperty(properties, #PropertyAllowEdit);
+            skip      = findProperty(properties, #PropertySkip);
+            enabled   = findProperty(properties, #PropertyEnabled);
+
+            if ((allowEdit && skip && enabled) && // situation can't be checked for control that hasnt all three properties
+                (enabled == #PropertyValueNo))
+            {
+                sysBPCheck.addWarning(#BPErrorFormDisablingTechnique, 0, 0, "@SYS72538", #propertyAllowEdit);
+                ret = false;
+            }
+        }
+
+        return ret;
+
+    }
+
+    /*
+        Each control must effectively have a label and a help text, preferably from the used field, method, EDT or Enum.
+        Label and a help text must not be the same as from the used field, method, EDT or Enum (disabling intelliMorph).
+        Label and a help text must not be equal (i.e. the help must be more descriptive)
+    */
+    boolean checkLabelUse()
+    {
+        identifierName  dataField        = findProperty(properties, #PropertydataField);
+        identifierName  dataSource       = findProperty(properties, #PropertyDataSource);
+        identifierName  dataMethod       = findProperty(properties, #PropertyDataMethod);
+        identifierName  extendedDataType = findProperty(properties, #PropertyExtendedDataType);
+        identifierName  enumType         = findProperty(properties, #PropertyEnumType);
+        LabelString     label            = findProperty(properties, #PropertyLabel);
+        LabelString     helpText         = findProperty(properties, #PropertyHelpText);
+        boolean         showLabel        = findProperty(properties, #PropertyShowLabel) == #PropertyValueYes;
+
+        LabelString     labelString;
+
+        FormBuildDataSource formBuildDataSource;
+        SysDictMethod       dictMethod;
+
+        TreeNode            memberFunction;
+        SysDictField        sysDictField;
+        SysDictType         sysDictType;
+        SysDictEnum         sysDictEnum;
+        SysDictClass        sysDictClass;
+        boolean             ret;
+
+        ret = super();
+
+        if (ret)
+        {
+            if (dataField && dataSource)
+            {
+                if (!label || !helpText)
+                {
+                    formBuildDataSource = SysFormBuildDataSource::findTreeNode(sysBPCheck.treeNode());
+                    if (!formBuildDataSource)
+                    {
+                        error(strfmt("@SYS72519",dataSource,dataField),'',
+                              new SysInfoAction_Properties(sysBPCheck.treeNode().treeNodePath()));
+                        return false;
+                    }
+
+                    sysDictField = new SysDictField(formBuildDataSource.table(), fieldname2id(formBuildDataSource.table(), dataField));
+                    if (!sysDictField)
+                    {
+                        error(strfmt("@SYS55418",dataField,formBuildDataSource.table()),'',
+                              new SysInfoAction_Properties(sysBPCheck.treeNode().treeNodePath()));
+                        return false;
+                    }
+                }
+            }
+            else
+            if (dataMethod)
+            {
+                if (dataSource)
+                {
+                    formBuildDataSource = SysFormBuildDataSource::findTreeNode(sysBPCheck.treeNode());
+                    if (!formBuildDataSource)
+                    {
+                        error(strfmt("@SYS72522",dataSource,dataMethod),'',
+                              new SysInfoAction_Properties(sysBPCheck.treeNode().treeNodePath()));
+                        return false;
+                    }
+
+                    // at data source level?!     \Forms\CustTrans\Data Sources\CustTrans\Methods
+                    memberFunction = this.findNode(strfmt(#DataSourceMethodPath, SysTreeNode::getRootElementPath(sysBPCheck.treeNode()), dataSource, dataMethod));
+
+                    if (memberFunction)
+                    {
+                        dictMethod = new SysDictMethod(UtilElementType::ClassInstanceMethod,0,'');
+                        dictMethod.setMethod(memberFunction);
+                    }
+
+                    if (dictMethod == null)
+                    {
+                        sysDictClass = new SysDictClass(classNum(FormDataSource));
+                        if (SysDictClass.hasObjectMethod(dataMethod))
+                        {
+                            dictMethod = new SysDictMethod(UtilElementType::ClassInstanceMethod, classNum(FormDataSource), dataMethod);
+                        }
+
+                        if (dictMethod != null && dictMethod.displayType() == DisplayFunctionType::None)
+                        {
+                            // If the method is defined on FormDataSource but is not a data method check on the backing table.
+                            dictMethod = null;
+                        }
+                    }
+
+                    if (dictMethod == null)    // at table?
+                    {
+                        dictMethod = new SysDictMethod(UtilElementType::TableInstanceMethod,formBuildDataSource.table(),dataMethod);
+                        if (!dictMethod)
+                        {
+                            error(strfmt("@SYS60360",dataMethod),'',
+                                  new SysInfoAction_Properties(sysBPCheck.treeNode().treeNodePath()));
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    // find the display method, either local at the method node or at the form level.
+                    // local?
+                    memberFunction = this.findNode(strfmt(#MethodPath, sysBPCheck.treeNode().AOTparent().treeNodePath(), dataMethod));
+                    if (!memberFunction)
+                    {
+                        // at form level?!
+                        memberFunction = this.findNode(strfmt(#MethodPath, SysTreeNode::getRootElementPath(sysBPCheck.treeNode()), dataMethod));
+                    }
+                    if (!memberFunction) // Method not found
+                    {
+                        sysBPCheck.addError(#compileApplicationCheck, 0, 0, strfmt("@SYS60360", dataMethod));
+                        ret = false;
+                    }
+
+                    dictMethod = new SysDictMethod(UtilElementType::ClassInstanceMethod,0,'');
+                    if (memberFunction)
+                    {
+                        dictMethod.setMethod(memberFunction);
+                    }
+                }
+
+                switch (dictMethod.returnType())
+                {
+                    case Types::UserType :
+                        sysDictType = new SysDictType(dictMethod.returnId());
+                        break;
+
+                    case Types::Enum :
+                        sysDictEnum = new SysDictEnum(dictMethod.returnId());
+                        break;
+
+                    default:
+                        sysDictType = new SysDictType(dictMethod.returnId());
+                        break;
+                }
+
+                if (!(sysDictType || sysDictEnum)) // Display methods must be typed
+                {
+                    sysBPCheck.addError(#compileApplicationCheck, 0, 0, strfmt("@SYS60362", dictMethod.returnType(), dictMethod.name()));
+                    ret = false;
+                }
+            }
+            else
+            if (extendedDataType)
+            {
+                sysDictType = new SysDictType(new Dictionary().typeName2Id(extendedDataType));
+            }
+            else
+            if (enumType)
+            {
+                sysDictEnum = new SysDictEnum(new Dictionary().enumName2Id(enumType));
+            }
+
+            // Check Label
+            if (label)
+            {
+                labelString = label;
+                ret = sysBPCheck.checkLabelBasics(label, #propertyLabel);
+            }
+            else
+            {
+                if (sysDictField)
+                {
+                    labelString = sysDictField.labelLabel();
+                    ret = sysBPCheck.checkLabelBasics(labelString, #propertyLabel, showLabel && (!sysDictField.label() && !isSysId(sysDictField.typeId()) && !isSysId(sysDictField.tableid())));
+                }
+                else
+                if (sysDictType)
+                {
+                    labelString = sysDictType.labelLabel();
+                    ret = sysBPCheck.checkLabelBasics(labelString, #propertyLabel, showLabel && !this.isSysIdType(sysDictType.id()));
+                }
+                else
+                if (sysDictEnum)
+                {
+                    labelString = sysDictEnum.labelDefined();
+                    ret = sysBPCheck.checkLabelBasics(labelString, #propertyLabel, showLabel && !isSysId(sysDictEnum.id()));
+                }
+            }
+
+            labelString = SysLabel::labelId2String2(labelString);
+
+            // Check Help
+            if (helpText)
+            {
+                ret = sysBPCheck.checkHelpBasics(helpText, labelString, #propertyHelpText);
+            }
+            else
+            {
+                if (sysDictField)
+                {
+                    ret = sysBPCheck.checkHelpBasics(sysDictField.helpLabelId(), labelString, #propertyHelpText, !sysDictField.help() && !isSysId(sysDictField.typeId()) && !isSysId(sysDictField.tableid()));
+                }
+                else
+                if (sysDictType)
+                {
+                    ret = sysBPCheck.checkHelpBasics(sysDictType.helpLabelId(), labelString, #propertyHelpText, !sysDictType.help() && !isSysId(sysDictType.id()));
+                }
+                else
+                if (sysDictEnum)
+                {
+                    ret = sysBPCheck.checkHelpBasics(sysDictEnum.helpDefined(), labelString, #propertyHelpText, !sysDictEnum.help() && !isSysId(sysDictEnum.id()));
+                }
+            }
+
+            if (showLabel)
+            {
+                // Is the specialized label needed?
+                if (label && (sysDictType || sysDictEnum))
+                {
+                    if (sysDictType &&
+                        label == sysDictType.labelLabel())
+                    {
+                        sysBPCheck.addError(#BPErrorLabelIsCopyOfDisplayMethod, 0, 0, "@SYS60361", #propertyLabel); // Control's label is a copy of its display methods label
+                        ret = false;
+                    }
+                    else
+                    if (sysDictEnum &&
+                        label == sysDictEnum.labelDefined())
+                    {
+                        sysBPCheck.addError(#BPErrorLabelIsCopyOfDisplayMethod, 0, 0, "@SYS60361", #propertyLabel); // Control's label is a copy of its display methods label
+                        ret = false;
+                    }
+                    else
+                    if (sysBPCheck.toBeUsed(SysBPWarningLevel::Warning))
+                    {
+                        if (sysDictType &&
+                            sysDictType.label())
+                        {
+                            sysBPCheck.addWarning(#BPErrorLabelChangedAtControl, 0, 0, strfmt("@SYS60298", sysDictType.label(), SysLabel::labelId2String2(label)), #propertyLabel); // why not use the defined label?!
+                            ret = false;
+                        }
+                        else
+                        if (sysDictEnum &&
+                            sysDictEnum.label())
+                        {
+                            sysBPCheck.addWarning(#BPErrorLabelChangedAtControl, 0, 0, strfmt("@SYS60298", sysDictEnum.label(), SysLabel::labelId2String2(label)), #propertyLabel); // why not use the defined label?!
+                            ret = false;
+                        }
+                    }
+                }
+            }
+
+            // Is the specialized help needed?
+            if (helpText  && (sysDictType || sysDictEnum))
+            {
+                if (sysDictType && (helpText == sysDictType.helpLabelId()))
+                {
+                    sysBPCheck.addError(#BPErrorFieldHelpIsCopyOfExtendedHelp, 0, 0, "@SYS72533", #propertyHelp);
+                    ret = false;
+                }
+                else
+                if (sysDictEnum && (helpText == sysDictEnum.helpDefined()))
+                {
+                    sysBPCheck.addError(#BPErrorFieldHelpIsCopyOfEnumHelp, 0, 0, "@SYS72533", #propertyHelp);
+                    ret = false;
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    /*
+    * MenuItemName should be blank for FormWebControls
+    */
+    boolean checkMenuItemName()
+    {
+        boolean ret = true;
+
+        if (findPropertyPos(properties, #PropertyMenuItemName) > 0 &&
+            findProperty(properties, #PropertyMenuItemName) != '')
+        {
+            sysBPCheck.addError(#BPErrorFormWebControlUnknownMenuItemName, 0, 0, strfmt("@SYS93552", #PropertyMenuItemName, sysBPCheck.treeNode().treeNodeName()), #PropertyMenuItemName);
+            ret = false;
+        }
+
+        return ret;
+    }
+
+    boolean checkMinNoOfDecimals()
+    {
+        boolean ret = true;
+
+        identifierName noOfDecimals = findProperty(properties, #PropertyNoofdecimals);
+        identifierName minNoOfDecimals = findProperty(properties, #PropertyMinNoofdecimals);
+
+        if (noOfDecimals != #PropertyValueAuto &&
+            minNoOfDecimals != #PropertyValueAuto &&
+            str2int(noOfDecimals) < str2int(minNoOfDecimals))
+        {
+            sysBPCheck.addError(#BPErrorFormControlMinNoOfDecimals, 0, 0, strfmt("@SYS96235"));
+            ret = false;
+        }
+
+        return ret;
+    }
+
+
+    boolean checkReference()
+    {
+        #AOT
+
+        Form                form;
+        FormBuildDataSource formBuildDataSource;
+        SysDictTable        table;
+        SysDictTable        sysDictTable;
+        SysDictClass        sysDictClass;
+        DictMethod          dictMethod;
+        MemberFunction      memberFunction;
+        Counter             counter;
+        boolean             ret;
+        str                 dataSource = findProperty(properties, #PropertyDataSource);
+        str                 dataField  = hasProperty(properties, #PropertyDataField) ? findProperty(properties, #PropertyDataField) : findProperty(properties, #PropertyReferenceField);
+        str                 dataMethod = findProperty(properties, #PropertyDataMethod);
+        str                 optionalRecordControl = findProperty(properties, #PropertyOptionalRecordControl);
+
+        ret = super();
+
+        if (ret && dataSource)
+        {
+            if (substr(dataField, strlen(dataField), 1) == ']')
+            {
+                dataField = strdel(dataField, strfind(dataField, '[', 1, strlen(dataField)), strlen(dataField));
+            }
+
+            ret = false;
+            form = this.findNode(SysTreeNode::applObjectPath(sysBPCheck.treeNode().treeNodePath()));
+
+            if (form)
+            {
+                // Get data source
+                for (counter = form.dataSourceCount(); counter; counter--)
+                {
+                    formBuildDataSource = form.dataSource(counter);
+                    if (formBuildDataSource.name() == dataSource)
+                    {
+                        ret = true;
+                        break;
+                    }
+                }
+
+                if (ret)
+                {
+                    ret = false;
+
+                    sysDictTable = new SysDictTable(formBuildDataSource.table());
+                    if (sysDictTable)
+                    {
+                        switch (true)
+                        {
+                            case optionalRecordControl == 'Yes':
+                                ret = true;
+                                break;
+
+                            case dataField  != '' :
+                                if (sysDictTable.fieldName2Id(dataField))
+                                {
+                                    ret = true;
+                                }
+
+                                if (!ret)
+                                {
+                                    sysBPCheck.addError(#BPError, 0, 0, strfmt("@SYS77716", dataField, sysDictTable.name()), #PropertyDataMethod);
+                                }
+                                break;
+
+                            case dataMethod != '' :
+                                dictMethod = null;
+
+                                // look for the method on the form data source
+                                sysDictClass = new SysDictClass(classNum(FormDataSource));
+                                if (SysDictClass.hasObjectMethod(dataMethod))
+                                {
+                                    dictMethod = new SysDictMethod(UtilElementType::ClassInstanceMethod, classNum(FormDataSource), dataMethod);
+                                }
+
+                                if (dictMethod != null && dictMethod.displayType() == DisplayFunctionType::None)
+                                {
+                                    // If the method is defined on FormDataSource but is not a data method check on the backing table.
+                                    dictMethod = null;
+                                }
+
+                                if (dictMethod == null)
+                                {
+                                    memberFunction = this.findNode(strfmt(#DataSourceMethodPath, form.treeNodePath(), dataSource, dataMethod));
+                                }
+
+                                //  if the dataMethod was on the form's DataSource continue
+                                if (dictMethod != null || memberFunction)
+                                {
+                                    ret = true;
+                                }
+                                else
+                                {
+                                    // look on the table and or the super tables
+                                    table =  new SysDictTable(sysDictTable.id());
+                                    while(table)
+                                    {
+                                        for (counter = table.objectMethodCnt(); counter; counter--)
+                                        {
+                                            if (table.objectMethodObject(counter).name() == dataMethod)
+                                            {
+                                                memberFunction = this.findNode(strfmt(#MethodPath, table.path(), dataMethod)); // data method on Table
+
+                                                // DictMethod object only works for normal tables
+                                                if (!table.isView() &&
+                                                    !table.isMap())
+                                                {
+                                                    dictMethod = new DictMethod(UtilElementType::TableInstanceMethod, table.id(), memberFunction.name());
+                                                }
+                                                ret = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if(!ret && !memberFunction)
+                                        {
+                                            // try the super table
+                                            if(table.supportInheritance())
+                                            {
+                                                table = new SysDictTable(table.extends());
+                                            }
+                                            else
+                                            {
+                                                table = null;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            table = null;
+                                        }
+                                    }
+                                }
+
+                                if (ret)
+                                {
+                                    if (memberFunction || dictMethod != null)
+                                    {
+                                        if ((dictMethod &&
+                                                dictMethod.displayType() == DisplayFunctionType::None) ||
+                                            //
+                                            // AOTTooltip isn't type safe as dictMethod is
+                                            // But dictMethod only works for table methods
+                                            //
+                                            (!dictMethod &&
+                                                !match('display ', memberFunction.AOTtoolTip()) &&
+                                                !match('edit ', memberFunction.AOTtoolTip())))
+                                        {
+                                            sysBPCheck.addError(#BPError, 0, 0, strfmt("@SYS77717", dataMethod, dataSource), #propertyDataMethod);
+                                            ret = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        sysBPCheck.addError(#BPError, 0, 0, strfmt("@SYS77713", dataMethod, dataSource), #PropertyDataMethod);
+                                        ret = false;
+                                    }
+                                }
+                                else
+                                {
+                                    sysBPCheck.addError(#BPError, 0, 0, strfmt("@SYS77713", dataMethod, dataSource), #PropertyDataMethod);
+                                    ret = false;
+                                }
+                                break;
+
+                            default :
+                                sysBPCheck.addError(#BPError, 0, 0, strfmt("@SYS77714", dataSource), #propertyDataSource);
+                                ret = false;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        sysBPCheck.addError(#BPError, 0, 0, strfmt("@SYS74746", formBuildDataSource.name()));
+                        ret = false;
+                    }
+                }
+                else
+                {
+                    sysBPCheck.addError(#BPError, 0, 0, strfmt("@SYS77715", dataSource));
+                    ret = false;
+                }
+
+                formBuildDataSource = null;
+            }
+            else
+            {
+                error(strfmt("@SYS57709", sysBPCheck.treeNode().treeNodePath()));
+                ret = false;
+            }
+        }
+
+        return ret;
+    }
+
+    /*
+    * WebMenuItemName should be valid if not blank for FormWebControls
+    */
+    boolean checkWebMenuItemName()
+    {
+        boolean ret = true;
+        str webMenuItemName = findProperty(properties, #PropertyWebMenuItemName);
+        str webMenuItemType = findProperty(properties, #PropertyWebMenuItemType);
+        UtilElementType utilElementType;
+
+        if (findPropertyPos(properties, #PropertyWebMenuItemName) > 0 &&
+            webMenuItemName != '' && webMenuItemType != ''
+           )
+        {
+            switch(webMenuItemType)
+            {
+                case 'Url':
+                    utilElementType = UtilElementType::WebUrlItem;
+                    break;
+                case 'Action':
+                    utilElementType = UtilElementType::WebActionItem;
+                    break;
+            }
+
+            if (!xUtilElements::exist(utilElementType, webMenuItemName))
+            {
+                sysBPCheck.addError(#BPErrorFormWebControlUnknownMenuItemName, 0, 0, strfmt("@SYS93552", #PropertyWebMenuItemName, sysBPCheck.treeNode().treeNodeName()), #PropertyWebMenuItemName);
+                ret = false;
+            }
+        }
+
+        return ret;
+    }
+
+    protected boolean isSysIdType(int _id)
+    {
+        DictType dictType;
+
+        if (isSysId(_id))
+            return true;
+
+        dictType = new DictType(_id);
+        if (dictType && dictType.extend())
+        {
+            return this.isSysIdType(dictType.extend());
+        }
+        return false;
+    }
+}

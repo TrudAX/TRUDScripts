@@ -1,0 +1,17 @@
+static void trud_confirmPO(Args _args)
+{
+    PurchTable          purchTable;
+    PurchFormLetter     purchFormLetter;
+
+    ;
+    ttsBegin;
+
+    purchTable = purchTable::find("001793", true);
+
+    purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+    purchFormLetter.update(purchTable,'');
+
+
+    ttsAbort;
+
+}

@@ -1,0 +1,875 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysTraceSQL
+  PROPERTIES
+    Name                #SysTraceSQL
+    Origin              #{EC603790-E90F-4AC3-8FC6-37D74BFD47D2}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    SysInfoAction_Showplan   sysInfoAction_Showplan;
+      #    ;
+      #
+      #    super();
+      #
+      #    if (!isDeveloper())
+      #        JumpToSource.visible(false);
+      #
+      #    if (typeOf(this.args().parmObject())==typeOf(sysInfoAction_Showplan))
+      #    {
+      #        sysInfoAction_Showplan = this.args().parmObject();
+      #        //BP Deviation Documented
+      #        sysTraceTableSQL.setTmp();
+      #        //BP Deviation Documented
+      #        sysTraceTableSQLExecPlan.setTmp();
+      #        //BP Deviation Documented
+      #        sysTraceTableSQLTabRef.setTmp();
+      #
+      #        SysTraceTableSQL::createFromContainer(sysInfoAction_Showplan.getTraceContainer(),sysTraceTableSQL,sysTraceTableSQLExecPlan,sysTraceTableSQLTabRef);
+      #        element.design().caption("@SYS58112");
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #jumpToSource
+      #void jumpToSource()
+      #{
+      #    str         treeNodePath;
+      #    Args        args = new Args();
+      #    MenuFunction menuFunction = new MenuFunction(menuitemActionStr(SysTraceJumpToSource),MenuItemType::Action);
+      #    ;
+      #    treeNodePath = lbCallStack.getText(lbCallStack.selection());
+      #    args.parm(treeNodePath);
+      #    menuFunction.run(args);
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysTraceTableSQL
+          Table               #SysTraceTableSQL
+          AllowCheck          #No
+          AllowEdit           #No
+          AllowCreate         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #init
+          #public void init()
+          #{
+          #
+          #    super();
+          #    this.cacheAddMethod(tableMethodStr(SysTraceTableSQL,traceInfo));
+          #}
+        ENDSOURCE
+        SOURCE #active
+          #public int active()
+          #{
+          #    int ret;
+          #    str callStack;
+          #    int pos;
+          #    int oPos;
+          #
+          #    ;
+          #
+          #    if (sysTraceTableSQL.CallStack)
+          #        jumpToSource.enabled(true);
+          #    else
+          #        jumpToSource.enabled(false);
+          #
+          #    lbCallStack.clear();
+          #    callStack = sysTraceTableSQL.CallStack;
+          #    pos = 0;
+          #    while (pos<strLen(callStack))
+          #    {
+          #        oPos = pos+1;
+          #        pos = strScan(callStack,'\n',pos+1,strLen(callStack)-pos);
+          #        if (pos==0)
+          #            pos=strLen(callStack);
+          #        lbCallStack.add(subStr(callStack,oPos,pos-oPos));
+          #    }
+          #
+          #    ret = super();
+          #
+          #    return ret;
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysTraceTableSQLTabRef
+          Table               #SysTraceTableSQLTabRef
+          Index               #RefIdx
+          AllowEdit           #No
+          AllowCreate         #No
+          AllowDelete         #No
+          JoinSource          #SysTraceTableSQL
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysTraceTableSQLExecPlan
+          Table               #SysTraceTableSQLExecPlan
+          AllowCheck          #No
+          AllowEdit           #No
+          AllowCreate         #No
+          AllowDelete         #No
+          AutoSearch          #No
+          AutoNotify          #No
+          JoinSource          #SysTraceTableSQL
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+    SysTraceTableSQLTabRef SysTraceTableSQL
+    SysTraceTableSQLExecPlan SysTraceTableSQL
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SYS74552
+      TitleDatasource     #SysTraceTableSQL
+      WindowResize        #Dynamic
+      ViewEditMode        #Edit
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL ACTIONPANE
+        PROPERTIES
+          Name                #ActionPane
+          ElementPosition     #715827882
+          Style               #Strip
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL ACTIONPANETAB
+        PROPERTIES
+          Name                #ActionPaneTab
+          ElementPosition     #1431655764
+          HierarchyParent     #ActionPane
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1431655764
+          HierarchyParent     #ActionPaneTab
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #Overview
+          DataSource          #SysTraceTableSQL
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid1
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #Tables
+          DataSource          #SysTraceTableSQLTabRef
+          DataGroup           #Overview
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Connection
+          ElementPosition     #1610612733
+          HierarchyParent     #General
+          Caption             #@SYS74754
+          DataSource          #SysTraceTableSQL
+          DataGroup           #ConnectionDetails
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Statement
+          ElementPosition     #1073741822
+          HierarchyParent     #General
+          Caption             #@SYS73679
+          DataSource          #SysTraceTableSQL
+          DataGroup           #StatementDetails
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #TimeCategory
+          ElementPosition     #1717986916
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          DataSource          #SysTraceTableSQL
+          DataGroup           #Overview
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUBUTTON
+        PROPERTIES
+          Name                #Functions
+          HelpText            #@SYS74753
+          ElementPosition     #1717986916
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS10340
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TAB
+        PROPERTIES
+          Name                #Tab
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Description
+          ElementPosition     #1227133512
+          HierarchyParent     #Tab
+          Caption             #@SYS7576
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #General
+          ElementPosition     #920350134
+          HierarchyParent     #Tab
+          Caption             #@SYS2952
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Overview
+          ElementPosition     #613566756
+          HierarchyParent     #Tab
+          Caption             #@SYS9039
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Tables
+          ElementPosition     #1840700268
+          HierarchyParent     #Tab
+          Caption             #@SYS9678
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Use
+          ElementPosition     #1533916890
+          HierarchyParent     #Tab
+          Caption             #@SYS5983
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #JumpToSource
+          AutoDeclaration     #Yes
+          HelpText            #@SYS74745
+          ElementPosition     #1288490187
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS70468
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    element.jumpToSource();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #Group_IsLobsIncluded
+          ElementPosition     #357913940
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #IsLobsIncluded
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #Group_IsMoreDataPending
+          ElementPosition     #536870910
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #IsMoreDataPending
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #Group_IsSelectedForUpdate
+          ElementPosition     #1252698790
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #IsSelectedForUpdate
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #Group_IsStartedWithinTransaction
+          ElementPosition     #1431655760
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #IsStartedWithinTransaction
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Group_Category
+          ElementPosition     #1288490187
+          HierarchyParent     #TimeCategory
+          DataSource          #SysTraceTableSQL
+          DataField           #Category
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Group_StatementType
+          ElementPosition     #1968526670
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #StatementType
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #ConnectionDetails_ConnectionId
+          ElementPosition     #1717986916
+          HierarchyParent     #Connection
+          DataSource          #SysTraceTableSQL
+          DataField           #ConnectionId
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #ConnectionDetails_ConnectionSPID
+          ElementPosition     #1288490187
+          HierarchyParent     #Connection
+          DataSource          #SysTraceTableSQL
+          DataField           #ConnectionSPID
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Group_Code
+          ElementPosition     #1717986916
+          HierarchyParent     #TimeCategory
+          DataSource          #SysTraceTableSQL
+          DataField           #Code
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Group_RowsAffected
+          ElementPosition     #715827880
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #RowsAffected
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Group_RowSize
+          ElementPosition     #894784850
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #RowSize
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Group_RowsPerFetch
+          ElementPosition     #1073741820
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #RowsPerFetch
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Group_StatementId
+          ElementPosition     #1789569700
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #StatementId
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Group_StatementReuseCount
+          ElementPosition     #1610612730
+          HierarchyParent     #Statement
+          DataSource          #SysTraceTableSQL
+          DataField           #StatementReuseCount
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #Group_traceTime
+          ElementPosition     #858993458
+          HierarchyParent     #TimeCategory
+          DataSource          #SysTraceTableSQL
+          DataField           #traceTime
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL LISTBOX
+        PROPERTIES
+          Name                #lbCallStack
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #Use
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDblClick
+            #public int mouseDblClick(int _x, int _y, int _button, boolean _ctrl, boolean _shift)
+            #{
+            #    int ret;
+            #
+            #    element.jumpToSource();
+            #
+            #    ret = super(_x, _y, _button, _ctrl, _shift);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #DEVSysTraceExecPlan
+          ElementPosition     #1932735281
+          HierarchyParent     #ButtonGroup
+          NeedsRecord         #Yes
+          DataSource          #SysTraceTableSQL
+          MenuItemName        #DEVSysTraceExecPlan
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #SysTraceSQLClearLog
+          HelpText            #@SYS74741
+          ElementPosition     #1717986916
+          HierarchyParent     #Functions
+          MenuItemType        #Action
+          MenuItemName        #SysTraceSQLClearLog
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    sysTraceTableSQL_ds.research();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #SysTraceSQLExport
+          HelpText            #@SYS74740
+          ElementPosition     #1288490187
+          HierarchyParent     #Functions
+          MenuItemType        #Action
+          MenuItemName        #SysTraceSQLExport
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL MENUITEMBUTTON
+        PROPERTIES
+          Name                #SysTraceSQLImport
+          HelpText            #@SYS74742
+          ElementPosition     #858993458
+          HierarchyParent     #Functions
+          MenuItemType        #Action
+          MenuItemName        #SysTraceSQLImport
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    sysTraceTableSQL_ds.research();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #ConnectionDetails_ConnectionType
+          ElementPosition     #858993458
+          HierarchyParent     #Connection
+          DataSource          #SysTraceTableSQL
+          DataField           #ConnectionType
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Info_Statement
+          Width               #Column width
+          ElementPosition     #858993458
+          HierarchyParent     #Description
+          Label               #@SYS73679
+          DataSource          #SysTraceTableSQL
+          DataField           #Statement
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Info_Text
+          Width               #Column width
+          ElementPosition     #1288490187
+          HierarchyParent     #Description
+          Label               #@SYS2595
+          DataSource          #SysTraceTableSQL
+          DataField           #Text
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Info_TextDetails
+          Width               #Column width
+          ElementPosition     #1717986916
+          HierarchyParent     #Description
+          Label               #@SYS8811
+          DataSource          #SysTraceTableSQL
+          DataField           #TextDetails
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SysTracetableSQL_createdBy
+          HelpText            #@SYS74732
+          ElementPosition     #1288490187
+          HierarchyParent     #Grid
+          Label               #@SYS16181
+          DataSource          #SysTraceTableSQL
+          DataField           #createdBy
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SysTraceTableSQL_Info
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #Overview
+          LabelPosition       #Above
+          DataSource          #SysTraceTableSQL
+          DataMethod          #traceInfo
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL UTCDATETIMEEDIT
+        PROPERTIES
+          Name                #SysTraceTableSQL_createdDateTime
+          HelpText            #@SYS74734
+          ElementPosition     #858993458
+          HierarchyParent     #Grid
+          DataSource          #SysTraceTableSQL
+          DataField           #createdDateTime
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

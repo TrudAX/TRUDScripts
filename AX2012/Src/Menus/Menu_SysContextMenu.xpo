@@ -1,0 +1,677 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+MNU
+
+; Microsoft Dynamics AX Menu : SysContextMenu unloaded
+; --------------------------------------------------------------------------------
+  MNUVERSION 5
+  
+  MENU #SysContextMenu
+    PROPERTIES
+      Name                #SysContextMenu
+      Label               #@SYS28637
+      SecurityKey         #SysDevelopment
+      Origin              #{100E0000-0000-1000-FB09-5DBF82A26477}
+    ENDPROPERTIES
+    
+    MENUITEM
+      PROPERTIES
+        Name                #Add to project
+        MenuItemType        #Action
+        MenuItemName        #DEVCommentsTool
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Compare new
+        MenuItemType        #Action
+        MenuItemName        #DEVsysCompareNew
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Compare old
+        MenuItemType        #Action
+        MenuItemName        #DEVsysCompareOld
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Compare existing code to proposed fix
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeConflictCodeRuleCompareUpgrade
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Auto-resolve source code rule conflict
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeConflictCodeRuleAutoResolve
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Compare altered code to original code
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeConflictCodeRuleCompareOrigina
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Revert auto-resolve source code rule conflict
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeConflictCodeRuleRevertResolve
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Mark as resolved
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeProjectMarkAsResolved
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Mark as unresolved
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeProjectMarkAsUnresolved
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Mark as resolved (including subnodes)
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeProjectMarkAsResolvedRecursive
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Mark as unresolved (including subnodes)
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeProjectMarkAsUnresolvedRecursi
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Rerun conflict detection
+        MenuItemType        #Action
+        MenuItemName        #SysUpgradeDetectConflictsRerun
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENU #@SYS24666
+      PROPERTIES
+        Name                #MenuxRef
+        Label               #@SYS24666
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Used by
+          MenuItemName        #XRefReferencesUsedBy
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Using (instant view)
+          MenuItemType        #Action
+          MenuItemName        #xRefUpdateTmpReferences
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Names
+          MenuItemName        #XRefNames
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Using
+          MenuItemName        #XRefReferencesUsing
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Update
+          MenuItemType        #Action
+          MenuItemName        #xRefUpdate
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Check model
+          MenuItemType        #Action
+          MenuItemName        #DEV_checkModel
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    MENU #@SYS310448
+      PROPERTIES
+        Name                #SecTools
+        Label               #@SYS310448
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #XRef analyzer
+          MenuItemName        #syssecanalysisaddIn
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Metadata analyzer
+          MenuItemName        #syssecanalysisaddInmetadataAnalyzer
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #View related security roles
+          MenuItemName        #SysSecObjectsAnalyze
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #View related security objects
+          MenuItemName        #SysSecObjectsInRole
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Apply changes
+          MenuItemType        #Action
+          MenuItemName        #SysSecSecurityApply
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Table browser
+        MenuItemName        #sysTableBrowser
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Auto-report
+        MenuItemName        #SysTableForm
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Reverse engineer
+        MenuItemName        #SysVisioAddIn
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Extract XML documentation
+        MenuItemType        #Output
+        MenuItemName        #SysXmlDocumentationCreateFile
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Run tests
+        MenuItemType        #Action
+        MenuItemName        #SysTestToolbarOpen
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Type hierarchy browser
+        MenuItemName        #SysTypeHierarchyBrowser
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Compare
+        MenuItemType        #Action
+        MenuItemName        #sysCompare
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Compile forward
+        MenuItemType        #Action
+        MenuItemName        #sysCompileForward
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Impact Analysis
+        MenuItemType        #Action
+        MenuItemName        #SysImpactAnalysis
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Find and replace
+        MenuItemType        #Action
+        MenuItemName        #SysSourceReplaceText
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Syntactic renaming
+        MenuItemType        #Action
+        MenuItemName        #SysSourceReplaceSyntax
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Duplicates
+        MenuItemName        #SysDictIndexShowDuplicates
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENU #@SYS16245
+      PROPERTIES
+        Name                #MenuCopy
+        Label               #@SYS16245
+        NeededAccessLevel   #NoAccess
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Entire path
+          MenuItemType        #Action
+          MenuItemName        #SysTreeNodePathCopyToClipboard
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Name
+          MenuItemType        #Action
+          MenuItemName        #SysTreeNodeNameCopyToClipboard
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Copy to current layer
+          MenuItemType        #Action
+          MenuItemName        #systreenodecopyToCurrentLayer
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    MENUITEM
+      PROPERTIES
+        Name                #Check best practices
+        MenuItemType        #Action
+        MenuItemName        #SysBPCheck
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Check form style best practices
+        MenuItemName        #SysBPStyleCheckAnalysis
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Source code title case update
+        MenuItemType        #Action
+        MenuItemName        #SysSourceNameWash
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Generate Axd query
+        MenuItemType        #Action
+        MenuItemName        #AxdGenerateAxdQuery
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #AIF Document Service Wizard
+        MenuItemName        #AxdWizard
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Register service
+        MenuItemType        #Action
+        MenuItemName        #AifRegisterService
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Help properties
+        MenuItemName        #HelpTopicID
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Lookup in Issue Search
+        MenuItemName        #SysLcsIssueSearchAotItem
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENU #@SYS53405
+      PROPERTIES
+        Name                #SysContextMenuOpenNewWindow
+        Label               #@SYS53405
+        SetCompany          #Yes
+      ENDPROPERTIES
+      
+      MENUITEM
+        PROPERTIES
+          Name                #Open application object window
+          MenuItemType        #Action
+          MenuItemName        #SysTreeNodeApplObjectOpenNewWindow
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open parent in window
+          MenuItemType        #Action
+          MenuItemName        #SysTreeNodeParentOpenNewWindow
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open new window
+          MenuItemType        #Action
+          MenuItemName        #SysTreeNodeOpenNewWindow
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENU #@SYS57839
+        PROPERTIES
+          Name                #MenuOpenOldLayer
+          Label               #@SYS57839
+          NeededAccessLevel   #NoAccess
+        ENDPROPERTIES
+        
+        MENUITEM
+          PROPERTIES
+            Name                #usp
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldUsp
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #usr
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldUsr
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #cup
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldCup
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #cus
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldCus
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #vap
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldVap
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #var
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldVar
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #isp
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldIsp
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #isv
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldIsv
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #slp
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldSlp
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #sln
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldSln
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #fpp
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldFpp
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #fpk
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldFpk
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #glp
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldGlp
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #gls
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldGls
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #syp
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldSyp
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+        MENUITEM
+          PROPERTIES
+            Name                #sys
+            MenuItemType        #Action
+            MenuItemName        #SysOpenOldSys
+          ENDPROPERTIES
+          
+        ENDMENUITEM
+      ENDMENU
+      MENUITEM
+        PROPERTIES
+          Name                #Open used table
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowTable
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open used table field group
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowFieldGroup
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open used Extended Data Type
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowExtendedType
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open used Enum
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowEnum
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open used class
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowClass
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open used form
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowForm
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open used report
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowReport
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+      MENUITEM
+        PROPERTIES
+          Name                #Open used menu item
+          MenuItemType        #Action
+          MenuItemName        #SysOpenNewWindowMenuItem
+        ENDPROPERTIES
+        
+      ENDMENUITEM
+    ENDMENU
+    MENUITEM
+      PROPERTIES
+        Name                #Properties
+        MenuItemType        #Action
+        MenuItemName        #SysTreeNodeShowProperties
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Full CIL generation from X++
+        MenuItemType        #Action
+        MenuItemName        #SysXppILFullBuild
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Incremental CIL generation from X++
+        MenuItemType        #Action
+        MenuItemName        #SysXppILIncrementalBuild
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Approval wizard...
+        MenuItemName        #WorkflowAOTWizardApproval
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Task wizard...
+        MenuItemName        #WorkflowAOTWizardTask
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Workflow type wizard...
+        MenuItemName        #WorkflowAOTWizardType
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+  ENDMENU
+  
+
+END

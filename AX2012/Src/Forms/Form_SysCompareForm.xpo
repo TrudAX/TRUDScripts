@@ -1,0 +1,836 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysCompareForm
+  PROPERTIES
+    Name                #SysCompareForm
+    Origin              #{0B0E0000-0000-1000-598A-54B974672872}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #class FormRun extends ObjectRun
+      #{
+      #    SysCompare       _sysCompare;
+      #    FormTreeItem     _selectionChangedItem;
+      #
+      #    SysFormSplitter_X _formSplitter;
+      #}
+    ENDSOURCE
+    SOURCE #animateStop
+      #void animateStop()
+      #{
+      #;
+      #    animate.stop();
+      #}
+    ENDSOURCE
+    SOURCE #close
+      #public void close()
+      #{
+      #    _sysCompare = null;
+      #    super();
+      #}
+    ENDSOURCE
+    SOURCE #createGradientIndicator
+      #private void createGradientIndicator(Object htmlActiveX, str startColor, str endColor)
+      #{
+      #    str htmlBodyText;
+      #    ;
+      #
+      #    htmlBodyText = @"
+      #    <html>
+      #        <head>
+      #            <style>
+      #                .tableGradient
+      #                {
+      #                    filter:progid:DXImageTransform.Microsoft.Gradient(
+      #                        startColorstr="+startColor+@",
+      #                        endColorstr="+endColor+@",
+      #                        gradientType=1);
+      #                }
+      #                body
+      #                {
+      #                    border:0px;
+      #                    margin:0px;
+      #                    background-image: linear-gradient(to right, "+startColor+@", "+endColor+@");
+      #                    background-color: "+startColor+@";
+      #                }
+      #            </style>
+      #        </head>
+      #        <body scroll='No'>
+      #            <table width='100%' height='100%' class='tableGradient'><td></td></table>
+      #        </body>
+      #    </html>";
+      #
+      #    SysHelp::showHTML(htmlActiveX, htmlBodyText);
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #void init()
+      #{
+      #    boolean useGreen = false;
+      #    super();
+      #    html.prefColumnSize(600,400);
+      #    combobox1.prefColumnSize(400,100);
+      #
+      #    _sysCompare = element.args().caller();
+      #    if (_sysCompare.parmContext())
+      #    {
+      #        if (_sysCompare.parmContext() is SysCodeCoverageCompareContext)
+      #        {
+      #            useGreen = true;
+      #        }
+      #    }
+      #    //
+      #    // Set height of html controls to match height of comboBox controls
+      #    //
+      #    redHtmlGroup.height(comboBox1.heightValue());
+      #    blueHtmlGroup.height(comboBox2.heightValue());
+      #
+      #    //
+      #    // Create gradients for red and blue / green indicators
+      #    //
+      #    this.createGradientIndicator(htmlRed, @'#FF0000', @'#FF9999');
+      #
+      #    if (useGreen)
+      #    {
+      #        this.createGradientIndicator(htmlBlue, @'#00FF00', @'#99FF99');
+      #    }
+      #    else
+      #    {
+      #        this.createGradientIndicator(htmlBlue, @'#2222FF', @'#9999FF');
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #print
+      #void print()
+      #{
+      #    OleCommand oleCommand;
+      #    COMVariant parm;
+      #
+      #    if (html.visible())
+      #    {
+      #        oleCommand = new OleCommand( html.interface() );
+      #    }
+      #    parm = new COMVariant(COMVariantInOut::Out);
+      #    oleCommand.exec('',6,1,parm);
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #void run()
+      #{
+      #    _formSplitter = new SysFormSplitter_X(split, tree);
+      #    super();
+      #
+      #    compareButton.setFocus();
+      #
+      #     compareButton.setTimeOut('clicked', 150, true);
+      #   // element.setTimeOut(
+      #    //compareButton.clicked();//trud
+      #}
+    ENDSOURCE
+    SOURCE #selectionChangedTimeOut
+      #void selectionChangedTimeOut()
+      #{
+      #    if (_selectionChangedItem)
+      #    {
+      #        if (_sysCompare)
+      #        {
+      #            _sysCompare.selectionChanged(_selectionChangedItem);
+      #        }
+      #        _selectionChangedItem = null;
+      #    }
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SYS53419
+      Frame               #Dialog
+      WindowType          #Workspace
+      SaveSize            #No
+      HideToolbar         #Yes
+      SetCompany          #No
+      ViewEditMode        #Edit
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1610612734
+          HierarchyParent     #Criteria
+          ArrangeMethod       #Horizontal, flush right
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #BlueGroup
+          Width               #Column width
+          ElementPosition     #1610612734
+          HierarchyParent     #Combo
+          FrameType           #None
+          Columns             #2
+          Columnspace         #0
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #BlueHtmlGroup
+          AutoDeclaration     #Yes
+          Width               #16
+          Height              #Column height
+          ElementPosition     #1073741823
+          HierarchyParent     #BlueGroup
+          FrameType           #Sunken 3D
+          TopMargin           #2
+          BottomMargin        #2
+          LeftMargin          #2
+          RightMargin         #2
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Combo
+          Width               #Column width
+          ElementPosition     #1073741823
+          HierarchyParent     #SelectTab
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Criteria
+          Width               #Column width
+          ElementPosition     #1073741823
+          HierarchyParent     #Form
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #data
+          Visible             #No
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612734
+          HierarchyParent     #Form
+          FrameType           #None
+          FramePosition       #Inside
+          Columns             #3
+          Columnspace         #0
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Form
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741823
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #HTMLGrp
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1879048190
+          HierarchyParent     #data
+          FrameType           #Sunken 3D
+          TopMargin           #2
+          BottomMargin        #2
+          LeftMargin          #2
+          RightMargin         #2
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #RedGroup
+          Width               #Column width
+          ElementPosition     #1073741823
+          HierarchyParent     #Combo
+          FrameType           #None
+          Columns             #2
+          Columnspace         #0
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #RedHtmlGroup
+          AutoDeclaration     #Yes
+          Width               #16
+          Height              #Column height
+          ElementPosition     #1073741823
+          HierarchyParent     #RedGroup
+          FrameType           #Sunken 3D
+          TopMargin           #2
+          BottomMargin        #2
+          LeftMargin          #2
+          RightMargin         #2
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Split
+          AutoDeclaration     #Yes
+          Width               #4
+          Height              #Column height
+          ElementPosition     #1610612734
+          HierarchyParent     #data
+          FrameType           #None
+          HideIfEmpty         #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDown
+            #int mouseDown(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitter.mouseDown(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseMove
+            #int mouseMove(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitter.mouseMove(x,y,button,ctrl,shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseUp
+            #int mouseUp(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitter.mouseUp(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TAB
+        PROPERTIES
+          Name                #Tab
+          Width               #Column width
+          ElementPosition     #1073741823
+          HierarchyParent     #Criteria
+          Tabs                #2
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #AdvancedTab
+          Width               #Column width
+          ElementPosition     #1610612734
+          HierarchyParent     #Tab
+          Caption             #@SYS23466
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #SelectTab
+          Width               #Column width
+          ElementPosition     #1073741823
+          HierarchyParent     #Tab
+          Caption             #@SYS29089
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL ACTIVEX
+        PROPERTIES
+          Name                #HTML
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741823
+          HierarchyParent     #HTMLGrp
+          Caption             #HTML Document
+          ClassName           #{25336920-03F9-11cf-8FD0-00AA00686F13}
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #onEvent_onclick
+            #//
+            #boolean onEvent_onclick()
+            #{
+            #    boolean ret = false;
+            #    ;
+            #
+            #    if (_sysCompare)
+            #    {
+            #        ret = _sysCompare.onEvent_onclick(html);
+            #    }
+            #
+            #    return ret;
+            #
+            #
+            #}
+          ENDSOURCE
+          SOURCE #onEvent_oncontextmenu
+            #//
+            #boolean onEvent_oncontextmenu()
+            #{
+            #    ;
+            #    return SysHelp::onEvent_oncontextmenu();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+        BINARY 250
+          3C 21 44 4F 43 54 59 50 45 20 48 54 4D 4C 20 50 55 42 4C 49 43 20 22 2D 2F 2F 57 33 43 2F 2F 44
+          54 44 20 48 54 4D 4C 20 34 2E 30 20 54 72 61 6E 73 69 74 69 6F 6E 61 6C 2F 2F 45 4E 22 3E 0D 0A
+          3C 48 54 4D 4C 3E 3C 48 45 41 44 3E 0D 0A 3C 4D 45 54 41 20 68 74 74 70 2D 65 71 75 69 76 3D 43
+          6F 6E 74 65 6E 74 2D 54 79 70 65 20 63 6F 6E 74 65 6E 74 3D 22 74 65 78 74 2F 68 74 6D 6C 3B 20
+          63 68 61 72 73 65 74 3D 77 69 6E 64 6F 77 73 2D 31 32 35 32 22 3E 0D 0A 3C 4D 45 54 41 20 63 6F
+          6E 74 65 6E 74 3D 22 4D 53 48 54 4D 4C 20 35 2E 35 30 2E 34 31 33 34 2E 36 30 30 22 20 6E 61 6D
+          65 3D 47 45 4E 45 52 41 54 4F 52 3E 3C 2F 48 45 41 44 3E 0D 0A 3C 42 4F 44 59 3E 0D 0A 3C 50 3E
+          26 6E 62 73 70 3B 3C 2F 50 3E 3C 2F 42 4F 44 59 3E 3C 2F 48 54 4D 4C 3E 0D 0A
+        ENDBINARY
+        BINARY 1
+          00
+        ENDBINARY
+      ENDCONTROL 
+      
+      CONTROL ACTIVEX
+        PROPERTIES
+          Name                #htmlBlue
+          Width               #Column width
+          Height              #Column height
+          Skip                #Yes
+          ElementPosition     #1431655764
+          HierarchyParent     #BlueHtmlGroup
+          Caption             #HTML Document
+          ClassName           #{25336920-03F9-11cf-8FD0-00AA00686F13}
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #onEvent_oncontextmenu
+            #//
+            #boolean onEvent_oncontextmenu()
+            #{
+            #    ;
+            #    return false;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+        BINARY 0
+          
+        ENDBINARY
+        BINARY 1
+          00
+        ENDBINARY
+      ENDCONTROL 
+      
+      CONTROL ACTIVEX
+        PROPERTIES
+          Name                #htmlRed
+          Width               #Column width
+          Height              #Column height
+          Skip                #Yes
+          ElementPosition     #1073741823
+          HierarchyParent     #RedHtmlGroup
+          Caption             #HTML Document
+          ClassName           #{25336920-03F9-11cf-8FD0-00AA00686F13}
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #onEvent_oncontextmenu
+            #//
+            #boolean onEvent_oncontextmenu()
+            #{
+            #    ;
+            #    return false;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+        BINARY 0
+          
+        ENDBINARY
+        BINARY 1
+          00
+        ENDBINARY
+      ENDCONTROL 
+      
+      CONTROL ANIMATE
+        PROPERTIES
+          Name                #Animate
+          AutoDeclaration     #Yes
+          Left                #Right edge
+          ElementPosition     #1879048190
+          HierarchyParent     #Criteria
+          Border              #None
+          AnimateFile         #findfile.avi
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #CompareButton
+          AutoDeclaration     #Yes
+          HelpText            #@SYS68610
+          ElementPosition     #1073741823
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS4735
+          DefaultButton       #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #
+            #    super();
+            #
+            #    if (_sysCompare)
+            #    {
+            #        animate.play();
+            #        element.setTimeOut(identifierStr(animateStop), 100, true);
+            #        _sysCompare.startCompare();
+            #    }
+            #}
+            #
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #CaseSensitive
+          ElementPosition     #2013265918
+          HierarchyParent     #AdvancedTab
+          Label               #@SYS29119
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #LineNumbers
+          ElementPosition     #2080374782
+          HierarchyParent     #AdvancedTab
+          Label               #@SYS50868
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #SuppressEqual
+          ElementPosition     #1073741823
+          HierarchyParent     #AdvancedTab
+          Value               #1
+          Label               #@SYS29136
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #SuppressName
+          Visible             #No
+          ElementPosition     #1610612734
+          HierarchyParent     #AdvancedTab
+          Value               #1
+          Label               #@SYS50867
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #SuppressWhiteSpace
+          ElementPosition     #1879048190
+          HierarchyParent     #AdvancedTab
+          Value               #1
+          Label               #@SYS29108
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #ComboBox1
+          AutoDeclaration     #Yes
+          Width               #Column width
+          ElementPosition     #1610612734
+          HierarchyParent     #RedGroup
+          ShowLabel           #No
+          ComboType           #List
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #ComboBox2
+          AutoDeclaration     #Yes
+          Width               #Column width
+          ElementPosition     #1610612734
+          HierarchyParent     #BlueGroup
+          ShowLabel           #No
+          ComboType           #List
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TREE
+        PROPERTIES
+          Name                #Tree
+          Width               #200
+          Height              #Column height
+          ElementPosition     #1073741823
+          HierarchyParent     #data
+          LinesAtRoot         #No
+          SingleSelection     #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #context
+            #void context()
+            #{
+            #    ;
+            #    if (_sysCompare)
+            #    {
+            #        _sysCompare.contextTree();
+            #    }
+            #//    super();
+            #
+            #}
+          ENDSOURCE
+          SOURCE #expanding
+            #boolean expanding(int idx, FormTreeExpand action, anytype data)
+            #{
+            #    boolean ret;
+            #    ;
+            #
+            #    if (_sysCompare)
+            #    {
+            #        _sysCompare.expanding(idx);
+            #    }
+            #
+            #    ret = super(idx, action, data);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+          SOURCE #selectionChanging
+            #boolean selectionChanging(FormTreeItem oldItem, FormTreeItem newItem, FormTreeSelect how)
+            #{
+            #    boolean ret;
+            #
+            #    ret = super(oldItem, newItem, how);
+            #
+            #    _selectionChangedItem = newItem;
+            #
+            #//    if (how != FormTreeSelect::Unknown)
+            #    element.setTimeOut(identifierStr(selectionChangedTimeOut), 100, true);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

@@ -1,0 +1,1051 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysTreeNodeCompareContext implements SysCompareContextProvider, SysSaveable
+{
+    TreeNode treeNode1, treeNode2;
+    str      default1, default2;
+
+    SysTreeNode sysTreeNode1, sysTreeNode2;
+
+    SysTreeNode sysTreeNodeTopOriginal; // often oldSys, these variables are set to non null if highest and second highest layer is compared
+    SysTreeNode sysTreeNodeTopTheirs;   // often newSys
+    SysTreeNode sysTreeNodeTopCurrent;  // often newUsr
+    SysTreeNode sysTreeNodeTopYours;    // often oldUsr
+
+    SysMergeDirection   mergeDirection;
+
+    TreeNode            saveTopComparable1;
+    TreeNode            saveTopComparable2;
+
+    ClassName           source1; // ClassName corresponding to origin of topComparable1 (~Standard,Old,VCS,...)
+    ClassName           source2;
+
+    boolean             suppressWhitespace;
+    boolean             caseSensitive;
+    boolean             showlineNumbers;
+    boolean             showDifferencesOnly;
+
+    boolean             suppressNodesOnlyIn1;
+    boolean             suppressNodesOnlyIn2;
+
+    boolean             suppressIDinProperties;
+
+    boolean             currentLayerOnly;
+
+#define.CurrentVersion(3)
+#define.version1(1)
+#localmacro.CurrentList
+    source1,
+    source2,
+    suppressWhitespace,
+    caseSensitive,
+    showlineNumbers,
+    showDifferencesOnly
+#endmacro
+
+    #define.SpecialMarkupStart('·')
+    #define.SpecialMarkupEnd('°')
+
+
+    public str caption()
+    {
+        return "@SYS53419";
+    }
+
+    public str comparableItemDefault(SysCompareType _type)
+    {
+        switch (_type)
+        {
+            case SysCompareType::Text1:
+                return default1;
+
+            case SysCompareType::Text2:
+                return default2;
+        }
+        return '';
+    }
+
+    public List comparableList(SysCompareType _type)
+    {
+        List list;
+
+        switch (_type)
+        {
+            case SysCompareType::Text1:
+                if (sysTreeNode1 && classIdGet(sysTreeNode1) != classNum(SysTreeNode))
+                {
+                    list = new List(Types::Class);
+                    list.addEnd(sysTreeNode1);
+                }
+                else if (treeNode1)
+                {
+                    list = this.comparableListTreenode(_type, treeNode1);
+                }
+                break;
+
+            case SysCompareType::Text2:
+                if (sysTreeNode2 && classIdGet(sysTreeNode2) != classNum(SysTreeNode))
+                {
+                    list = new List(Types::Class);
+                    list.addEnd(sysTreeNode2);
+                }
+                else if (treeNode2)
+                {
+                    list = this.comparableListTreenode(_type, treeNode2);
+                }
+                break;
+        }
+
+        //
+        // If it is the same treenode, then detect and use default values (selection in combobox)
+        //
+        if (treeNode1 &&
+            treeNode2 &&
+            treeNode1.treeNodePath() == treeNode2.treeNodePath())
+        {
+            this.detectDefaultItem(list, _type);
+        }
+        return list;
+    }
+
+    protected List comparableListTreenode(SysCompareType _type, TreeNode _treeNode)
+    {
+        int            maskNew;
+        int            maskOld;
+        List           list = new List(Types::Class);
+        UtilEntryLevel layer;
+        int            i;
+        SysVersionControlTmpItem item;
+        TreeNode        treeNodeNew;
+        UtilIdElements  utilElement;
+        TreeNode        treeNodeSameNameDiffId;
+        int             infologLine;
+        int             line;
+        UtilIdElements  utilElementFromNode;
+
+        if (!_treeNode.treeNodeType().isLayerAware())
+        {
+            return list;
+        }
+
+        if (_treeNode.AOTIsOld())
+        {
+            // find treeNode in New (= not in the Old directory)
+            treeNodeNew = SysTreeNode::getLayeredNode(_treeNode, 0, false /* not Old */);
+
+            if (treeNodeNew &&
+                treeNodeNew.treeNodePath() != infolog.rootNode().treeNodePath())
+            {
+                _treeNode = treeNodeNew;
+                maskNew = _treeNode.applObjectLayerMask();
+                maskOld = _treeNode.applObjectOldLayerMask();
+            }
+            else
+            {
+                maskOld = _treeNode.applObjectLayerMask();
+            }
+        }
+        else
+        {
+            maskNew = _treeNode.applObjectLayerMask();
+            maskOld = _treeNode.applObjectOldLayerMask();
+        }
+
+        // add usp, usr, ..., syp, sys
+        for (i = enumCnt(UtilEntryLevel)-1; i>=0; i--)
+        {
+            if (maskNew & (1 << i))
+            {
+                layer = i;
+                list.addEnd(SysTreeNodeDelayLoaded::newTreeNode(_treeNode, layer));
+            }
+        }
+
+        // Add nodes with the same name but different Id
+        // Design decision: we will only make this check in Standard, we will not report name/Id problems in Old during compare
+        if (SysTreeNode::hasID(_treeNode) && _treeNode.treeNodeType().isUtilElement())
+        {
+            utilElementFromNode = _treeNode.utilIdElement();
+            while select utilElement
+                order by UtilLevel
+                where  utilElement.RecordType == utilElementFromNode.RecordType
+                    && utilElement.ParentId   == utilElementFromNode.ParentId
+                    && utilElement.Name       == utilElementFromNode.Name
+                    && utilElement.Id         != utilElementFromNode.Id // is sometimes the sys Id even if the tree node is shown as <name>(usr) in AOT/project
+            {
+                treeNodeSameNameDiffId = infolog.getNode(   utilElement.RecordType,
+                                                            utilElement.Name,
+                                                            utilElement.ParentId,
+                                                            UtilFileType::Application,
+                                                            utilElement.UtilLevel,
+                                                            true);
+                if (treeNodeSameNameDiffId)
+                {
+                    list.addEnd(SysTreeNode::newTreeNode(treeNodeSameNameDiffId));
+                }
+                else
+                {
+                    if (_type == SysCompareType::Text1) // avoid that the name/Id problem is reported for both text1 and text2
+                    {
+                        setPrefix(xUtilIdElements::description(utilElement));
+
+                        warning("@SYS111257");
+
+                        xUtilIdElements::checkForNameIdConflict(utilElement);
+                    }
+                }
+            }
+        }
+
+        // add usp(Old), usr(Old), ..., syp(Old), sys(Old)
+        for (i=enumCnt(UtilEntryLevel)-1; i>=0; i--)
+        {
+            if (maskOld & (1 << i))
+            {
+                layer = i;
+                list.addEnd(SysTreeNodeVirtualOld::newTreeNode(_treeNode, layer));
+            }
+        }
+
+        if (_type==SysCompareType::Text2 &&
+            SysTreenodeUpgrade::isUpgradePossible(_treeNode) &&
+            !SysTreeNode::isPatchLayer(currentAOLayer()))
+        {
+            list.addEnd(SysTreeNodeVirtualUpgraded::newTreeNode(_treeNode));
+        }
+
+        if (versioncontrol.ideIntegration() && _treeNode.treeNodeType().isRootElement())
+        {
+            // don't write in the infoLog if it was not possible to get the history
+            infologLine = infologLine();
+            item.setTmpData(versioncontrol.getItemHistory(SysTreeNode::newTreeNode(_treeNode)));
+            infolog.clear(infologLine);
+
+            while select item
+                order by ChangeNumber desc, Version asc
+            {
+                line++;
+
+                // show the 20 newest revisions and the oldest one
+                if (line<=20 || item.Version == 1)
+                    list.addEnd(SysTreeNodeVirtualVCS::newVCSItem(item));
+            }
+        }
+
+        if (_type==SysCompareType::Text2 &&
+            !SysTreeNode::isSourceText(_treeNode) &&
+            _treeNode.treeNodeType().isGetNodeInLayerSupported())
+        {
+            list.addEnd(SysTreeNodeVirtualWashed::newTreeNode(_treeNode));
+        }
+
+        return list;
+    }
+
+    protected void detectDefaultItem(List _list, SysCompareType _type)
+    {
+        ListEnumerator listEnum = _list.getEnumerator();
+        SysComparable comparable;
+
+        while (listEnum.moveNext())
+        {
+            comparable = listEnum.current();
+
+            switch (_type)
+            {
+                case SysCompareType::Text1:
+                    if (classId2Name(classIdGet(comparable)) == source1)
+                    {
+                        default1 = comparable.comparableName();
+                        return;
+                    }
+                    break;
+
+                case SysCompareType::Text2:
+                    if (classId2Name(classIdGet(comparable)) == source2)
+                    {
+                        default2 = comparable.comparableName();
+                        return;
+                    }
+                    break;
+            }
+        }
+    }
+
+    protected SysTreeNode findMatchingOriginal(SysTreeNode _currentOrYours)
+    {
+        if (sysTreeNodeTopCurrent)
+            return SysTreeNode::findMatchingOriginal(sysTreeNodeTopOriginal, sysTreeNodeTopTheirs, sysTreeNodeTopCurrent, _currentOrYours);
+
+        return SysTreeNode::findMatchingOriginal(sysTreeNodeTopOriginal, sysTreeNodeTopTheirs, sysTreeNodeTopYours, _currentOrYours);
+    }
+
+    /*
+    This method is called when no SysLastValue record can be found in xSysLastValue.GetLast()
+    */
+    public void initParmDefault()
+    {
+        source1 = '';
+        source2 = '';
+        suppressWhitespace = false;
+        caseSensitive = false;
+        showlineNumbers = false;
+        showDifferencesOnly = true;
+    }
+
+    public DataAreaId lastValueDataAreaId()
+    {
+        return '';
+    }
+
+    public IdentifierName lastValueDesignName()
+    {
+        return '';
+    }
+
+    public IdentifierName lastValueElementName()
+    {
+        return classId2Name(classIdGet(this));
+    }
+
+    public UtilElementType lastValueType()
+    {
+        return UtilElementType::Class;
+    }
+
+    public UserId lastValueUserId()
+    {
+        return curUserId();
+    }
+
+    // Insert values from Original into the _result container
+    public container manipulateResult(  container _result,
+                                        SysComparableTmpText _text1,
+                                        SysComparableTmpText _text2,
+                                        SysComparable _comparable1,
+                                        SysComparable _comparable2
+                                        )
+    {
+        #properties
+
+        // copied from SysTreenode class declaration
+        #define.TextProperties(2)
+
+        int length;
+        SysCompareType type;
+        int i;
+        str nameAndHash;
+        str propertyName;
+        str propertyValue;
+        str decoratedPropertyValue;
+        str originalValue;
+
+        SysTreeNode treenode;
+        SysTreeNode treenodeHighest;
+        SysTreeNode original;
+
+        SysUpgradeTreenode yourOrTheirsChild;
+
+        if (! sysTreeNodeTopOriginal)
+            return _result; // there is no original, not possible to insert original values into _result
+
+        // One of _comparable1,_comparable2 must be from highest layer (since there is an original)
+        // Find out which one of them
+
+        if (sysTreeNodeTopCurrent)
+        {
+            treenodeHighest = sysTreeNodeTopCurrent;
+        }
+        else if (sysTreeNodeTopYours)
+        {
+            treenodeHighest = sysTreeNodeTopYours;
+        }
+
+        // Create a SysUpgradeTreenode - we need the treenode path from it to find the original
+        if (_comparable1 is SysTreeNode)
+        {
+            treenode = _comparable1 as SysTreeNode;
+            yourOrTheirsChild = SysUpgradeTreenode::newTreeNode(treenode.parmTreeNode());
+        }
+        else if (_comparable2 is SysTreeNode)
+        {
+            treenode = _comparable2 as SysTreeNode;
+            yourOrTheirsChild = SysUpgradeTreenode::newTreeNode(treenode.parmTreeNode());
+        }
+        else
+        {
+            return _result;
+        }
+
+        if (_text1.Type == #TextProperties)
+        {
+            length = conLen(_result);
+
+            for(i=1; i<=length; i++)
+            {
+                [type, nameAndHash, propertyName, propertyValue] = this.manipulateResultExtractData(conPeek(_result, i));
+
+                decoratedPropertyValue = this.manipulateResultDecorateProperty(propertyName, propertyValue);
+                if (decoratedPropertyValue != propertyValue)
+                {
+                    _result = conPoke(_result, i, [type, strFmt('%1%2\n', nameAndHash, decoratedPropertyValue)]);
+                }
+
+                if (type == SysCompareType::Identical ||
+                    type == SysCompareType::Text2)
+                {
+                    // Find original
+                    if (! original)
+                    {
+                        original = this.findMatchingOriginal(yourOrTheirsChild);
+
+                        if (! original)
+                            return _result;
+                    }
+
+                    if (propertyName != #propertyId && original.hasProperty(propertyName))
+                    {
+                        originalValue = original.parmTreeNode().AOTgetProperty(propertyName);
+
+                        if (originalValue != propertyValue ||
+                            type == SysCompareType::Text2)
+                        {
+                            _result = conIns(_result, i+1,
+                                            [SysCompareType::TextOriginal,
+                                            strFmt('%1%2 %4font face=arial color=gray size=0.9m%5[Original value from Old %3]%4/font%5\n',
+                                                nameAndHash,
+                                                this.manipulateResultDecorateProperty(propertyName, originalValue),
+                                                SysTreeNode::getLayer(sysTreeNodeTopOriginal.parmTreeNode()),
+                                                #specialMarkupStart,
+                                                #specialMarkupEnd)
+                                            ]
+                                            );
+
+                            i++;
+                            length++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return _result;
+    }
+
+    protected str manipulateResultDecorateProperty(str _propertyName, str _propertyValue)
+    {
+        str decoratedPropertyValue = _propertyValue;
+
+        if (SysLabel::isLabelId(_propertyValue))
+        {
+            decoratedPropertyValue = strFmt('%3a title="%1"%4%2%3/a%4', SysLabel::labelId2String(_propertyValue), _propertyValue, #SpecialMarkupStart, #SpecialMarkupEnd);
+        }
+
+        return decoratedPropertyValue;
+    }
+
+    protected container manipulateResultExtractData(container _data)
+    {
+        SysCompareType type;
+        str nameValue;
+        int hashPos;
+        str propertyName;
+        str propertyValue;
+
+        [type, nameValue] = _data;
+
+        hashPos = strScan(nameValue, '#', 1, strLen(nameValue)+1);
+        if (hashPos)
+        {
+            propertyName = subStr(nameValue,1,hashPos-1);
+            propertyName = strLTrim(strRTrim(propertyName));
+
+            // propertyName can be null, e.g. for array properties nameValue can be e.g. '  #0 '
+            if (propertyName)
+            {
+                propertyValue = subStr(nameValue,hashPos+1, strLen(nameValue) - hashPos);
+
+                if (strEndsWith(propertyValue, '\n')) //Remove trailing new-line
+                    propertyValue = subStr(propertyValue, 1, strLen(propertyValue) - 1);
+
+                propertyValue = strLRTrim(propertyValue);
+            }
+        }
+        return [type, subStr(nameValue, 1, hashPos), propertyName, propertyValue];
+    }
+
+    public SysMergeDirection mergeDirection(
+        SysComparable _topComparable1,
+        SysComparable _topComparable2)
+    {
+
+    boolean isTopLayer(int _mask, UtilEntryLevel _layer)
+    {
+        int i;
+
+        for (i=enumCnt(UtilEntryLevel); i>_layer; i--)
+        {
+            if (bitTest(_mask, 1 << i))
+            {
+                //Exists in a higher layer
+                return false;
+            }
+        }
+
+        if (bitTest(_mask, 1 << _layer))
+        {
+            //Exists in the requested layer
+            return true;
+        }
+
+        return false;
+    }
+
+
+    boolean isNodeEditable(SysTreeNode _sysTreeNode)
+    {
+        TreeNode node = _sysTreeNode ? _sysTreeNode.parmTreeNode(): null;
+        TreeNode nodeInAot; //Is always highest layers, as it is found through aot path
+
+        if (node &&
+            !node.AOTIsOld() &&
+            !(_sysTreeNode is SysTreeNodeVirtual))
+        {
+            nodeInAot = TreeNode::findNode(SysTreeNode::getPath(node));
+
+            if (nodeInAot &&
+                nodeInAot.treeNodeType().isLayerAware() &&
+                isTopLayer(nodeInAot.applObjectLayerMask(), node.AOTLayer())     && //Is node in highest layer
+                versioncontrol.allowEdit(SysTreeNode::getRootElement(nodeInAot)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+        // Has the side effect that it sets sysTreenodeTopCurrent if appropriate
+        this.setSysTreenodeTopVars(_topComparable1 as SysTreeNode, _topComparable2 as SysTreeNode);
+
+        if (isNodeEditable(_topComparable1 as SysTreeNode))
+        {
+
+            mergeDirection = SysMergeDirection::TextA;
+            return mergeDirection;
+        }
+
+        if (isNodeEditable(_topComparable2 as SysTreeNode))
+        {
+
+            mergeDirection = SysMergeDirection::TextB;
+            return mergeDirection;
+        }
+
+        return SysMergeDirection::None;
+    }
+
+    protected void new()
+    {
+        xSysLastValue::getLast(this);
+    }
+
+    public void onCompareStart(
+        SysComparable _topComparable1,
+        SysComparable _topComparable2)
+    {
+        SysTreeNode topComparable1 = (_topComparable1 as SysTreeNode);
+        SysTreeNode topComparable2 = (_topComparable2 as SysTreeNode);
+
+        // AOT design forces us to keep reference to the top TreeNode
+        // to be preserved at all times. SysTreeNode.onComparableFocus
+        // could break this condition
+        saveTopComparable1 = topComparable1.parmTreeNode();
+        saveTopComparable2 = topComparable2.parmTreeNode();
+
+        source1 = classId2Name(classIdGet(_topComparable1));
+        source2 = classId2Name(classIdGet(_topComparable2));
+
+        //
+        // If it is the same treenode, then save the selection
+        //
+        if (treeNode1 &&
+            treeNode2 &&
+            treeNode1.treeNodePath() == treeNode2.treeNodePath())
+        {
+            xSysLastValue::saveLast(this);
+        }
+
+        // Virtual treenode are created from non-AOT source, e.g. XPO files
+        // and may not have the ID property set. In this case we should suppress it.
+        if (topComparable1.suppressIDPropertyDuringCompare() ||
+            topComparable2.suppressIDPropertyDuringCompare())
+        {
+            suppressIDinProperties = true;
+        }
+    }
+
+
+    public void onContextMenu(
+        int _hwnd,
+        SysComparable _comparable1,
+        SysComparable _comparable2,
+        SysComparable _topComparable1,
+        SysComparable _topComparable2)
+    {
+        SysTreeNode comparable1 = _comparable1 as SysTreeNode;
+        SysTreeNode comparable2 = _comparable2 as SysTreeNode;
+
+        SysContextMenuCompare contextMenu = new SysContextMenuCompare(comparable1 ? comparable1.parmTreeNode() : null ,
+                                                                      comparable2 ? comparable2.parmTreeNode() : null);
+
+        PopupMenu popupMenu  = new PopupMenu(_hwnd);
+        PopupMenu subMenu    = contextMenu.buildMenu(_hwnd, popupMenu);
+        PopupMenu menu1      = new PopupMenu(_hwnd, popupMenu);
+        PopupMenu menu2      = new PopupMenu(_hwnd, popupMenu);
+        int       newWindow1;
+        int       newWindow2;
+        int       edit1;
+        int       edit2;
+        int       property1;
+        int       property2;
+        int       sel;
+        TreeNode  node1 = comparable1 ? comparable1.parmTreeNode() : null;
+        TreeNode  node2 = comparable2 ? comparable2.parmTreeNode() : null;
+        ;
+
+        if (node1)
+        {
+            newWindow1 = menu1.insertItem("@SYS53405");
+            if (SysTreeNode::hasSource(node1))
+                edit1 = menu1.insertItem("@SYS453");
+            property1 = menu1.insertItem("@SYS10344");
+            popupMenu.insertPopupMenu(_topComparable1.comparableName(), menu1);
+        }
+
+        if (node2)
+        {
+            newWindow2 = menu2.insertItem("@SYS53405");
+            if (SysTreeNode::hasSource(node2))
+                edit2 = menu2.insertItem("@SYS453");
+            property2  = menu2.insertItem("@SYS10344");
+            popupMenu.insertPopupMenu(_topComparable2.comparableName(), menu2);
+        }
+
+        popupMenu.insertBreak();
+        popupMenu.insertPopupMenu("@SYS28637", subMenu);
+        sel = popupMenu.draw();
+
+        if (!contextMenu.runMenu(sel, contextMenu))
+        {
+            switch (sel)
+            {
+                case newWindow1:
+                    node1.AOTnewWindow();
+                    break;
+                case newWindow2:
+                    node2.AOTnewWindow();
+                    break;
+                case edit1:
+                    node1.AOTedit();
+                    break;
+                case edit2:
+                    node2.AOTedit();
+                    break;
+                case property1:
+                    node1.AOTshowProperties();
+                    break;
+                case property2:
+                    node2.AOTshowProperties();
+                    break;
+            }
+        }
+    }
+
+    void onDeleteTopNode(SysComparable _nodeToDelete)
+    {
+        TreeNode nodeToDeleteInAOT;
+        SysTreeNode nodeToDelete = _nodeToDelete as SysTreeNode;
+
+        if (_nodeToDelete)
+        {
+            nodeToDeleteInAOT = TreeNode::findNode(SysTreeNode::getPath(nodeToDelete.parmTreeNode()));
+            nodeToDeleteInAOT.AOTdelete();
+        }
+    }
+
+    public container pack()
+    {
+        return [#CurrentVersion,#CurrentList];
+    }
+
+    public boolean parmCaseSensitive(boolean value = caseSensitive)
+    {
+    ;
+        caseSensitive = value;
+        return caseSensitive;
+    }
+
+    public boolean parmCurrentLayerOnly(boolean _currentLayerOnly = currentLayerOnly)
+    {
+        currentLayerOnly = _currentLayerOnly;
+        return currentLayerOnly;
+    }
+
+    public boolean parmShowDifferencesOnly(boolean value = showDifferencesOnly)
+    {
+    ;
+        showDifferencesOnly = value;
+        return showDifferencesOnly;
+    }
+
+    public boolean parmShowLineNumbers(boolean value = showlineNumbers)
+    {
+        showlineNumbers = value;
+        return showlineNumbers;
+    }
+
+    public ClassName parmSource1(ClassName _source1 = source1)
+    {
+        source1 = _source1;
+
+        return source1;
+    }
+
+    public ClassName parmSource2(ClassName _source2 = source1)
+    {
+        source2 = _source2;
+
+        return source2;
+    }
+
+    public boolean parmSuppressIDinProperties()
+    {
+        return suppressIDinProperties;
+    }
+
+
+    public boolean parmSuppressNodesOnlyIn1(boolean value = suppressNodesOnlyIn1)
+    {
+        suppressNodesOnlyIn1 = value;
+        return value;
+    }
+
+    public boolean parmSuppressNodesOnlyIn2(boolean value = suppressNodesOnlyIn2)
+    {
+        suppressNodesOnlyIn2 = value;
+        return value;
+    }
+
+    public boolean parmSuppressWhitespace(boolean value = suppressWhitespace)
+    {
+    ;
+        suppressWhitespace = value;
+        return suppressWhitespace;
+    }
+
+    public SysTreeNode parmSysTreenode1(SysTreeNode _sysTreenode1 = sysTreenode1)
+    {
+        ;
+        sysTreenode1 = _sysTreenode1;
+
+        return sysTreenode1;
+    }
+
+
+    public SysTreeNode parmSysTreenode2(SysTreeNode _sysTreenode2 = sysTreenode2)
+    {
+        ;
+        sysTreenode2 = _sysTreenode2;
+
+        return sysTreenode2;
+    }
+
+
+    public TreeNode parmTreeNode1(TreeNode _treeNode1 = treeNode1)
+    {
+        ;
+        treeNode1 = _treeNode1;
+
+        return treeNode1;
+    }
+
+
+    public TreeNode parmTreenode2(TreeNode _treenode2 = treenode2)
+    {
+        ;
+        treenode2 = _treenode2;
+
+        return treenode2;
+    }
+
+
+    protected void setSysTreenodeTopVars(SysTreeNode _treeNode1, SysTreeNode _treeNode2)
+    {
+        // If
+        //    _treeNode1 or _treeNode2 is from highest layer, old or new  (= Yours or Current)
+        // And
+        //    _treeNode2 or _treeNode1 is from second higest layer, new   (= Theirs)
+        // Then
+        //     set the variables sysTreenodeTop... to Theirs/Yours/Current/Original
+
+        SysTreeNode nodeHighest;        // The one of _treeNode 1 or 2 from highest layer
+        SysTreeNode nodeSecondHighest;  // The theirs candidate, the other one of the _treeNode 2 or 1
+        Map         layerMap;
+
+        UtilEntryLevel layerHighest;
+        UtilEntryLevel layerSecondHighest;
+
+        UtilEntryLevel layer1;
+        UtilEntryLevel layer2;
+
+        boolean highestIsOld;
+
+        // clear all sysTreenodeTop... variables
+        sysTreeNodeTopTheirs  = null;
+        sysTreeNodeTopYours = null;
+        sysTreeNodeTopCurrent = null;
+        sysTreeNodeTopOriginal = null;
+
+        if (_treeNode1==null || _treeNode2==null)
+            return;
+
+        if (_treeNode1 is SysTreeNodeVirtual ||
+            _treeNode2 is SysTreeNodeVirtual)
+        {
+            //Virtual treenodes are generated from XPO files, and layer information is void
+            return;
+        }
+
+        if (_treeNode1 &&
+            _treeNode1.parmTreeNode() &&
+            (_treeNode1.parmTreeNode().treeNodeType().isUtilElement() == false ||
+             _treeNode1.parmTreeNode().treeNodeType().isLayerAware() == false))
+        {
+            return;
+        }
+
+        if (_treeNode2 &&
+            _treeNode2.parmTreeNode() &&
+            (_treeNode2.parmTreeNode().treeNodeType().isUtilElement() == false ||
+             _treeNode2.parmTreeNode().treeNodeType().isLayerAware() == false))
+        {
+            return;
+        }
+
+        layer1 = _treeNode1.parmTreeNode().AOTLayer();
+        layer2 = _treeNode2.parmTreeNode().AOTLayer();
+        if (layer1 > layer2)
+        {
+            nodeHighest         = _treeNode1;
+            layerHighest        = layer1;
+
+            nodeSecondHighest   = _treeNode2;
+            layerSecondHighest  = layer2;
+        }
+        else if (layer1 < layer2)
+        {
+            nodeHighest         = _treeNode2;
+            layerHighest        = layer2;
+
+            nodeSecondHighest   = _treeNode1;
+            layerSecondHighest  = layer1;
+        }
+        else
+        {
+            return;
+        }
+
+        if (nodeSecondHighest.parmTreeNode().AOTIsOld())
+        {
+            // the theirs candidate is from old, so it is not 'theirs'
+            return;
+        }
+
+        // check if nodeHighest and nodeSecondHighest have same name/type
+        if (nodeHighest.name() != nodeSecondHighest.name() ||
+            nodeSecondHighest.parmTreeNode().utilElement().RecordType != nodeSecondHighest.parmTreeNode().utilElement().RecordType)
+        {
+            return; // is not the same name and type
+        }
+
+        // check if nodeHighest really is from highest layer (old or new)
+        highestIsOld = nodeHighest.parmTreeNode().AOTIsOld();
+        if (!SysTreeNode::getLayeredNodeMap(nodeHighest.parmTreeNode(), highestIsOld).exists(0 /*highest*/))
+            return;
+
+        // check if nodeSecondHighest really is from second highest layer (new only)
+        layerMap = SysTreeNode::getLayeredNodeMap(nodeHighest.parmTreeNode());
+        if (!layerMap.exists(1 /* secondHighest*/))
+            return; // there is no second highest
+
+        if (layerMap.lookup(1 /* secondHighest*/) != layerSecondHighest)
+            return; // second highest is a different layer than the compare target
+
+        sysTreeNodeTopTheirs  = nodeSecondHighest;
+
+        if (highestIsOld)
+            sysTreeNodeTopYours = nodeHighest;
+        else
+            sysTreeNodeTopCurrent = nodeHighest;
+
+        sysTreeNodeTopOriginal = nodeHighest.getOriginalSysTreenode();
+    }
+
+    public boolean showTreePane()
+    {
+        return true;
+    }
+
+    public boolean supportDeleteWhenIdentical()
+    {
+        if (sysTreeNodeTopCurrent && // often newUsr
+            sysTreeNodeTopTheirs)    // often newSys
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean unpack(container packedClass)
+    {
+        int version     = RunBase::getVersion(packedClass);
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = packedClass;
+                return true;
+            default :
+                return false;
+        }
+
+        return false;
+    }
+
+    public static SysTreenodeCompareContext construct()
+    {
+        return new SysTreenodeCompareContext();
+    }
+
+
+    static void main(Args args)
+    {
+        SysVersionControlTmpItem  callerItem;
+        SysVersionControlTmpItem  firstMarkedItem, secondMarkedItem;
+        FormDataSource            formDataSource;
+        SysCompareContextProvider context;
+
+        if (SysContextMenu::startedFrom(args))
+        {
+            SysTreenodeCompareContext::startCompareFromContextMenu(args.parmObject(), args.parm());
+        }
+        else
+        {
+            if (SysDictClass::isEqualOrSuperclass(classIdGet(args.object()), classNum(TreeNode)))
+            {
+                context = SysTreenodeCompareContext::newTreenode(args.object());
+                SysCompare::startCompareOfContextProvider(context);
+            }
+            else
+            {
+                if (args &&
+                    args.record() &&
+                    args.record() is SysVersionControlTmpItem)
+                {
+                    callerItem = args.record() as SysVersionControlTmpItem;
+                    formDataSource = callerItem.dataSource();
+
+                    if (formDataSource)
+                    {
+                        firstMarkedItem = formDataSource.getFirst(true) as SysVersionControlTmpItem;
+
+                        if (firstMarkedItem)
+                        {
+                            secondMarkedItem = formDataSource.getNext() as SysVersionControlTmpItem;
+                            context = SysVersionControlTmpItem::compareContext(firstMarkedItem, secondMarkedItem);
+                            SysCompare::startCompareOfContextProvider(context);
+                            return;
+                        }
+                    }
+
+                    context = SysVersionControlTmpItem::compareContext(callerItem);
+                    SysCompare::startCompareOfContextProvider(context);
+                }
+            }
+        }
+    }
+
+    public static SysTreenodeCompareContext newSysTreeNode(
+        SysTreeNode _sysTreeNode1,
+        SysTreeNode _sysTreeNode2 = null)
+    {
+        SysTreenodeCompareContext context = SysTreenodeCompareContext::construct();
+        boolean needLayerAwareComparison = false;
+        UtilEntryLevel curAotLayer = currentAOLayer();
+
+        context.parmSysTreenode1(_sysTreeNode1);
+        context.parmSysTreenode2(_sysTreeNode2);
+
+        context.parmTreeNode1(_sysTreeNode1 ? _sysTreeNode1.parmTreeNode() : null);
+        context.parmTreenode2(_sysTreeNode2 ? _sysTreeNode2.parmTreeNode() : null);
+
+        if (_sysTreeNode1 != null && _sysTreeNode1.parmTreeNode() != null &&
+            _sysTreeNode2 != null && _sysTreeNode2.parmTreeNode() != null)
+        {
+            if ((_sysTreeNode1 is SysTreeNodeDelayLoaded && _sysTreeNode2 is SysTreeNodeVirtualVCS) ||
+                (_sysTreeNode2 is SysTreeNodeDelayLoaded && _sysTreeNode1 is SysTreeNodeVirtualVCS))
+            {
+                if (SysTreeNode::existsInLayer(_sysTreeNode1.parmTreeNode(), curAotLayer) &&
+                    SysTreeNode::existsInLayer(_sysTreeNode2.parmTreeNode(), curAotLayer))
+                {
+                    needLayerAwareComparison = true;
+                }
+            }
+        }
+
+        context.parmCurrentLayerOnly(needLayerAwareComparison);
+
+        return context;
+    }
+
+    public static SysTreenodeCompareContext newTreenode(
+        TreeNode _treeNode,
+        TreeNode _treeNode2 = _treeNode)
+    {
+        SysTreenodeCompareContext context = SysTreenodeCompareContext::construct();
+        ;
+        context.parmTreeNode1(_treeNode);
+        context.parmTreenode2(_treeNode2);
+        return context;
+    }
+
+    static public SysCompare startCompareFromContextMenu(SysContextMenu _contextMenu,
+                                                            str _parmName = '') //trud
+    {
+        SysTreenodeCompareContext context;
+
+        if (_contextMenu.selectionCount() == 1)
+        {
+            context = SysTreenodeCompareContext::newTreenode(_contextMenu.first());
+        }
+        if (strScan(_parmName,'old', 1, 60))
+        {
+            context.parmSource1(classstr(SysTreeNodeVirtualOld));
+            context.parmSource2(classstr(SysTreeNodeVirtualOld));
+        }
+        else
+        //if (strScan(_parmName,'new', 1, 60) )
+        {
+            context.parmSource1(classstr(SysTreeNodeVirtual));
+            context.parmSource2(classstr(SysTreeNodeVirtual));
+        }
+
+        if (_contextMenu.selectionCount() == 2)
+        {
+            context = SysTreenodeCompareContext::newTreenode(_contextMenu.first(), _contextMenu.next());
+        }
+
+        if (context)
+            return SysCompare::startCompareOfContextProvider(context);
+
+        return null;
+    }
+}

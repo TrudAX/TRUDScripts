@@ -1,0 +1,66 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+SRO
+
+; Microsoft Dynamics AX ROLE : SysSecRoleEntryPoint unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  ROLE #SysSecRoleEntryPoint
+    PROPERTIES
+      Name                #SysSecRoleEntryPoint
+      Label               #@SDT249
+      Description         #@SDT250
+      Origin              #{FC084C31-184C-4303-A1A9-E5C47CD51280}
+    ENDPROPERTIES
+    
+    DUTIES #Duties
+    ENDDUTIES
+    
+  PRIVILEGES #Privileges
+    PRIVILEGE #SysEDTSetup
+      PROPERTIES
+        Name                #SysEDTSetup
+      ENDPROPERTIES
+      
+    ENDPRIVILEGE
+    
+  PRIVILEGE #SysSecRoleEntryPointMaintain
+    PROPERTIES
+      Name                #SysSecRoleEntryPointMaintain
+    ENDPROPERTIES
+    
+  ENDPRIVILEGE
+  
+PRIVILEGE #SysSecRoleMaintain
+  PROPERTIES
+    Name                #SysSecRoleMaintain
+  ENDPROPERTIES
+  
+ENDPRIVILEGE
+
+ENDPRIVILEGES
+
+PERMISSIONSET #Permissions
+  PROPERTIES
+  ENDPROPERTIES
+  
+  TABLES #Tables
+  ENDTABLES
+  
+FORMS #Forms
+ENDFORMS
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ENDPERMISSIONSET
+
+SUBROLES #Sub Roles
+ENDSUBROLES
+
+ENDROLE
+
+
+END

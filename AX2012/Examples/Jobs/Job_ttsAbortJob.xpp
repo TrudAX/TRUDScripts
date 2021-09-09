@@ -1,0 +1,6 @@
+static void ttsAbortJob(Args _args)
+{
+;
+    ttsAbort;
+    //ttsCommit;
+}

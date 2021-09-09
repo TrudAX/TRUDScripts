@@ -1,0 +1,114 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+MNU
+
+; Microsoft Dynamics AX Menu : GlobalToolsMenu unloaded
+; --------------------------------------------------------------------------------
+  MNUVERSION 5
+  
+  MENU #GlobalToolsMenu
+    PROPERTIES
+      Name                #GlobalToolsMenu
+      Label               #@SYS24039
+      Origin              #{100F0000-0000-1000-FCC4-2023DD7F885F}
+    ENDPROPERTIES
+    
+    MENUITEM
+      PROPERTIES
+        Name                #Telephone list
+        MenuItemName        #emplworklocalPhone
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Session date and time
+        MenuItemName        #SystemDate
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Calculator
+        MenuItemType        #Action
+        MenuItemName        #Calculator
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Calculator for units
+        MenuItemName        #UnitOfMeasureCalculator
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Print archive
+        MenuItemName        #sysprintArchiveuser
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Select company accounts
+        MenuItemName        #SysDataAreaSelect
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Select currency
+        MenuItemName        #SysCurrencySelect
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Manage alert rules
+        MenuItemName        #EventRule
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Alerts - event inbox
+        MenuItemName        #EventAlertInbox
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Task recorder
+        MenuItemType        #Action
+        MenuItemName        #SysTaskRecorderToolbar
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    SEPARATOR
+    MENUREFERENCE
+      PROPERTIES
+        Name                #SRSReportingToolsMenu
+      ENDPROPERTIES
+      
+    ENDMENUREFERENCE
+    SEPARATOR
+    MENUITEM
+      PROPERTIES
+        Name                #Customize
+        MenuItemName        #SysUserSetupToolbar
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+    MENUITEM
+      PROPERTIES
+        Name                #Options
+        MenuItemName        #SysUserSetup
+      ENDPROPERTIES
+      
+    ENDMENUITEM
+  ENDMENU
+  
+
+END

@@ -1,0 +1,25 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FTM
+
+; Microsoft Dynamics AX MENUITEM : SysSecRoleEntryPointDeveloper unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #SysSecRoleEntryPointDeveloper
+    Type: 1
+    PROPERTIES
+      Name                #SysSecRoleEntryPointDeveloper
+      Label               #@SDT46
+      HelpText            #@SDT246
+      Object              #SysSecEntryPointManager
+      ViewUserLicense     #Functional
+      MaintainUserLicense #Functional
+      Origin              #{F9D2A65C-10FC-47AE-9E42-6B3E2487774E}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+END

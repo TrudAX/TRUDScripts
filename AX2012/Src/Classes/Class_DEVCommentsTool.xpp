@@ -1,0 +1,374 @@
+//trud - comments tool
+public class DEVCommentsTool
+{
+
+    str forEach(Map map, boolean _keyOnly = false, str _divider = ", ", str _keyPrefix = " _", str _keySuffix = "", boolean _repeatKeyAfterSuffix = false)
+    {
+        MapIterator mapIterator = new MapIterator(map);
+        boolean     firstField  = true;
+        str         result;
+
+        while (mapIterator.more())
+        {
+
+            result     += (firstField ? "" : _divider) +
+                          (_keyOnly ? "" : any2str(mapIterator.value()) ) +
+                          _keyPrefix +
+                          (_repeatKeyAfterSuffix ? any2str(mapIterator.key()) : this.getVarName(mapIterator.key()) )+
+                          _keySuffix +
+                          (_repeatKeyAfterSuffix ? this.getVarName(mapIterator.key()) : "");
+
+            firstField  = false;
+            mapIterator.next();
+        }
+
+        return result;
+    }
+
+    str getFindRecIdSource(str _path)
+    {
+        treeNode        treeNode;
+        str             res;
+        str             tableName;
+        Map             mapTypes = new Map(Types::String, Types::String);
+        ;
+        treeNode = TreeNode::findNode(_path);
+        treeNode = SysTreeNode::getRootElement(treeNode);
+        tableName = treeNode.AOTname();
+
+        mapTypes.insert('RecId', 'RecId');
+
+        res = this.getFindTemplate(tableName, mapTypes, 'findRecId');
+
+
+        return res;
+    }
+
+    str getFindTemplate(str _tableName, Map _indexMap, str _methodName)
+    {
+        str source;
+        str tableNameVar = this.getVarName(_tableName);
+        ;
+        source  = 'static ' + _tableName + ' ' + _methodName + '(' + this.forEach(_indexMap) + ', boolean _forupdate = false)\n';
+        source += '{\n';
+        source += '    ' + _tableName + ' ' + tableNameVar + ';\n';
+        source += '    ;\n';
+        source += '    if (' + this.forEach(_indexMap, true, ' || ') + ')\n';
+        source += '    {\n';
+        source += '        ' + tableNameVar + '.selectForUpdate(_forupdate);\n';
+        source += '        select ' + tableNameVar + ' where \n' + strrep(' ', 12) +
+                                      this.forEach(_indexMap, true, ' &&\n' + strrep(' ', 12), tableNameVar + '.' ,' == _', true) + ';\n';
+        source += '    }\n';
+        source += '    return ' + tableNameVar + ';\n';
+        source += '}\n';
+
+        return source;
+    }
+
+    str getVarName(str _name)
+    {
+        str res;
+        ;
+        res = strLwr(subStr(_name, 1, 1)) + subStr(_name, 2, strLen(_name));
+
+        return res;
+    }
+
+    void runSysContextMenu(SysContextMenu _sysContextMenu)
+    {
+        TreeNode contextNode = _sysContextMenu.first();
+        TreeNode checkNode;
+        str  projName;
+        ;
+
+        projName           = conpeek(DEVCommentsTool::getCurrent(), 3);
+
+        if (! projName)
+        {
+            return;
+        }
+
+        while (contextNode)
+        {
+            checkNode = TreeNode::findNode(contextNode.treeNodePath()); // find the same node, on the server
+            if (!checkNode)
+            {
+                checkNode = contextNode;   // in few situations, we can't find the node, so use the original
+            }
+            setPrefix(checkNode.treeNodePath());
+
+            DEVCommentsTool::add2Project(checkNode.treeNodePath(), projName);
+
+            contextNode = _sysContextMenu.next();
+        }
+    }
+
+    static void add2Project(str _path, str _projectName, boolean _doGrouping = true)
+    {
+        UtilIdElements  uu;
+        //SysTreeNode     sysTreeNode;
+        treeNode        treeNode;
+        boolean         projectNodeFound;
+        int             i;
+        UserInfo        userInfo;
+
+
+
+        boolean elementExistInProject(ProjectNode       _projectNode2,
+                                      UtilElementType   _elementType,
+                                      Name              _elementName)
+        {
+           // boolean                     projectNodeFound;
+
+
+            projectNodeFound = DEVCommentsTool::checkForProject(_projectNode2.getRunNode().AOTiterator(), _elementType, _elementName);
+            return projectNodeFound;
+        }
+
+        void add2ProjectNode(UtilElementType   _elementType,
+                             Name              _elementName)
+        {
+            SysProjectFilterRunBase     sysProjectFilterRunBase;
+            ProjectNode                 projectNode;
+            ;
+            projectNode = infolog.projectRootNode();
+            projectNode = projectNode.AOTfirstChild();  //Private projects
+            projectNode = projectNode.AOTnextSibling(); //Shared projects
+
+            projectNode = projectNode.AOTfindChild(_projectName);
+            if(projectNode)
+            {
+                projectNode = projectNode.getRunNode();
+                if(!elementExistInProject(projectNode,_ElementType,_ElementName))
+                {
+                    SysProjectFilterRunBase = new SysProjectFilterRunBase();
+                    SysProjectFilterRunBase.parmProjectNode(ProjectNode);
+                    SysProjectFilterRunBase.grouping((! _doGrouping) ? SysProjectGrouping::None : SysProjectGrouping::AOT);
+
+                    switch (_ElementName)
+                    {
+                        case classstr(Info):
+                        case classstr(Session):
+                        case classstr(Application):
+                        case classstr(Company):
+                        case classstr(Site):
+                        case classstr(ClassFactory):
+                        case classstr(Global):
+                        case classstr(VersionControl):
+                            SysProjectFilterRunBase.doUtilElements(xUtilElements::find(UtilElementType::ClassInstanceMethod,'ClassDeclaration', Global::className2Id(_ElementName)));
+                        default:
+                            SysProjectFilterRunBase.doUtilElements(xUtilElements::find(_ElementType, _ElementName));
+                            break;
+                    }
+
+                    SysProjectFilterRunBase.doUtilElements(xUtilElements::find(_ElementType,_ElementName));
+                    SysProjectFilterRunBase.write();
+                    projectNode.AOTsave();
+                }
+            }
+            else
+            {
+                warning(strFmt('Project %1 not found', _projectName));
+            }
+
+        }
+
+
+        UtilIdElements findTreeNode(TreeNode _treeNode)
+        {
+            UtilIdElements utilElements;
+            UtilIdElements utilElementsFromNode;
+            TreeNode     utilNode = _treeNode;
+
+            while (utilNode && !utilNode.utilIdElement().name)
+            {
+                utilNode = utilNode.AOTparent();
+                utilElementsFromNode = utilNode.utilIdElement();
+            }
+
+            if (utilNode)
+            {
+                utilElementsFromNode = utilNode.utilIdElement();
+
+                select firstonly utilElements
+                    where utilElements.Name         == utilElementsFromNode.Name         &&
+                          utilElements.Id           == utilElementsFromNode.Id           &&
+                          utilElements.RecordType   == utilElementsFromNode.RecordType   &&
+                          utilElements.ParentId     == utilElementsFromNode.ParentId     &&
+                          utilElements.UtilLevel    == utilElementsFromNode.UtilLevel;
+
+                return utilElements;
+            }
+
+            return null;
+        }
+
+
+        if (_projectName)
+        {
+
+            treeNode = TreeNode::findNode(_path);
+            if (! treeNode)
+            {
+                for (i = strLen(_path); i > 5; i--)
+                {
+                    if (subStr(_path, i , 1) == @'\')
+                    {
+                        _path = subStr(_path, 1, i - 1);
+                        treeNode = TreeNode::findNode(_path);
+                        break;
+                    }
+                }
+            }
+            treeNode = SysTreeNode::getRootElement(treeNode);
+            uu = findTreeNode(treeNode);
+
+            add2ProjectNode(uu.recordType, uu.name);
+            select userInfo
+                where userInfo.id == curUserId();
+            if (userInfo.startupProject != _projectName)
+            {
+                if (Box::yesNo(strFmt('Set current project to %1?', _projectName), DialogButton::Yes) == DialogButton::Yes)
+                {
+                    ttsBegin;
+                    select forUpdate userInfo
+                        where userInfo.id == curUserId();
+                    userInfo.startupProject = _projectName;
+                    userInfo.update();
+                    ttsCommit;
+                }
+            }
+        }
+
+    }
+
+    static boolean checkForProject(TreeNodeIterator   _treeNodeIterator,
+                            UtilElementType    _elementType,
+                            Name               _elementName)
+    {
+        ProjectNode             //projectNode,
+                        projectNodeLocal;
+        //TreeNodeIterator        TreeNodeIterator;
+        //UtilElements            UE;
+        boolean                 projectNodeFound;
+
+
+
+        projectNodeLocal = _TreeNodeIterator.next();
+        while(projectNodeLocal && !projectNodeFound)
+        {
+            if(!(projectNodeLocal.treeNodeType().isUtilElement() && projectNodeLocal.utilIdElement().name))//applObjectType())
+                projectNodeFound = DEVCommentsTool::checkForProject(projectNodeLocal.AOTiterator(), _elementType, _elementName);
+            else
+            {
+                if(projectNodeLocal.utilIdElement().recordType == _elementType && //applObjectType()    == _elementType &&
+                    projectNodeLocal.treeNodeName()      == _elementName)
+                    projectNodeFound = true;
+            }
+            projectNodeLocal = _TreeNodeIterator.next();
+        }
+        return projectNodeFound;
+    }
+
+    static container getCurrent(boolean _isTmp = false)
+    {
+        container c;
+        ;
+
+        //c = ['DEV-345', 'PO Address from WH for Handheld Orders', 'DEV345_POAddressFromWH'];
+        c = ['DEV-505', 'Clean out CRM Log file', 'DEV505_ClearCRMLog'];
+
+
+        return c;
+    }
+
+    static boolean isSuperUser()
+    {
+        //add users for comment tool here
+        return (curuserid() == 'Eclipse'
+            //||  curuserid() == 'Admin'
+             );
+    }
+
+    static void main(Args args)
+    {
+        DEVCommentsTool     commentsTool = new DEVCommentsTool();
+
+        if (SysContextMenu::startedFrom(args))
+        {
+            commentsTool.runSysContextMenu(args.parmObject());
+        }
+    }
+
+    static void openCommentSetup()
+    {
+        ;
+        SysUtil::editPathLogicalPos(@'\Classes\DEVCommentsTool\getCurrent',1000,8);
+    }
+
+    static void openCurProject()
+    {
+        str                         projName;
+        ProjectNode                 projectNode;
+        ;
+
+        projName           = conpeek(DEVCommentsTool::getCurrent(), 3);
+
+        if (! projName)
+        {
+            return;
+        }
+
+        projectNode = infolog.projectRootNode();
+        projectNode = projectNode.AOTfirstChild();  //Private projects
+        projectNode = projectNode.AOTnextSibling(); //Shared projects
+
+        projectNode = projectNode.AOTfindChild(projName);
+
+        if(projectNode)
+        {
+            projectNode = projectNode.getRunNode();
+            projectNode.AOTnewWindow();
+        }
+
+
+    }
+
+    static void processCheckInForm(FormRun  _sysVersionControlCheckIn)
+    {
+        FormStringControl           fsc;
+        str                         projName;
+        ;
+
+        if (DEVCommentsTool::isSuperUser())
+        {
+            projName           = conpeek(DEVCommentsTool::getCurrent(), 3);
+
+            fsc = _sysVersionControlCheckIn.design().controlName('Comment');
+            if (fsc && fsc.visible())
+            {
+                fsc.text(projName);
+            }
+        }
+
+    }
+
+    static void processSaveTaskForm(FormRun  _sysVersionControlCheckIn)
+    {
+        FormStringControl           fsc;
+        str                         projName;
+        ;
+
+        if (DEVCommentsTool::isSuperUser())
+        {
+            projName           = conpeek(DEVCommentsTool::getCurrent(), 1);
+
+            fsc = _sysVersionControlCheckIn.design().controlName('TaskNameEdit');
+            if (fsc && fsc.visible())
+            {
+                fsc.text(strFmt('%1Testing', projName));
+            }
+        }
+
+    }
+}

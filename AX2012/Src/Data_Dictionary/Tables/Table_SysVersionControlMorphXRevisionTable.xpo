@@ -1,0 +1,401 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : SysVersionControlMorphXRevisionTable unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #SysVersionControlMorphXRevisionTable
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #SysVersionControlMorphXRevisionTable
+      Systemtable         #Yes
+      SecurityKey         #SysDevelopmentTables
+      CacheLookup         #NotInTTS
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      SaveDataPerPartition #No
+      TableGroup          #Transaction
+      PrimaryIndex        #ItemPathVersionIdx
+      ClusterIndex        #ItemPathVersionIdx
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+      DeveloperDocumentation  #@SYS123447
+      Origin              #{2C2409EF-0000-1000-4EAD-7FD17B921D7C}
+      LegacyId            #2543
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #Action
+        STRING
+        PROPERTIES
+          Name                #Action
+          Table               #SysVersionControlMorphXRevisionTable
+          Origin              #{6EBFE732-8AAF-4F08-83A7-5C79E13672EA}
+          LegacyId            #6
+          ExtendedDataType    #SysVersionControlActionText
+          StringSize          #200
+        ENDPROPERTIES
+        
+      FIELD #Comment
+        STRING
+        PROPERTIES
+          Name                #Comment
+          Table               #SysVersionControlMorphXRevisionTable
+          Origin              #{796F1BB7-C4E9-43A2-BADD-F0B57330B3AE}
+          LegacyId            #5
+          ExtendedDataType    #SysVersionControlItemComment
+          StringSize          #(Memo)
+        ENDPROPERTIES
+        
+      FIELD #ItemPath
+        STRING
+        PROPERTIES
+          Name                #ItemPath
+          Mandatory           #Yes
+          Table               #SysVersionControlMorphXRevisionTable
+          Origin              #{9FC44834-3131-4A17-8306-669026845C5C}
+          LegacyId            #1
+          ExtendedDataType    #SysVersionControlItemPath
+          StringSize          #400
+        ENDPROPERTIES
+        
+      FIELD #RevisionData
+        QUEUE
+        PROPERTIES
+          Name                #RevisionData
+          Table               #SysVersionControlMorphXRevisionTable
+          Origin              #{A8706604-D358-43FF-855F-3FABE483E120}
+          LegacyId            #7
+          ExtendedDataType    #Blobdata
+        ENDPROPERTIES
+        
+      FIELD #Version
+        INT
+        PROPERTIES
+          Name                #Version
+          Mandatory           #Yes
+          Table               #SysVersionControlMorphXRevisionTable
+          Origin              #{B999F33A-19BE-4150-9629-358C7220D7D2}
+          LegacyId            #4
+          ExtendedDataType    #SysVersionControlItemVersion
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #ItemPath
+          #Version
+          #Comment
+          #Action
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #ItemPathVersionIdx
+      PROPERTIES
+        Name                #ItemPathVersionIdx
+        AllowDuplicates     #No
+        Origin              #{2B120001-09EF-1000-E72C-4A1A063213FA}
+        LegacyId            #1
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #ItemPath
+        #Version
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+      REFERENCE #SysVersionControlMorphXItemTable
+        PROPERTIES
+          Name                #SysVersionControlMorphXItemTable
+          Table               #SysVersionControlMorphXItemTable
+          EntityRelationshipRole  #@SYS123446
+          RelatedTableCardinality   #ExactlyOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Composition
+          UseDefaultRoleNames #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #ItemPath
+            RelatedField        #ItemPath
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #createItem
+        #/// <summary>
+        #///    Creates a <c>SysVersionControlTmpItem</c> record from this revision.
+        #/// </summary>
+        #/// <returns>
+        #///    The new <c>SysVersionControlTmpItem</c> record.
+        #/// </returns>
+        #public SysVersionControlTmpItem createItem()
+        #{
+        #    #file
+        #    SysVersionControlTmpItem item;
+        #    SysVersionControlItemPath itemPath;
+        #    SysVersionControllable controllable;
+        #
+        #    itemPath = SysVersionControlMorphXLockTable::internalFilenameToItemPath(this.ItemPath);
+        #
+        #    controllable = SysTreeNodeVirtualDeleted::newTreeNodePath(itemPath);
+        #
+        #    Debug::assert(controllable != null);
+        #
+        #    item.InternalFilename = strReplace(this.ItemPath+controllable.fileExtension(), '\\', '/');
+        #    item.Version = this.Version;
+        #    item.ItemPath = itemPath;
+        #    if (hasGUI())
+        #    {
+        #        item.ImageRes = new ImageListAppl_Aot().image(SysVersionControlSystem::path2Image(item.ItemPath));
+        #    }
+        #    item.ActionText = this.Action;
+        #    item.Comment = this.Comment;
+        #    item.User = this.CreatedBy;
+        #    item.vcsDate = DateTimeUtil::date(this.CreatedDateTime);
+        #    item.vcsTime = DateTimeUtil::time(this.CreatedDateTime);
+        #
+        #    return item;
+        #}
+      ENDSOURCE
+      SOURCE #writeToFile
+        #/// <summary>
+        #///    Writes the revision data to a file.
+        #/// </summary>
+        #/// <param name="_filename">
+        #///    The name of the file to write the data to.
+        #/// </param>
+        #/// <remarks>
+        #///    The file is created on the client tier.
+        #///    If a file already exists with the given file name, it is
+        #///    overwritten.
+        #/// </remarks>
+        #public void writeToFile(Filename _filename)
+        #{
+        #    if (this.RevisionData)
+        #    {
+        #        SysVersionControlMorphXRevisionTable::writeToFileClient(_filename, this.RevisionData);
+        #    }
+        #    else
+        #    {
+        #        throw error("@SYS136800");
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #create
+        #/// <summary>
+        #///    Creates a revision record.
+        #/// </summary>
+        #/// <param name="_itemPath">
+        #///    The path of the item for this revision.
+        #/// </param>
+        #/// <param name="_action">
+        #///    The action performed on the item in this revision.
+        #/// </param>
+        #/// <param name="_comment">
+        #///    The description of this revision.
+        #/// </param>
+        #/// <param name="_filename">
+        #///    The file name with the revision data; optional.
+        #/// </param>
+        #/// <returns>
+        #///    The new record.
+        #/// </returns>
+        #public server static SysVersionControlMorphXRevisionTable create(
+        #    SysVersionControlItemPath _itemPath,
+        #    SysVersionControlActionText _action,
+        #    SysVersionControlItemComment _comment,
+        #    Filename _filename = '')
+        #{
+        #    SysVersionControlMorphXRevisionTable revision;
+        #
+        #    //
+        #    // Set descriptors
+        #    //
+        #    ttsbegin;
+        #    revision.clear();
+        #    revision.ItemPath = _itemPath;
+        #    revision.Action = _action;
+        #    revision.Comment = _comment;
+        #
+        #    //
+        #    // Load file and clean up
+        #    //
+        #    if (_filename)
+        #    {
+        #        revision.RevisionData = SysVersionControlMorphXRevisionTable::readFromFile(_filename);
+        #    }
+        #    //
+        #    // Set version number
+        #    //
+        #
+        #    revision.Version = SysVersionControlMorphXRevisionTable::latestVersionNumber(_itemPath) + 1;
+        #    revision.insert();
+        #    ttscommit;
+        #
+        #    return revision;
+        #}
+      ENDSOURCE
+      SOURCE #find
+        #public static SysVersionControlMorphXRevisionTable find(
+        #    SysVersionControlItemPath _itemPath,
+        #    SysVersionControlItemVersion _version,
+        #    boolean _forupdate = false)
+        #{
+        #    SysVersionControlMorphXRevisionTable revision;
+        #
+        #    if (_forupdate)
+        #    {
+        #        revision.selectForUpdate(true);
+        #    }
+        #
+        #    select firstonly revision
+        #        where revision.ItemPath == _itemPath &&
+        #              revision.Version == _version;
+        #
+        #    return revision;
+        #}
+      ENDSOURCE
+      SOURCE #getContainerHistory
+        #/// <summary>
+        #/// Gets the history records for the container node.
+        #/// </summary>
+        #/// <param name="_container">
+        #/// The instance of the container node.
+        #/// </param>
+        #/// <param name="_vcsItemPath">
+        #/// The path to the container node in the version control system.
+        #/// </param>
+        #/// <param name="_internalFileName">
+        #/// The internal file name of the container
+        #/// </param>
+        #/// <returns>
+        #/// The history records for the container node.
+        #/// </returns>
+        #public static SysVersionControlTmpItem getContainerHistory(SysTreeNodeContainer _container, SysVersionControlItemPath _vcsItemPath, Filename _internalFileName)
+        #{
+        #    int history;
+        #    SysVersionControlMorphXRevisionTable revision;
+        #    SysVersionControlMorphXRevisionTable revisionComment;
+        #    SysVersionControlTmpItem item;
+        #    SysVersionControllable controllable;
+        #    str containerPath;
+        #    SysVersionControlItemPath searchPattern;
+        #
+        #    controllable = _container as SysVersionControllable;
+        #    Debug::assert(controllable != null);
+        #
+        #    containerPath = controllable.versionControlItemPath();
+        #
+        #    // The search pattern will look for all items under the container path
+        #    searchPattern =  strReplace(_vcsItemPath, @"\", @"\\") + @"\\*";
+        #
+        #    while select CreatedDateTime, CreatedBy from revision
+        #        group by CreatedDateTime, CreatedBy
+        #        where revision.ItemPath like searchPattern
+        #    {
+        #        // Because in X++ we cannot group by comment we need to query for it separately.
+        #        select firstonly comment from revisionComment
+        #            where revisionComment.CreatedDateTime == revision.CreatedDateTime;
+        #
+        #        history++;
+        #
+        #        item.clear();
+        #        item.InternalFilename = _internalFileName;
+        #        item.Version = history;
+        #        item.ItemPath = containerPath;
+        #        if (hasGUI())
+        #        {
+        #            item.ImageRes = new ImageListAppl_Aot().image(SysVersionControlSystem::path2Image(controllable.versionControlItemPath()));
+        #        }
+        #
+        #        item.ActionText = "";
+        #        item.Comment = revisionComment.Comment;
+        #        item.User = revision.CreatedBy;
+        #        item.vcsDate = DateTimeUtil::date(revision.CreatedDateTime);
+        #        item.vcsTime = DateTimeUtil::time(revision.CreatedDateTime);
+        #        item.insert();
+        #    }
+        #
+        #    return item;
+        #}
+      ENDSOURCE
+      SOURCE #latestVersionNumber
+        #/// <summary>
+        #/// Returns the version number of the latest revision.
+        #/// </summary>
+        #/// <param name="_itemPath">
+        #/// The path of the item requested.
+        #/// </param>
+        #/// <returns>
+        #/// The version number.
+        #/// </returns>
+        #static server public SysVersionControlItemVersion latestVersionNumber(SysVersionControlItemPath _itemPath)
+        #{
+        #    return (select maxof(Version) from sysVersionControlMorphXRevisionTable
+        #            where sysVersionControlMorphXRevisionTable.ItemPath == _itemPath).Version;
+        #}
+      ENDSOURCE
+      SOURCE #readFromFile
+        #/// <summary>
+        #///    Reads the revision data from a file on the client tier.
+        #/// </summary>
+        #/// <param name="_filename">
+        #///    The name of the file to read.
+        #/// </param>
+        #/// <returns>
+        #///    The revision data from the file.
+        #/// </returns>
+        #private static client container readFromFile(Filename _filename)
+        #{
+        #    BinData binData = new BinData();
+        #;
+        #    binData.loadFile(_filename);
+        #    WinAPI::deleteFile(_filename);
+        #    return binData.getData();
+        #}
+      ENDSOURCE
+      SOURCE #writeToFileClient
+        #/// <summary>
+        #///    Writes the revision data to a file on the client tier.
+        #/// </summary>
+        #/// <param name="_filename">
+        #///    The name of the file to which to write.
+        #/// </param>
+        #/// <param name="_revisionData">
+        #///    The revision data to write to the file.
+        #/// </param>
+        #private static client void writeToFileClient(Filename _filename, container _revisionData)
+        #{
+        #    BinData binData = new BinData();
+        #;
+        #    binData.setData(_revisionData);
+        #    binData.saveFile(_filename);
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

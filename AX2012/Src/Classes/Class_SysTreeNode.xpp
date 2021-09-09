@@ -1,0 +1,3009 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+public class SysTreeNode extends SysVersionControllableBase implements SysMergeable
+{
+    #define.TableColor("#FF9900")
+    #define.ClassColor("#008000")
+    #define.SpecialMarkupStart('Â·')
+    #define.SpecialMarkupEnd('Â°')
+    #file
+
+    TreeNode    treeNode;
+    List        comparableTextList;
+    SysUpgradeTreenodeStratMatch   matchStrategy;
+
+    #define.TextSource(1)
+    #define.TextProperties(2)
+    #define.TextSubNodes(3)
+
+    public boolean allowCheckIn(SysVersionControlSettings _settings)
+    {
+        SysCompilationResultProvider compilerOutput;
+        SysVersionControlUserInterfaceProvider uiProvider;
+        TmpCompilerOutput   tmpCompilerOutput;
+        Args                args;
+        SysBPParameters     bpParameters;
+        boolean             ret = !SysTreeNode::isUnwanted(treeNode);
+        SysSourceNameWash   sysSourceNameWash;
+        TreeNodeTraverser   traverser;
+        TreeNode            child;
+        int                 line;
+
+        if (_settings.parmRunTitleCaseUpdate())
+        {
+            line = infologLine();
+            sysSourceNameWash = new SysSourceNameWash();
+
+            traverser = new TreeNodeTraverser(treeNode);
+            while (traverser.next())
+            {
+                child = traverser.currentNode();
+
+                if (SysTreeNode::hasSource(child) &&
+                    !SysTreeNode::isSourceText(child))
+                {
+                    sysSourceNameWash.replaceNode(child);
+                }
+            }
+            treeNode.AOTsave();
+            infolog.clear(line);
+        }
+
+        compilerOutput = infolog.compilerOutput() as SysCompilationResultProvider;
+
+        if (compilerOutput)
+        {
+            uiProvider = versioncontrol.parmUserInterfaceProvider();
+
+            if (_settings.parmGateCompileErrors() != SysVersionControlGateSetting::Accept ||
+                _settings.parmGateCompileWarnings() != SysVersionControlGateSetting::Accept ||
+                _settings.parmGateCompileToDos() != SysVersionControlGateSetting::Accept)
+            {
+                SysCompilerOutput::setCompilerTarget(SysCompilerTarget::CompilerDialog);
+                xUserInfo::compilerWarningLevel(CompilerWarningLevel::Level4);
+                SysCompilerOutput::updateParm();
+
+                treeNode.AOTcompile();
+
+                if (_settings.parmGateCompileErrors() != SysVersionControlGateSetting::Accept &&
+                    compilerOutput.errorCount())
+                {
+                    tmpCompilerOutput = compilerOutput.compilerOutput();
+
+                    select firstonly tmpCompilerOutput
+                        where tmpCompilerOutput.TreeNodePath like SysCompilerOutput::buildLikePath(treeNode.treeNodePath())
+                           && tmpCompilerOutput.SysCompilerSeverity == SysCompilerSeverity::Error
+                           && tmpCompilerOutput.SysCompilerOutputTab == SysCompilerOutputTab::Error;
+
+                    if (tmpCompilerOutput)
+                    {
+                        if (_settings.parmGateCompileErrors() == SysVersionControlGateSetting::Prompt)
+                        {
+                            warning(strFmt("@SYS86011",treeNode.treeNodePath()));
+                        }
+                        else
+                        {
+                            ret = checkFailed(strFmt("@SYS86011",treeNode.treeNodePath()));
+                        }
+                    }
+                }
+                if (_settings.parmGateCompileWarnings() != SysVersionControlGateSetting::Accept &&
+                    compilerOutput.warningCount())
+                {
+                    tmpCompilerOutput = compilerOutput.compilerOutput();
+
+                    select firstonly tmpCompilerOutput
+                        where tmpCompilerOutput.TreeNodePath like SysCompilerOutput::buildLikePath(treeNode.treeNodePath())
+                           && (tmpCompilerOutput.SysCompilerSeverity == SysCompilerSeverity::WarningLevel1
+                            || tmpCompilerOutput.SysCompilerSeverity == SysCompilerSeverity::WarningLevel2
+                            || tmpCompilerOutput.SysCompilerSeverity == SysCompilerSeverity::WarningLevel3)
+                           && tmpCompilerOutput.SysCompilerOutputTab == SysCompilerOutputTab::Error;
+
+                    if (tmpCompilerOutput)
+                    {
+                        if (_settings.parmGateCompileWarnings() == SysVersionControlGateSetting::Prompt)
+                        {
+                            warning(strFmt("@SYS86012",treeNode.treeNodePath()));
+                        }
+                        else
+                        {
+                            ret = checkFailed(strFmt("@SYS86012",treeNode.treeNodePath()));
+                        }
+                    }
+                }
+                if (_settings.parmGateCompileToDos() != SysVersionControlGateSetting::Accept &&
+                    compilerOutput.toDoCount())
+                {
+                    tmpCompilerOutput = compilerOutput.compilerOutput();
+
+                    select firstonly tmpCompilerOutput
+                        where tmpCompilerOutput.TreeNodePath like SysCompilerOutput::buildLikePath(treeNode.treeNodePath())
+                           && tmpCompilerOutput.SysCompilerOutputTab == SysCompilerOutputTab::ToDo;
+
+                    if (tmpCompilerOutput)
+                    {
+                        if (_settings.parmGateCompileToDos() == SysVersionControlGateSetting::Prompt)
+                        {
+                            warning(strFmt("@SYS86013",treeNode.treeNodePath()));
+                        }
+                        else
+                        {
+                            ret = checkFailed(strFmt("@SYS86013",treeNode.treeNodePath()));
+                        }
+                    }
+                }
+            }
+
+            if (_settings.parmGateBestPracticeErrors() != SysVersionControlGateSetting::Accept)
+            {
+                bpParameters.initValue();
+                bpParameters.WarningLevel = SysBPWarningLevel::Error;
+
+                args = new Args();
+                args.object(treeNode);
+                args.record(bpParameters);
+
+                SysBPCheck::main(args);
+
+                if (compilerOutput.bestPracticesCount())
+                {
+                    tmpCompilerOutput = compilerOutput.compilerOutput();
+
+                    select firstonly tmpCompilerOutput
+                        where tmpCompilerOutput.TreeNodePath like SysCompilerOutput::buildLikePath(treeNode.treeNodePath())
+                           && tmpCompilerOutput.SysCompilerOutputTab == SysCompilerOutputTab::BestPractices;
+
+                    if (tmpCompilerOutput)
+                    {
+                        if (_settings.parmGateBestPracticeErrors() == SysVersionControlGateSetting::Prompt)
+                        {
+                            warning(strFmt("@SYS86014",treeNode.treeNodePath()));
+                        }
+                        else
+                        {
+                            ret = checkFailed(strFmt("@SYS86014",treeNode.treeNodePath()));
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            throw error(strFmt("@SYS111250", this.name()));
+        }
+
+        return ret;
+    }
+
+    public boolean allowCreate(SysVersionControlSettings _settings)
+    {
+        //
+        // Allow create is always allowed, even for unwanted objects.
+        // SysTreenode::isUnwanted(treenode)
+        //
+        // This is because of the vcs state machine. If allowCreate returns
+        // false it means the object is already created.
+        //
+        return true;
+    }
+
+    public boolean allowLockDuringCheckIn(SysVersionControlSettings _settings)
+    {
+        return false;
+    }
+
+    public boolean allowMultipleCheckout(SysVersionControlSettings _settings)
+    {
+        return true;
+    }
+
+    public Struct aotGetPropertiesExt()
+    {
+        return this.parmTreeNode().AOTgetPropertiesExt();
+    }
+
+    /// <summary>
+    /// Checks whether an item can be created in the source control.
+    /// </summary>
+    /// <returns>
+    /// true if item can be created in the source control; otherwise, false.
+    /// </returns>
+    public boolean canCreate()
+    {
+        UtilEntryLevel currentLayer = Global::currentAOLayer();
+        if (SysTreeNode::isUnwanted(this.parmTreeNode()))
+        {
+            error(strFmt("@SYS85681", this.parmTreeNode().treeNodePath()));
+            return false;
+        }
+
+        if (!SysTreeNode::existsInLayer(this.parmTreeNode(), currentLayer))   // check if sub-elements' layer is in layer mask
+        {
+            error(strFmt("@SYS127511", this.parmTreeNode().treeNodePath(), currentLayer));
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean canMergeDeleteSubnodes(SysComparable _top, SysCompareContextProvider _context)
+    {
+        TreeNode topTreenode;
+        SysTreeNode top = _top as SysTreeNode;
+        TreeNode firstChild;
+        #TreeNodeSysNodeType
+        topTreenode = top.parmTreeNode();
+
+        if (topTreenode &&
+            topTreenode.treeNodeType().isRootElement() &&
+            topTreenode.treeNodeType().isUtilElement())
+        {
+            if (this.isListOfChildrenFixed())
+            {
+                return false;
+            }
+
+            // Visual Studio Projects and SSRS Report not supported
+            if (topTreenode is VSProjectNode || topTreenode is SSRSReportConceptNode)
+            {
+                return false;
+            }
+
+            //
+            // Methods can always be deleted
+            //
+            firstChild = treeNode.AOTfirstChildEx(true);
+            if (firstChild && SysTreeNode::hasSource(firstChild))
+            {
+                return true;
+            }
+
+            //
+            // Only types containing children are listed below
+            //
+            switch (topTreenode.utilElement().RecordType)
+            {
+                case UtilElementType::ExtendedType:
+                case UtilElementType::DataSet:
+                case UtilElementType::Enum:
+                case UtilElementType::Form:
+                case UtilElementType::Menu:
+                case UtilElementType::Perspective:
+                case UtilElementType::Query:
+                case UtilElementType::Class:
+                case UtilElementType::Report:
+                case UtilElementType::ReportTemplate:
+                case UtilElementType::ReportSectionTemplate:
+                case UtilElementType::Service:
+                case UtilElementType::Table:
+                case UtilElementType::TableCollection:
+                case UtilElementType::TableMap:
+    //            case UtilElementType::ViewQuery: Not supported
+                case UtilElementType::WebForm:
+    //            case UtilElementType::WebModule: Not supported
+                case UtilElementType::WebMenu:
+                case UtilElementType::WebControl:
+    //            case UtilElementType::WorkflowTemplate: Not supported
+    //            case UtilElementType::WorkflowTask: Not supported
+    //            case UtilElementType::WorkflowCategory: Not supported
+    //            case UtilElementType::WorkflowApproval: Not supported
+
+                // Security Nodes
+                case UtilElementType::SecCodePermission:
+                case UtilElementType::SecDuty:
+                case UtilElementType::SecPrivilege:
+                case UtilElementType::SecProcessCycle:
+                case UtilElementType::SecRole:
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean canMergeInsertSubnodes(SysComparable _top, SysCompareContextProvider _context)
+    {
+        SysTreeNode top = _top as SysTreeNode;
+        TreeNode topTreenode;
+        TreeNode firstchild;
+        int     type;
+
+        topTreenode = top.parmTreeNode();
+
+           // return true;
+
+        if (topTreenode &&
+            topTreenode.treeNodeType().isRootElement() &&
+            topTreenode.treeNodeType().isUtilElement())
+        {
+            if (this.isListOfChildrenFixed())
+            {
+                return false;
+            }
+            //trud -->
+            type = treeNode.treeNodeType().id();
+            if ((type == 167 || type == 213) ||
+                topTreenode.utilElement().RecordType == UtilElementType::Enum ||
+                type == 411)
+            {
+                return true;
+            }
+            //trud <--
+
+            // Visual Studio Projects and SSRS report nodes not supported
+            if (topTreenode is VSProjectNode || topTreenode is SSRSReportConceptNode)
+            {
+                return false;
+            }
+
+            //
+            // Methods can always be inserted
+            //
+            firstchild = treeNode.AOTfirstChildEx(true);
+            if (firstchild && SysTreeNode::hasSource(firstchild))
+            {
+                return true;
+            }
+
+            //
+            // Only types containing children are listed below
+            //
+            switch (topTreenode.utilElement().RecordType)
+            {
+    //            case UtilElementType::ExtendedType:           //Drop not available in extended data types
+                case UtilElementType::DataSet:
+    //            case UtilElementType::Enum:                   //Drop in enums only supported for drag and drop on the same parent
+                case UtilElementType::Form:
+                case UtilElementType::Menu:
+                case UtilElementType::Perspective:
+                case UtilElementType::Query:
+                case UtilElementType::Class:
+                case UtilElementType::Report:
+                case UtilElementType::ReportTemplate:
+                case UtilElementType::ReportSectionTemplate:
+                case UtilElementType::Service: //Not supported
+    //            case UtilElementType::Table:                  //Drop not available in tables
+                case UtilElementType::TableCollection:
+                case UtilElementType::TableMap:
+    //            case UtilElementType::ViewQuery: Not supported
+                case UtilElementType::WebForm:
+    //            case UtilElementType::WebModule: Not supported
+    //            case UtilElementType::WebMenu: Not supported
+    //            case UtilElementType::WebControl: Not supported
+    //            case UtilElementType::WorkflowTemplate: Not supported
+    //            case UtilElementType::WorkflowTask: Not supported
+    //            case UtilElementType::WorkflowCategory: Not supported
+    //            case UtilElementType::WorkflowApproval: Not supported
+
+                // Security Nodes
+                case UtilElementType::SecCodePermission:
+                case UtilElementType::SecDuty:
+                case UtilElementType::SecPrivilege:
+                case UtilElementType::SecProcessCycle:
+                case UtilElementType::SecRole:
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    boolean cit_dropNode(TreeNode _parentNodeInAot, TreeNode _source, TreeNode _after = null)
+    {
+        #Properties
+    #define.NT_DBDELETEACTIONLIST( 167)
+    #define.NT_DBDELETEACTION( 213)
+        TreeNode            newTreeNode;
+        boolean             ret = true;
+        int                 type = _parentNodeInAot.treeNodeType().id();
+        MemberFunction      memberFunction;
+        str                 elementName;
+        //MenuItem            menuItem, menuItemNew;
+        //TreeNodePath        tmpPath;
+        ;
+        if (//type == #NT_FORMFIELDLAYOUT ||
+        type == 411 )
+        {
+            return _parentNodeInAot.AOTDrop(_source, _after);
+        }
+        if (type == #NT_DBDELETEACTIONLIST || type == #NT_DBDELETEACTION )
+        {
+            this.cit_dropNode2DeleteAction(_parentNodeInAot, _source, _after);
+            ret = true;
+        }
+        else
+        {
+            if (type == 209)
+            {
+                elementName = _source.treeNodeName();
+                _parentNodeInAot.AOTadd(elementName);
+
+                if (! newTreeNode)
+                {
+                    newTreeNode = _parentNodeInAot.AOTfindChild(elementName);
+                }
+
+                if (newTreeNode)
+                {
+                    newTreeNode.AOTsetProperties(_source.AOTgetProperties());
+                    if (SysTreeNode::hasSource(newTreeNode))
+                    {
+                        memberFunction = _source;
+                        newTreeNode.AOTsetSource(_source.AOTgetSource(), memberFunction.isStatic());
+                    }
+                }
+
+            }
+        else
+        {
+            ret = _parentNodeInAot.AOTDrop(_source, _after);
+        }
+        }
+            /*
+        if (type == #NT_DBTYPEELEMENTLIST)
+        {
+            elementName = 'El' + _source.AOTgetProperty('Index');
+        }
+        else
+        {
+            elementName = _source.treeNodeName();
+        }
+
+        while (strFind(elementName, ':', 1, strLen(elementName)))
+        {
+            elementName = strDel(elementName, 1, strFind(elementName, ':', 1, strLen(elementName)));
+        }
+
+        switch (type)
+        {
+            case #NT_DBDELETEACTIONLIST,
+                 #NT_DBDELETEACTION :
+                this.cit_dropNode2DeleteAction(_parentNodeInAot, _source, _after);
+                break;
+
+            case #NT_DBFIELDLIST :
+                tmpPath = SysTreeNode::getPath(_parentNodeInAot);
+                newTreeNode = this.cit_dropNode2FieldList(_source, _after);
+                _parentNodeInAot = TreeNode::findNode(tmpPath);
+                info('Выполните повторное сравнение объекта для отображения созданного поля'); //TODO: Сделать обновление формы сравнения, чтобы не падало
+                break;
+
+            case #NT_DBREFERENCE,
+                 #NT_DBTYPEREFERENCELIST:
+                newTreeNode = _parentNodeInAot.AOTaddSubNode(_source.sysNodeType());
+                break;
+
+            case #NT_FORMFIELDLAYOUT,
+                 #NT_DBFIELDGROUP:
+                return _parentNodeInAot.AOTDrop(_source, _after);
+
+            case #NT_MENU:
+                if (hasProperty(_source.AOTgetProperties(), #PropertyLabel))
+                {
+                    throw error("В настоящий момент добавление подменю не реализовано. Добавить можно только пункты меню");
+                }
+                else
+                {
+                    newTreeNode = _parentNodeInAot.AOTaddSubNode(1);
+                    if (_after)
+                    {
+                        newTreeNode.AOTMove(_parentNodeInAot, _after);
+                    }
+                    menuItem    = _source;
+                    menuItemNew = newTreeNode;
+                    menuItemNew.menuItemType(menuItem.menuItemType());
+                    menuItemNew.menuItemName(menuItem.menuItemName());
+                    menuItemNew.parameters(menuItem.parameters());
+                    menuItemNew.shortCut(menuItem.shortCut());
+                    menuItemNew.webTarget(menuItem.webTarget());
+                    menuItemNew.isDisplayedInContentArea(menuItem.isDisplayedInContentArea());
+                }
+                return true;
+
+            default :
+                _parentNodeInAot.AOTadd(elementName);
+        }
+
+        if (! newTreeNode)
+        {
+            newTreeNode = _parentNodeInAot.AOTfindChild(elementName);
+        }
+
+        if (newTreeNode)
+        {
+            newTreeNode.AOTsetProperties(_source.AOTgetProperties());
+            if (SysTreeNode::hasSource(newTreeNode))
+            {
+                memberFunction = _source;
+                newTreeNode.AOTsetSource(_source.AOTgetSource(), memberFunction.isStatic());
+            }
+        }
+    */
+        return ret;
+    }
+
+    void cit_dropNode2DeleteAction(TreeNode _parentNodeInAot, TreeNode _source, TreeNode _after = null)
+    {
+        TreeNode        newTreeNode;
+        str          s;
+        s = _source.AOTgetProperties(false, false, false);
+        newTreeNode = _parentNodeInAot.AOTadd('UNKNOWN');
+        //s = _source.AOTgetProperties();
+
+        newTreeNode.AOTsetProperties(s);
+    }
+
+    public str comparableName()
+    {
+        str name = treeNode.treeNodePath();
+
+        if (! name)
+            name = treeNode.AOTname();
+
+        if (!treeNode.treeNodeType().isLayerAware())
+        {
+            return name;
+        }
+
+        if (treeNode.AOTIsOld())
+        {
+            return strFmt('%1 (old %2)', name, treeNode.AOTLayer());
+        }
+        return strFmt('%1 (%2)', name, treeNode.AOTLayer());
+    }
+
+
+    public List comparableTextList( SysComparable _top,
+                                    SysCompareContextProvider _context,
+                                    SysComparable _matchingNode = null)
+    {
+        SysTreeNode top, matchingNode;
+        top = _top as SysTreeNode;
+        matchingNode = _matchingNode as SysTreeNode;
+
+        if (comparableTextList)
+            return comparableTextList;
+
+        comparableTextList = new List(Types::Record);
+
+        if (treeNode)
+        {
+            this.comparableTextListCode( top, _context);
+            this.comparableTextListProperties( top, _context, matchingNode); // maybe use Id from _matchingNode
+            this.comparableTextListSubnodes(top, _context);
+        }
+
+        return comparableTextList;
+    }
+
+    protected void comparableTextListCode(  SysTreeNode _top, SysCompareContextProvider _context)
+    {
+        str source;
+        str header;
+        SysCodeCoverageCompareContext ccContext;
+        boolean canInsertAndDelete;
+
+        if (SysTreeNode::hasSource(treeNode))
+        {
+            if (SysTreeNode::isSourceText(treeNode))
+            {
+                source = treeNode.AOTgetSource();
+                //Format the page definition xml so that it is comparable
+                if (treeNode.treeNodeType().isUtilElement() &&
+                    treeNode.utilElement().RecordType == UtilElementType::WebPageDef)
+                {
+                    source = sysEPWebPageDefinition::getComparablePageDefinitionXml(source);
+                }
+            }
+            else
+            {
+                source = SysUtil::unpackSource(treeNode.AOTgetSource());
+            }
+
+            if (source)
+            {
+                if (_context && _context is SysCodeCoverageCompareContext)
+                {
+                    ccContext = _context as SysCodeCoverageCompareContext;
+                    [source, header] = ccContext.splitHeaderFromSource(source);
+                }
+
+                // Visual Studio Project or SSRS report nodes not supported
+                canInsertAndDelete = !(treeNode is VSProjectFileNode || treeNode is SSRSReportConceptNode);
+
+                comparableTextList.addEnd(SysComparableTmpText::newText(source, header, #TextSource,
+                    true,   // supportWhiteSpace
+                    false,  // alternatingLines
+                    false,  // isSubNodes
+                    canInsertAndDelete,   // partialDelete
+                    canInsertAndDelete,   // partialInsert
+                    canInsertAndDelete,   // completeDelete
+                    canInsertAndDelete)); // completeInsert
+            }
+        }
+    }
+
+    protected void comparableTextListProperties( SysTreeNode _top,
+                                    SysCompareContextProvider _context,
+                                    SysTreeNode _matchingNode)
+    {
+
+        str properties;
+        int idxmatch;
+        int id;
+        #Properties
+        str readOnlyProperties;
+        SysTreenodeCompareContext treeNodeContext = _context as SysTreenodeCompareContext;
+
+
+    str addReadOnlyProperty(str _propertyName)
+    {
+        if (this.hasProperty(_propertyName) &&
+            this.isPropertyReadOnly(_propertyName) &&
+            (!_matchingNode ||
+              (_matchingNode.hasProperty(_propertyName) &&
+               _matchingNode.isPropertyReadOnly(_propertyName)))) //The property must also be readonly for the matching node
+        {
+            return strFmt('  %1%2#%3\n', _propertyName, strRep(' ', 20-strLen(_propertyName)), treeNode.AOTgetProperty(_propertyName));
+        }
+        return '';
+    }
+
+        // don't include invisible and readOnly properties
+        properties = treeNode.AOTgetProperties(false, false);
+
+        // remove the first line from the string properties, remove PROPERTIES.
+        idxmatch = strScan(properties,'\n',1, strLen(properties));
+        properties = subStr(properties, idxMatch+1, strLen(properties));
+
+        // remove the last line from the string properties, remove ENDPROPERTIES.
+        idxmatch = strScan(properties,'\n',strLen(properties)-2, -strLen(properties));
+        if (idxmatch)
+            properties = subStr(properties, 1, idxMatch-1);
+        else
+            properties = ''; // there was no \n before ENDPROPERTIES.
+
+        //
+        // Don't remove the name property. Renamed fields and tables are not included in the upgrade project if name is removed
+        //
+        if (SysTreeNode::hasID(treeNode) &&
+            (!treeNodeContext || !treeNodeContext.parmSuppressIDinProperties()))
+        {
+            id = treeNode.applObjectId();
+            if (id == 0 && _matchingNode)
+            {
+                // use ID from corresponding node
+                // (e.g. from field in SYS if we are importing an XPO file where the fields have no IDs)
+                id = _matchingNode.parmTreeNode().applObjectId();
+            }
+
+            readOnlyProperties = strFmt('  Id                  #%1\n', id);
+
+            //
+            // These properties are protected
+            //
+            readOnlyProperties += addReadOnlyProperty(#PropertyConfigurationKey);
+            readOnlyProperties += addReadOnlyProperty(#PropertyParentKey);
+            readOnlyProperties += addReadOnlyProperty(#PropertyLicenseCode);
+
+            comparableTextList.addEnd(SysComparableTmpText::newText(readOnlyProperties, "@SYS120839", #TextProperties,
+                false,  // supportWhiteSpace
+                true)); // alternatingLines
+
+            comparableTextList.addEnd(SysComparableTmpText::newText(properties, "@SYS10344", #TextProperties,
+                false,  // supportWhiteSpace
+                true,   // alternatingLines
+                false,  // isSubNodes
+                false,  // partialDelete
+                true,   // partialInsert, (allow properties to be overwritten)
+                true)); // completeDelete. Complete means the entire node
+        }
+        else
+        {
+            if (treeNode.treeNodeType().isModelElement())
+            {
+                //If the name propety is read-only, it should still be displayed
+                readOnlyProperties = addReadOnlyProperty(#PropertyName);
+                if (readOnlyProperties)
+                {
+                    comparableTextList.addEnd(SysComparableTmpText::newText(readOnlyProperties, "@SYS120839", #TextProperties,
+                        false,  // supportWhiteSpace
+                        true)); // alternatingLines
+                }
+            }
+
+            if (properties)
+            {
+                comparableTextList.addEnd(SysComparableTmpText::newText(properties, "@SYS10344", #TextProperties,
+                    false,  // supportWhiteSpace
+                    true,   // alternatingLines
+                    false,  // isSubNodes
+                    false,  // partialDelete
+                    true,   // partialInsert
+                    true,   // completeDelete
+                    true)); // completeInsert
+            }
+        }
+    }
+
+
+    protected void comparableTextListSubnodes(SysTreeNode _top,
+        SysCompareContextProvider _context)
+    {
+        str children;
+        SysComparableEnumerator enumComparable;
+        SysComparable tmp;
+        SysTreeNode tmpTreeNode;
+        Set set;
+        SetEnumerator setEnum;
+        SysTreenodeEnumerator enum;
+        SysTreenodeCompareContext nodeCompareContext = _context as SysTreenodeCompareContext;
+
+        UtilEntryLevel curAotLayer = currentAOLayer();
+
+        // When hiding nodes, do not include subnodes in the list
+        if (_context &&
+            _context.parmShowDifferencesOnly() &&
+            (_context.parmSuppressNodesOnlyIn1() ||
+             _context.parmSuppressNodesOnlyIn2()))
+        {
+            return;
+        }
+
+        enumComparable = this.getEnumerator();
+        enum = enumComparable as SysTreenodeEnumerator;
+
+        if (this.hasOrdering())
+        {
+            //Maintain current order
+            while (enum.moveNext())
+            {
+                tmp = enum.current();
+
+                if (tmp is SysTreeNode)
+                {
+                    tmpTreeNode = tmp as SysTreeNode;
+                    if (!tmpTreeNode.parmTreeNode().AOTIncludeInCompare())
+                    {
+                        continue;
+                    }
+
+                    // only nodes for current layer.
+                    if (this.compareCurrentLayerOnly(nodeCompareContext, tmpTreeNode, curAotLayer))
+                    {
+                        continue;
+                    }
+                }
+
+                children += '  '+tmp.name()+'\n';
+            }
+        }
+        else
+        {
+            //Sort alphabetically
+            set = new Set(Types::String);
+            while (enum.moveNext())
+            {
+                tmp = enum.current();
+
+                if (tmp is SysTreeNode)
+                {
+                    tmpTreeNode = tmp as SysTreeNode;
+                    if (!tmpTreeNode.parmTreeNode().AOTIncludeInCompare())
+                    {
+                        continue;
+                    }
+
+                    // only nodes for current layer.
+                    if (this.compareCurrentLayerOnly(nodeCompareContext, tmpTreeNode, curAotLayer))
+                    {
+                        continue;
+                    }
+                }
+
+                set.add(tmp.name());
+            }
+            setEnum = set.getEnumerator();
+            while (setEnum.moveNext())
+            {
+                children += '  '+setEnum.current()+'\n';
+            }
+        }
+        comparableTextList.addEnd(SysComparableTmpText::newText(children, "@SYS120840", #TextSubnodes,
+            false,      // supportWhiteSpace
+            false,      // alternatingLines
+            true,       // isSubNodes
+            true,       // partial delete   - callback to canMergeDeleteSubnodes may overrule this
+            true,       // partial insert   - callback to canMergeInsertSubnodes may overrule this
+            false,      // complete delete
+            false));    // complete insert
+    }
+
+    private boolean compareCurrentLayerOnly(SysTreenodeCompareContext _nodeCompareContext, SysTreeNode _sysTreeNode, UtilEntryLevel _curAotLayer)
+    {
+        if (_nodeCompareContext != null && _nodeCompareContext.parmCurrentLayerOnly())
+        {
+            if (SysTreeNode::existsInLayer(_sysTreeNode.parmTreeNode(), _curAotLayer))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void delete()
+    {
+    ;
+        treeNode.AOTdelete();
+    }
+
+    Filename fileExtension()
+    {
+        return #xpo;
+    }
+
+    public SysComparable findMatchingComparable(SysComparable _findOneLikeThisOne)
+    {
+        SysTreenode sysTreeNode;
+
+        if (!treeNode)
+        {
+            return null;
+        }
+
+        if (!matchStrategy)
+        {
+            matchStrategy = SysUpgradeTreenodeStratMatch::newTreenode(this.parmTreeNode());
+        }
+
+        sysTreeNode = _findOneLikeThisOne as SysTreeNode;
+        return matchStrategy.findMatchingNode(this, sysTreeNode);
+    }
+
+    public boolean forceSynchronize()
+    {
+        return false;
+    }
+
+    public void fromFile(FilenameOpen _filename)
+    {
+        #AOTExport
+        SysImportElements sysImportElements = new SysImportElements();
+        ;
+
+        sysImportElements.reset();
+        sysImportElements.parmImportAot(true);
+        sysImportElements.newFile(_filename);
+        sysImportElements.import(#impRemoveExcess | #ImpIgnoreCheckStatus);
+    }
+
+    public SysComparableEnumerator getEnumerator()
+    {
+        if (SysTreeNode::isProject(treeNode))
+            return null;
+
+        return SysTreenodeEnumerator::newTreenode(treeNode);
+    }
+
+    public SysTreeNode getOriginalSysTreenode()
+    {
+        TreeNode original = this.getOriginalTreenode();
+
+        if (original)
+            return SysTreeNode::newTreeNode(original);
+
+        return null;
+    }
+
+
+    public TreeNode getOriginalTreenode()
+    {
+        TreeNode node = this.parmTreeNode();
+        UtilEntryLevel layer;
+        int infologLine = infologLine();
+        try
+        {
+            layer = SysTreeNode::getHighestLayer(node);
+            if (layer > UtilEntryLevel::sys)
+            {
+                return SysTreeNode::nodeInLayer(node, layer - 1, false, true);
+            }
+        }
+        catch (Exception::Error)
+        {
+            // We get here when node is not found in old
+            infolog.clear(infologLine);
+        }
+        return null;
+    }
+
+    public anytype getProperty(str _propertyName)
+    {
+        if (this.hasProperty(_propertyName))
+            return this.parmTreeNode().AOTgetProperty(_propertyName);
+
+        return '';
+    }
+
+    /// <summary>
+    /// Gets the model ID, which is used to construct the file name path in the version control system.
+    /// </summary>
+    /// <returns>
+    /// The model ID.
+    /// </returns>
+    public ModelId getVCSModelId()
+    {
+        #SysModelStore
+
+        if (VersionControl::modelQueryable(treeNode) &&
+            treeNode.treeNodeType().isLayerAware())
+        {
+            if (treeNode.AOTLayer() == currentAOLayer()) // Only return the model based filename if the node exists in current layer
+            {
+                return treeNode.AOTGetModel();
+            }
+
+            // Check if sub elements exists in the current layer
+            else if (SysTreeNode::existsInLayer(treeNode, currentAOLayer()))
+            {
+                // Get the first model from the subelements, since subelements exists in current layer but root element doesn't
+                if (treeNode.treeNodeType().isRootElement() &&
+                    treeNode.treeNodeType().isUtilElement())
+                {
+                    return SysTreeNode::getFirstModelIdFromSubElements(treeNode.utilIdElement().Name, treeNode.utilIdElement().RecordType);
+                }
+            }
+        }
+
+        return #ModelId_Undefined;
+    }
+
+    public TreeNode getWrappedTreeNode()
+    {
+        return treeNode;
+    }
+
+    public boolean hasOrdering()
+    {
+        #TreeNodeSysNodeType
+
+        if (!this.parmTreeNode())
+        {
+            return true;
+        }
+
+        // Code based on section 13.1.2 Conflict detection in 'Code Upgrade Tool Enhancements' functional specification
+
+        switch (this.parmTreeNode().treeNodeType().id())
+        {
+            case #NT_MEMBERFUNCLIST:        // */Methods
+
+            case #NT_CLASS:                 // /Classes
+
+            case #NT_DBFIELDGROUPLIST:      // /Data Dictionary/Tables/MyTable/Field Groups
+            case #NT_DBDELETEACTIONLIST:    // /Data Dictionary/Tables/MyTable/DeleteActions
+
+            case #NT_FORMOBJECTBANK:        // /Forms/MyForm/Data Sources/
+            case #NT_FORMDATASOURCEPOOL:    // /Forms/MyForm/Data Sources/table1
+            case #NT_FORMFIELDLIST:         // /Forms/MyForm/Data Sources/table1/Fields
+            case #NT_FORMBUILDDERIVEDDATASOURCECOLLECTION: // /Forms/MyForm/Data Sources/table1/Derived data sources
+            case #NT_FORMBUILDREFERENCEDATASOURCECOLLECTION: // /Forms/MyForm/Data Sources/table1/Reference data sources
+
+            // Security permission collections. The order of their children doesn't matter
+            case #NT_SECTASKMENUITEMLISTNODE:
+            case #NT_SECTASKTABLELISTNODE:
+            case #NT_SECTASKMETHODLISTNODE:
+            case #NT_SECTASKSERVICELISTNODE:
+            case #NT_SECTASKDEPENDENTLISTNODE:
+            case #NT_SECTASKWEBMENUITEMLISTNODE:
+            case #NT_SECTASKWEBCONTENTLISTNODE:
+            case #NT_SECPERMISSIONGROUPLISTNODE:
+            case #NT_SECPERMISSIONLISTNODE:
+            case #NT_SECASSOCIATEDFORMLISTNODE:
+            case #NT_SECASSOCIATEDWEBCONTROLLISTNODE:
+            case #NT_SECASSOCIATEDWEBCONTROLNODE:
+            case #NT_SECASSOCIATEDOBJECTLISTNODE:
+            case #NT_SECCODEPERMISSIONLISTNODE:
+            case #NT_SECASSOCIATEDCODELISTNODE:
+            case #NT_SECASSOCIATEDREPORTLISTNODE:
+            case #NT_SECENTRYPOINTLISTNODE:
+
+                return false;
+
+            case #NT_FORMDESIGN:            // This node type is shared between Design and DesignList
+                if (this.parmTreeNode().treeNodeName() == 'DesignList') // /Forms/MyForm/Designs/DesignList
+                {
+                    return false;
+                }
+        }
+
+        return true;
+    }
+
+    public boolean hasProperty(str _propertyName)
+    {
+        Struct propertiesStruct;
+        int propertyCount;
+
+        ;
+        propertiesStruct = this.parmTreeNode().AOTgetPropertiesExt(_propertyName);
+
+        if (propertiesStruct)
+            propertyCount = propertiesStruct.valueIndex(1);
+
+        return (propertyCount == 1);
+    }
+
+    protected boolean isListOfChildrenFixed()
+    {
+        #TreeNodeSysNodeType
+        TreeNode firstChild;
+
+        if (!treeNode)
+            return false;
+
+        firstChild = treeNode.AOTfirstChildEx(true);
+
+        //
+        // Does the node only contain one child named: "Methods"
+        //
+        if (firstChild &&
+            firstChild.treeNodeType().id() == #NT_MEMBERFUNCLIST &&
+            firstChild.AOTnextSibling() == null)
+        {
+            return true;
+        }
+
+        switch (treeNode.treeNodeType().id())
+        {
+            case #NT_QEBLOCK:               //... Datasources\MyDataSource
+            case #NT_QEFIELDLIST:           //... Datasources\MyDataSource\Fields
+            case #NT_QEBLOCKLIST:           //MyView\Datasources\MyDataSource
+            case #NT_FORMDATASOURCEPOOL:    //MyForm\Datasources\MyDataSource
+            case #NT_FORMDATAFIELD:         //MyForm\Datasources\MyDataSource\MyField
+            case #NT_PERSPECTIVEFIELDLIST:  //MyPerspective\Tables\MyTable\Fields
+            case #NT_QEDEPENDENTOBJECTS:    //MyQuery\Dependent Objects
+            case #NT_QECOMPOSITEQUERY:      //MyQuery\Composite Query
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Indicates whether the new name of the element is valid.
+    /// </summary>
+    /// <param name="_newName">
+    /// The new name of the element.
+    /// </param>
+    /// <returns>
+    /// true if the new name is valid.
+    /// </returns>
+    /// <remarks>
+    /// This method is called before renaming the element.
+    /// </remarks>
+    public boolean isNewNameValid(str _newName)
+    {
+        Set unwantedNames;
+        SetEnumerator senum;
+
+        if (versioncontrol.parmSysVersionControlSystem() == null)
+        {
+            return true;
+        }
+
+        // Unwanted names are checked only for root-elements
+        if (this.parmTreeNode().treeNodeType().isRootElement())
+        {
+            // Check unwanted names first
+            unwantedNames = versioncontrol.parmSysVersionControlSystem().parmUnwantedObjectNames();
+            senum = unwantedNames.getEnumerator();
+            while(senum.moveNext())
+            {
+                if(match(senum.current(), _newName))
+                {
+                    error(strFmt("@SYS85681", _newName));
+                    return false;
+                }
+            }
+
+            // Check if the owner is valid
+            if (!versioncontrol.parmSysVersionControlSystem().verifyOwnerPrefix(_newName))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public boolean isPropertyReadOnly(str _propertyName)
+    {
+        Struct configKeyStruct;
+        Array configKeyArray;
+
+        if (this.hasProperty(_propertyName))
+        {
+            configKeyStruct = treeNode.AOTgetPropertiesExt(_propertyName);
+            configKeyArray = configKeyStruct.value('PropertyInfo');
+            configKeyStruct = configKeyArray.value(1);
+            if (!configKeyStruct.value('AllowEdit'))
+            {
+                return true;
+            }
+            return false;
+        }
+        throw error(strFmt("@SYS120841", this.name(), _propertyName));
+    }
+
+    public void mergeDeleteSubnode(
+        SysComparable               _topComparable,
+        SysCompareContextProvider _context,
+        SysComparable               _nodeToDelete)
+    {
+        TreeNode nodeInAotToDelete;
+        TreeNode parentNodeInAot;
+        SysTreeNode topComparable, nodeToDelete;
+        ;
+        topComparable = _topComparable as SysTreeNode;
+        nodeToDelete = _nodeToDelete as SysTreeNode;
+
+        if (_nodeToDelete &&
+            treeNode &&
+            TreeNode::isNodeReferenceValid(treeNode))
+        {
+            parentNodeInAot = TreeNode::findNode(SysTreeNode::getPath(treeNode));
+            if (parentNodeInAot)
+            {
+                nodeInAotToDelete = parentNodeInAot.AOTfindChild(nodeToDelete.parmTreeNode().treeNodeName());
+
+                if (nodeInAotToDelete)
+                {
+                    nodeInAotToDelete.AOTdelete();
+
+                    treeNode = parentNodeInAot;
+
+                    //Clear cached information
+                    comparableTextList = null;
+                }
+            }
+        }
+    }
+
+    public void mergeInsertSubnode(
+        SysComparable             _topComparable,
+        SysCompareContextProvider _context,
+        SysComparable               _nodeToInsert)
+    {
+        TreeNode previousSourceNode, previousNode;
+        TreeNode sourceNode;
+        boolean result;
+        TreeNode parentNodeInAot;
+        SysTreeNode nodeToInsert;
+        ;
+        nodeToInsert = _nodeToInsert as SysTreeNode;
+
+        if (_nodeToInsert &&
+            treeNode &&
+            TreeNode::isNodeReferenceValid(treeNode))
+        {
+            parentNodeInAot = TreeNode::findNode(SysTreeNode::getPath(treeNode));
+            if (parentNodeInAot)
+            {
+                sourceNode = nodeToInsert.parmTreeNode();
+                previousSourceNode = sourceNode.AOTprevious();
+
+                while (!previousNode && previousSourceNode)
+                {
+                    previousNode       = parentNodeInAot.AOTfindChild(previousSourceNode.treeNodeName());
+                    previousSourceNode = previousSourceNode.AOTprevious();
+                }
+
+                // We get here e.g. if treeNode is the form design node. If previousNode=Null node is inserted last, it should be first.
+                if (! previousNode)
+                    previousNode = parentNodeInAot;
+                /*
+                result = parentNodeInAot.AOTDrop(sourceNode, previousNode);
+                */
+                result = this.cit_dropNode(parentNodeInAot, sourceNode, previousNode);
+
+                if (result)
+                {
+                    // node was successfully dropped
+                    previousSourceNode = null;
+                    previousNode       = null;
+                    sourceNode         = null;
+
+                    //Clear cached information
+                    comparableTextList = null;
+
+                    treeNode = parentNodeInAot;
+                }
+            }
+        }
+    }
+
+    public void mergeText(
+        str _newText,
+        SysComparableTmpText _originalText)
+    {
+        #properties
+        str propertyName;
+        str propertyValue;
+        int hashPos;
+        int len;
+        SysTreeNode sysNodeInAot;
+        TreeNode nodeInAot = this.mergeTextNode();
+        boolean changeMade;
+
+    //
+    // Remove the special markup tags
+    //
+    str removeSpecialMarkup(str _text)
+    {
+        str output = _text;
+        int end;
+
+        int start = strFind(output, #SpecialMarkupStart,1,strLen(output));
+        while (start)
+        {
+            end = strFind(output,#SpecialMarkupEnd,start,strLen(output));
+            if (!end)
+                break;
+
+            output = strDel(output,start,(end + 1) - start);
+            start = strFind(output,#SpecialMarkupStart,1,strLen(output));
+        }
+        return output;
+    }
+
+        if (nodeInAot)
+        {
+            switch (_originalText.Type)
+            {
+                case #TextSource:
+                    if (!_newText)
+                        _newText = '\n';
+
+                    nodeInAot.AOTsetSource(_newText);
+                    changeMade = true;
+                    break;
+
+                case #TextProperties:
+
+                    len = strLen(_newText);
+                    hashPos = strScan(_newText, '#', 1, len+1);
+
+                    if (hashPos>1)
+                    {
+                        propertyName = subStr(_newText,1,hashPos-1);
+                        propertyName = strLTrim(strRTrim(propertyName));
+                        sysNodeInAot = SysTreeNode::newTreeNode(nodeInAot);
+
+                        if (propertyName &&
+                            propertyName != #propertyId &&
+                            propertyName != #propertyName &&
+                            sysNodeInAot.hasProperty(propertyName) &&
+                            !sysNodeInAot.isPropertyReadOnly(propertyName))
+                        {
+                            propertyValue = subStr(_newText, hashPos+1, len - hashPos);
+                            propertyValue = removeSpecialMarkup(propertyValue);
+                            propertyValue = strRem(propertyValue, '\n'); // Remove new lines
+                            propertyValue = strLTrim(strRTrim(propertyValue)); // Remove leading+trailing spaces
+
+                            // AOTsetProperty() does invoke the kernel's propChanged methods,
+                            // so e.g. setting property enumValue will set property useEnumValue to true
+                            try
+                            {
+                                nodeInAot.AOTsetProperty(propertyName, propertyValue);
+                                changeMade = true;
+                            }
+                            catch
+                            {
+                                // Surface the property validation error
+                                exceptionTextFallThrough();
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            if (changeMade)
+            {
+                treeNode = nodeInAot;
+
+                //Clear cached information
+                comparableTextList = null;
+            }
+        }
+    }
+
+    protected TreeNode mergeTextNode()
+    {
+        return TreeNode::findNode(treeNode.treeNodePath());
+    }
+
+    public str name()
+    {
+        #TreeNodeSysNodeType
+        str name = treeNode.treeNodeName();
+
+        //
+        // The AOT has non-unique names under Forms\MyForm\Data Sources\MyDataSource\Fields
+        // Workaround the issue by appending "(Field group)" to field group nodes.
+        //
+        if (treeNode.treeNodeType().id() == #NT_FORMFIELDGROUP)
+        {
+            name += ' (Field group)';
+        }
+
+        return name;
+    }
+
+    protected void new()
+    {
+    ;
+    }
+
+    public void onCheckOut()
+    {
+    }
+
+    public void onComparableFocus()
+    {
+    }
+
+    public void onComparableSelected()
+    {
+        TreeNode potentialTreenode;
+
+        if (!treeNode.AOTIsOld() && treeNode.treeNodeType().isGetNodeInLayerSupported())
+        {
+            //
+            // Reread the node from the AOT
+            //
+            potentialTreenode = SysTreeNode::copyNode(SysTreeNode::getNode(treeNode));
+
+            //
+            // Ensure the node has the same layer and same path
+            //
+            if (potentialTreenode &&
+                potentialTreenode.AOTLayer() == treeNode.AOTLayer() &&
+                potentialTreenode.treeNodePath() == treeNode.treeNodePath())
+            {
+                treeNode = potentialTreenode;
+            }
+        }
+
+        //
+        // Clear the cache
+        // When the second compare is started the cache has to be clear as the
+        // cached values are depending on the other comparable (i.e. matching node)
+        //
+        comparableTextList = null;
+    }
+
+    public void onUndoCheckOut()
+    {
+    }
+
+    public TreeNode parmTreeNode(TreeNode _treeNode = treeNode)
+    {
+        ;
+        treeNode = _treeNode;
+        return treeNode;
+    }
+
+    /// <summary>
+    /// Executes an action before an add operation.
+    /// </summary>
+    public void preAddAction()
+    {
+    }
+
+    boolean preCheckInUpdate(Filename _filename, SysVersionControlSettings _settings)
+    {
+        return true;
+    }
+
+    /// <summary>
+    /// Controls whether a comparison will include the ID property.
+    /// </summary>
+    /// <returns>
+    /// true if the ID property must be suppressed during the comparison; otherwise, false.
+    /// </returns>
+    /// <remarks>
+    /// The suppression occurs for all tree nodes in the comparison, if one or more of the top tree nodes
+    /// in the compare returns true when this method is called.
+    /// </remarks>
+    public boolean suppressIDPropertyDuringCompare()
+    {
+        return false;
+    }
+
+    public boolean toFile(FilenameSave _filename, boolean _creating = false)
+    {
+        #AOTExport
+        #AOT
+
+        ProjectNode projectNode;
+        TreeNode    treenodeToExport = treeNode;
+        int         flags;
+
+        if (classIdGet(treeNode) == classNum(ProjectNode) ||
+            strStartsWith(treeNode.treeNodePath(), #ProjectPath))
+        {
+            projectNode      = treeNode;
+            treenodeToExport = projectNode.loadForInspection();
+            flags            = #expProjectOnly;
+        }
+
+        // This code runs on the client side only
+        //BP deviation documented
+        treenodeToExport.treeNodeExport(_filename, #export | #expKeepIds | #expLayer | flags);
+
+        return true;
+    }
+
+    public str toString()
+    {
+        return this.parmTreeNode().toString();
+    }
+
+    public Filename versionControlFilePath(boolean _currentLayer = true)
+    {
+        str path = SysTreeNode::treeNodePath2FilePath(treeNode.treeNodePath());
+        UtilEntryLevel layer;
+
+        if (_currentLayer)
+        {
+            layer = currentAOLayer();
+        }
+        else
+        {
+            if (treeNode.treeNodeType().isLayerAware() && treeNode.AOTIsPersisted())
+            {
+                layer = treeNode.AOTLayer();
+            }
+            else
+            {
+                layer = currentAOLayer();
+            }
+        }
+
+        return strFmt("%1%2", layer, path);
+    }
+
+    SysVersionControlItemPath versionControlItemPath()
+    {
+        if (treeNode)
+            return treeNode.treeNodePath();
+        return '';
+    }
+
+    public static client server Map aotStructApplObjectPathMap()
+    {
+        Map map = classfactory.globalCache().get(classStr(SysTreeNode), funcName(), null);
+        SysModelMetaDataConcept concept;
+        Enumerator enumerator;
+
+        if (!map)
+        {
+            map = new Map(Types::Integer, Types::String);
+            enumerator = SysModelMetaData::newFromCache().getEnumeratorConcepts();
+
+            while (enumerator.moveNext())
+            {
+                concept = enumerator.current();
+                map.insert(map.elements() + 1, concept.parmCollectionPath());
+            }
+            classfactory.globalCache().set(classStr(SysTreeNode), funcName(), map);
+        }
+        return map;
+    }
+
+    /*
+        Returns the name of the application object for the specified path
+        Return type will normally be IdentifierName, but some name in the AOT are actually longer!
+    */
+    public client server static TreeNodePath applObjectName(TreeNodePath _path)
+    {
+        return SysTreeNode::pathName(SysTreeNode::applObjectPath(_path));
+    }
+
+    /*
+        this method returns the path to the application object, for any supplied path, below the application object.
+        If an application object path, or anything higher, are supplied, blank is returned.
+        So this method returns the parent application object path.
+    */
+    public client server static TreeNodePath applObjectPath(TreeNodePath _path)
+    {
+        Set set = SysTreeNode::applObjectPathSet();
+        TreeNodePath subpath, prevSubPath;
+        int pos;
+        #AOT
+
+        // A collection node is passed
+        if (set.in(_path))
+            return '';
+
+        // Find last \
+        pos = strFind(_path, '\\', strLen(_path), minInt());
+        if (!pos)
+            return '';
+
+        do
+        {
+            // Peal off from the end, until a collection path is reached
+            subpath = subStr(_path, 1, pos-1);
+            if (set.in(subpath))
+            {
+                if (prevSubPath)
+                {
+                    // Last subpath was the root element
+                    return prevSubPath;
+                }
+                // A root element was passsed
+                return _path;
+            }
+            prevSubPath = subpath;
+            pos = strFind(_path, '\\', pos-1, minInt());
+        }
+        while (subpath);
+
+        return '';
+    }
+
+    public static client server Map applObjectPathDoublePathDelimitersMap()
+    {
+        Map           map;
+        SetEnumerator setEnumerator;
+
+        map = classfactory.globalCache().get(classStr(SysTreeNode), funcName(), null);
+
+        if (!map)
+        {
+            map         = new Map(Types::String, Types::String);
+
+            setEnumerator = SysTreeNode::applObjectPathSet().getEnumerator();
+
+            while (setEnumerator.moveNext())
+            {
+                map.insert(setEnumerator.current(), SysTreeNode::duplicatePathDelimiters(setEnumerator.current()));
+            }
+
+            classfactory.globalCache().set(classStr(SysTreeNode), funcName(), map);
+        }
+
+        return map;
+    }
+
+    public client server static Set applObjectPathSet()
+    {
+        Set set = classfactory.globalCache().get(classStr(SysTreeNode), funcName(), null);
+
+        if (!set)
+        {
+            set = SysTreeNode::applObjectPathTypeMap().keySet();
+            classfactory.globalCache().set(classStr(SysTreeNode), funcName(), set);
+        }
+
+        return set;
+    }
+
+    public static Map applObjectPathTypeMap()
+    {
+        Map map = classfactory.globalCache().get(classStr(SysTreeNode), funcName(), null);
+        SysModelMetaDataConcept concept;
+        Enumerator enumerator;
+
+        if (!map)
+        {
+            map = new Map(Types::String, Types::Enum);
+            enumerator = SysModelMetaData::newFromCache().getEnumeratorConcepts();
+            while (enumerator.moveNext())
+            {
+                concept = enumerator.current();
+                map.insert(concept.parmCollectionPath(), concept.parmUtilElementType());
+            }
+            classfactory.globalCache().set(classStr(SysTreeNode), funcName(), map);
+        }
+
+        return map;
+    }
+
+    public static Map applObjectTypePathMap()
+    {
+        #aot
+        Map map = classfactory.globalCache().get(classStr(SysTreeNode), funcName(), null);
+        MapEnumerator enumerator;
+        Map reverseMap;
+
+        if (!map)
+        {
+            map = new Map(Types::Enum, Types::String);
+            reverseMap = SysTreeNode::applObjectPathTypeMap();
+            enumerator = reverseMap.getEnumerator();
+
+            // Reverse the key-value mapping
+            while (enumerator.moveNext())
+            {
+                map.insert(enumerator.currentValue(), enumerator.currentKey());
+            }
+
+            classfactory.globalCache().set(classStr(SysTreeNode), funcName(), map);
+        }
+
+        return map;
+    }
+
+    public static boolean canEdit(TreeNode _treeNode)
+    {
+        return _treeNode && conFind(SysTreeNode::treeNodesWithSource() + classNum(ClassNode),
+                       _treeNode.handle());
+    }
+
+    /// <summary>
+    /// This function checks whether the <c>UtilElementType</c> class that is passed has a text source in
+    /// the node.
+    /// </summary>
+    /// <param name="_utilElementType">
+    /// The <paramref name="_utilElementType" /> parameter for the node.
+    /// </param>
+    /// <returns>
+    /// true if the node contains text; otherwise, false.
+    /// </returns>
+    /// <remarks>
+    /// The name of this function is misleading because the source may not be code and this returns false
+    /// if X++ source is passed.
+    /// </remarks>
+    static boolean codeIsSource(UtilElementType _utilElementType)
+    {
+        boolean ret;
+
+        switch (_utilElementType)
+        {
+            case UtilElementType::WebSourceFile:
+            case UtilElementType::WebPageDef:
+            case UtilElementType::WebStaticFile:
+            case UtilElementType::WebControl:
+            case UtilElementType::VSProject_Analysis:
+            case UtilElementType::VSProject_AXModel:
+            case UtilElementType::VSProject_CSharp:
+            case UtilElementType::VSProject_VB:
+            case UtilElementType::VSProject_Web:
+            case UtilElementType::SSRSReport:
+            case UtilElementType::SSRSReportDataSource:
+            case UtilElementType::SSRSReportLayoutTemplate:
+            case UtilElementType::SSRSReportListStyleTemplate:
+            case UtilElementType::SSRSReportMatrixStyleTemplate:
+            case UtilElementType::SSRSReportPieChartStyleTemplate:
+            case UtilElementType::SSRSReportTableStyleTemplate:
+            case UtilElementType::SSRSReportXYChartStyleTemplate:
+                ret = true;
+        }
+
+        return ret;
+    }
+
+    public static SysTreeNode construct()
+    {
+        return new SysTreeNode();
+    }
+
+
+    /*
+        This method returns a copy of a treenode.
+        The copy can be modified in any way - it is not saved nor shown in AOT
+    */
+    public static TreeNode copyNode(TreeNode treeNode)
+    {
+        TreeNode copyNode;
+        int infologLine = infologLine();
+
+        try
+        {
+            if (treeNode &&
+                treeNode.treeNodeType().isGetNodeInLayerSupported() &&
+                treeNode.treeNodeType().isLayerAware())
+            {
+                copyNode = treeNode.getNodeInLayer(SysTreeNode::getHighestLayer(treeNode, treeNode.AOTIsOld()), treeNode.AOTIsOld());
+            }
+        }
+        catch (Exception::Error)
+        {
+            // We get here when node is not found, i.e. mask = 0
+            infolog.clear(infologLine);
+            return null;
+        }
+        return copyNode;
+    }
+
+    static TreeNode createProject(
+        identifierName _projectName,
+        ProjectSharedPrivate _type = ProjectSharedPrivate::ProjPrivate)
+    {
+        ProjectListNode parentTreenode = (_type == ProjectSharedPrivate::ProjShared ? SysTreeNode::getSharedProject() : SysTreeNode::getPrivateProject());
+        ProjectNode projectNode;
+        ;
+
+        if (!parentTreenode.AOTfindChild(_projectName))
+             parentTreenode.AOTadd(_projectName);
+
+        projectNode = parentTreenode.AOTfindChild(_projectName);
+
+        return projectNode.getRunNode();
+    }
+
+    static TreeNodePath duplicatePathDelimiters(TreeNodePath _treeNodePath)
+    {
+        int startPos = 1;
+        int length   = strLen(_treeNodePath);
+        int foundPos;
+        ;
+
+        foundPos    = strFind(_treeNodePath, #FilePathDelimiter, startPos, length - startPos + 1);
+
+        while (foundPos)
+        {
+            _treeNodePath   = strIns(_treeNodePath, #FilePathDelimiter, foundPos);
+            length++;
+            startPos    = foundPos + 2;
+            foundPos    = strFind(_treeNodePath, #FilePathDelimiter, startPos, length - startPos + 1);
+        }
+
+        return _treeNodePath;
+    }
+
+    /// <summary>
+    /// Checks whether an item exists in the given layer
+    /// </summary>
+    /// <param name="_node">The tree node instance.</param>
+    /// <param name="_layer">The layer.</param>
+    /// <returns>true if an item exists in the given layer; otherwise, false.</returns>
+    public static boolean existsInLayer(TreeNode _node, UtilEntryLevel _layer)
+    {
+        return SysTreeNode::isNodeInLayer(_node, _layer) ||
+        (_node && (_node.applObjectLayerMask() & (1 << _layer))); // check if sub-elements' layer is in layer mask
+    }
+
+    public static SysTreeNode findMatchingOriginal(  SysTreeNode _original,
+                                                     SysTreeNode _theirs,
+                                                     SysTreeNode _currentOrYours,
+                                                     SysTreeNode _currentOrYoursChild) // find the corresponding _originalChild
+    {
+        SysComparable childOriginal;
+        SysComparable childTheirs;
+        SysComparable childCurrentOrYours;
+        TreeNodePath treenodePathCurrent;
+        TreeNodePath treenodePathCurrentChild;
+        TreeNode treenodeCurrentChild;
+        int pos;
+
+        SysTreeNode matchingOriginal;
+
+        // All arguments must be non null
+        if (!_original ||
+            !_theirs ||
+            !_currentOrYours ||
+            !_currentOrYoursChild)
+        {
+            return null;
+        }
+
+        //
+        // Have we reached the right node ?
+        // Current must be the same path as current child - as they are the same nodes
+        //
+        if (_currentOrYours.parmTreeNode().treeNodePath() == _currentOrYoursChild.parmTreeNode().treeNodePath())
+            return _original;
+
+        //
+        // Require direct name match in current (per the success above)
+        //
+        treenodePathCurrent = _currentOrYours.parmTreeNode().treeNodePath();
+        treenodePathCurrentChild = _currentOrYoursChild.parmTreeNode().treeNodePath();
+
+        // Isolate the name of the next child
+        treenodePathCurrentChild = subStr(treenodePathCurrentChild, strLen(treenodePathCurrent)+2, maxInt());
+
+        // Find the next '\'
+        pos = strFind(treenodePathCurrentChild, '\\', 1, strLen(treenodePathCurrentChild));
+        if (pos == 0)
+        {
+            // This is a leaf node, so include the rest of the path
+            pos = maxInt();
+        }
+        treenodePathCurrentChild = subStr(treenodePathCurrentChild, 1, pos-1);
+
+        treenodeCurrentChild = _currentOrYours.parmTreeNode().AOTfindChild(treenodePathCurrentChild);
+        if (treenodeCurrentChild && treenodePathCurrentChild)
+        {
+            childCurrentOrYours = SysTreeNode::newTreeNode(treenodeCurrentChild);
+
+            childOriginal = _original.findMatchingComparable(childCurrentOrYours);
+            childTheirs   = _theirs.findMatchingComparable(childCurrentOrYours);
+
+            if  (childOriginal && childTheirs)
+            {
+                matchingOriginal = SysTreeNode::findMatchingOriginal(childOriginal as SysTreeNode, childTheirs as SysTreeNode, childCurrentOrYours as SysTreeNode, _currentOrYoursChild);
+
+                if (matchingOriginal)
+                    return matchingOriginal;
+            }
+        }
+
+        return null;
+    }
+
+    static TreeNode findNodeInLayer(UtilElementType type,
+                                    identifierName  name,
+                                    int             parentId,
+                                    UtilEntryLevel  layer,
+                                    boolean         forceLayer = true,
+                                    boolean         old        = false,
+                                    int             id         = 0)
+    {
+        UtilElements utilElement;
+        TreeNode treeNode;
+        utilElement.RecordType  = type;
+        utilElement.Name        = name;
+        utilElement.ParentId    = parentId;
+
+        treeNode = TreeNode::findNode(xUtilElements::getNodePathRough(utilElement));
+        if (!treeNode)
+        {
+            treeNode = infolog.getNode(type, name, parentId, id, layer, forceLayer, 0x10000, old);
+        }
+        return SysTreeNode::nodeInLayer(treeNode, layer, forceLayer, old);
+    }
+
+    /// <summary>
+    /// Finds the first child element in the specified layer and retrieves the model ID for the model to
+    /// which that element belongs.
+    /// </summary>
+    /// <param name="_name">
+    /// The name of the element for which model information is required.
+    /// </param>
+    /// <param name="_type">
+    /// The type of element for which model information is required.
+    /// </param>
+    /// <param name="_layer">
+    /// The layer to query.
+    /// </param>
+    /// <returns>
+    /// A model ID for the child element; otherwise, the <c>#ModelId_Undefined</c> value.
+    /// </returns>
+    public static server modelId getFirstModelIdFromSubElements(identifierName _name, UtilElementType _type, UtilEntryLevel _layer = currentAOLayer())
+    {
+        #SysModelStore
+
+        SysModelElement rootElement;
+        SysModelElementData rootData;
+        SysModelElement subElement;
+        SysModelElementData subData;
+        SysModelLayer rootlayer;
+        SysModelLayer subLayer;
+
+        select firstOnly1 RecId from rootElement
+            where rootElement.Name == _name
+               && rootElement.ElementType == _type
+            join firstOnly1 Layer from rootData
+                where rootData.ModelElement == rootElement.RecId
+            join firstOnly1 Layer from rootlayer
+                where rootlayer.Layer < _layer
+                   && rootlayer.RecId == rootData.Layer
+            join firstOnly1 RecId from subElement
+                where subElement.RootModelElement == rootElement.RecId
+            join firstOnly1 ModelId from subData
+                where subData.ModelElement == subElement.RecId
+            join firstOnly1 Layer from subLayer
+                where subLayer.Layer == _layer
+                   && subLayer.RecId == subData.Layer
+                   && subLayer.RecId > rootData.Layer;
+
+        return subData.ModelId ? subData.ModelId : #ModelId_Undefined;
+    }
+
+    /// <summary>
+    /// Gets the highest layer in which the tree node exists.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The tree node to check.
+    /// </param>
+    /// <param name="_old">
+    /// A Boolean value that indicates whether the layer from the base line model store is to be returned;
+    /// optional.
+    /// </param>
+    /// <returns>
+    /// The highest layer.
+    /// </returns>
+    /// <remarks>
+    /// This method aggregates the layer information for sub-nodes.For example, if a root node exists in
+    /// the SYS layer and has a subnode in the USR layer, the USR layer is returned.If the tree node is not
+    /// layer aware, the parents of the node will be visited to find the layer.
+    /// </remarks>
+    /// <exception cref="M:Exception::Error">
+    /// No layer can be found.
+    /// </exception>
+    public static UtilEntryLevel getHighestLayer(TreeNode _treeNode, boolean _old = false)
+    {
+        int mask;
+        int i = 1 << enumCnt(UtilEntryLevel);
+        UtilEntryLevel layer = enumCnt(UtilEntryLevel);
+        TreeNode treeNode = _treeNode;
+
+        while (treeNode && !treeNode.treeNodeType().isLayerAware())
+        {
+            treeNode = treeNode.AOTparent();
+        }
+
+        if (treeNode)
+        {
+            mask = _old ? _treeNode.applObjectOldLayerMask() : _treeNode.applObjectLayerMask();
+
+            while (i)
+            {
+                if (bitTest(mask, i))
+                {
+                    return layer;
+                }
+                i = i >> 1;
+                layer--;
+            }
+        }
+        throw error(strFmt("@SYS323334", funcName(), _treeNode ? _treeNode.toString() : identifierStr(null)));
+    }
+
+    /// <summary>
+    /// Gets a layer of a specified tree node.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The tree node of which to find a layer.
+    /// </param>
+    /// <returns>
+    /// A layer of the tree node.
+    /// </returns>
+    /// <remarks>
+    /// If the tree node is not layer aware the parents of the node will be visited to find the layer of
+    /// the node.
+    /// </remarks>
+    /// <exception cref="M:Exception::Error">
+    /// No layer was found.
+    /// </exception>
+    static UtilEntryLevel getLayer(TreeNode _treeNode)
+    {
+        TreeNode treeNode = _treeNode;
+
+        while (treeNode && !treeNode.treeNodeType().isLayerAware())
+        {
+            treeNode = treeNode.AOTparent();
+        }
+
+        if (treeNode)
+        {
+            return treeNode.AOTLayer();
+        }
+
+        throw error(strFmt("@SYS323334", funcName(), _treeNode ? _treeNode.toString() : identifierStr(null)));
+    }
+
+    /// <summary>
+    /// Gets the version of a <c>Treenode</c> class from the layer stack.
+    /// </summary>
+    /// <param name="treeNode">
+    /// The <c>Treenode</c> class to retrieve the tree node from.
+    /// </param>
+    /// <param name="n">
+    /// The level in the layer stack to retrieve; 0 is the highest, 1 is the second highest, and so on.
+    /// </param>
+    /// <param name="old">
+    /// A Boolean value that indicates whether to retrieve old tree nodes.
+    /// </param>
+    /// <returns>
+    /// The tree node from the requested position in the layer stack.
+    /// </returns>
+    /// <remarks>
+    /// It is the consumers responsibility to free the memory consumed by the returned tree node.If a
+    /// requested version does not exist, null will be returned.
+    /// </remarks>
+    /*
+        ex 1:                ex 2:
+            USR  0               VAR  0
+            DIS  1               SYS  1
+            SYP  2                   >1  NULL
+            SYS  3
+                >3  NULL
+    */
+    static TreeNode getLayeredNode(
+        TreeNode treeNode,
+        int n,
+        boolean old = false)
+    {
+        TreeNode        highestLayerNode = TreeNode::findNode(SysTreeNode::getPath(treeNode));
+        Map             maskMap;
+
+        if (!highestLayerNode)
+            highestLayerNode = treeNode;
+
+        maskMap = SysTreeNode::getLayeredNodeMap(highestLayerNode, old);
+
+        //
+        // Does a layered version exist?
+        //
+        if (maskMap.elements()-1 >= n) // n is zero based
+        {
+            return SysTreeNode::nodeInLayer(highestLayerNode, maskMap.lookup(n), true, old);
+        }
+        return null;
+    }
+
+
+    /// <summary>
+    /// Builds a map with the layer stack.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The <c>Treenode</c> object from which to retrieve the map.
+    /// </param>
+    /// <param name="_old">
+    /// A Boolean value that indicates whether old tree nodes are to be retrieved; optional.
+    /// </param>
+    /// <returns>
+    /// The map.
+    /// </returns>
+    /*
+        ex 1:                ex 2:
+            USR  0               VAR  0
+            DIS  1               SYS  1
+            SYP  2                   >1  NULL
+            SYS  3
+                >3  NULL
+    */
+    static public Map getLayeredNodeMap(
+        TreeNode _treeNode,
+        boolean _old = false)
+    {
+        TreeNode        highestLayerNode;
+        TreeNode        parentNode;
+        Map             map = new Map(Types::Integer, Types::Enum);
+
+    void layerMask2Map(int _mask)
+    {
+
+        int i = 1 << enumCnt(UtilEntryLevel) ;
+        UtilEntryLevel level = enumCnt(UtilEntryLevel);
+
+        while (i)
+        {
+            if (bitTest(_mask, i))
+                map.insert(map.elements(), level);
+            i = i >> 1;
+            level--;
+        }
+    }
+        if (!_treenode)
+            return map;
+
+        highestLayerNode = TreeNode::findNode(SysTreeNode::getPath(_treeNode));
+
+        if (!highestLayerNode)
+            highestLayerNode = _treeNode;
+
+        //
+        // Find the parent node, that can provide a layer mask
+        //
+        parentNode = highestLayerNode;
+        while (parentNode &&
+              !parentNode.treeNodeType().isLayerAware() &&
+              !parentNode.treeNodeType().isGetNodeInLayerSupported())
+        {
+            parentNode = parentNode.AOTparent();
+        }
+
+        //
+        // No parent means no layer mask, thus unable to return a layered node. E.g. for '\\Classes'
+        //
+        if (!parentNode)
+        {
+            return map; // Return empty map
+        }
+
+        //
+        // Get the right maskMap
+        //
+        if (_old)
+        {
+            layerMask2Map(parentNode.applObjectOldLayerMask());
+        }
+        else
+        {
+            layerMask2Map(parentNode.applObjectLayerMask());
+        }
+
+        return map;
+    }
+
+
+    static TreeNode getNode(TreeNode _node)
+    {
+        #AOT
+        ProjectNode projectNode;
+        TreeNode tmpNode;
+
+        if (_node &&
+            !_node.AOTIsOld())
+        {
+            tmpNode = TreeNode::findNode(SysTreeNode::getPath(_node));
+        }
+
+        //
+        // Projects from the project view needs to expanded
+        //
+        projectNode = tmpNode as ProjectNode;
+        if (projectNode)
+        {
+            tmpNode = projectNode.getRunNode();
+        }
+
+        if (!tmpNode ||
+            (tmpNode.treeNodePath() == #AOTRootPath && _node.treeNodePath() != #AOTRootPath)) //getPath couldn't resolve properly
+        {
+            tmpNode = _node;
+        }
+        return tmpNode;
+    }
+
+    static TreeNodePath getPath(TreeNode _node)
+    {
+        UtilElements utilElementFromNode;
+
+        TreeNodePath treeNodePath;
+        TreeNode parent;
+        TreeNode child;
+
+        //validate arguments before using them
+        if (_node == null)
+        {
+            return '';
+        }
+
+        if (TreeNode::findNode(_node.treeNodePath()))
+        {
+            return _node.treeNodePath();
+        }
+
+        if (_node.treeNodeType().isUtilElement())
+        {
+            utilElementFromNode = _node.utilElement();
+            treeNodePath = xUtilElements::getNodePathRough(utilElementFromNode);
+
+            if (! treeNodePath)
+            {
+                // sometimes TreeNode::findNode() cannot find existing nodes
+                parent = _node.AOTparent();
+
+                if (parent)
+                {
+                    child = parent.AOTfindChild(_node.treeNodeName());
+
+                    if (child)
+                    {
+                        treeNodePath = child.treeNodePath();
+                    }
+                }
+            }
+            return treeNodePath;
+        }
+        return '';
+    }
+
+    static ProjectListNode getPrivateProject()
+    {
+        TreeNode treeNode;
+        ;
+
+        treeNode = infolog.projectRootNode();
+        treeNode = treeNode.AOTfirstChildEx(true);
+
+        return treeNode;
+    }
+
+    /// <summary>
+    /// Gets the root element of a tree node.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The tree node of which to find the root element.
+    /// </param>
+    /// <returns>
+    /// The tree node that represents the root element.
+    /// </returns>
+    static public TreeNode getRootElement(TreeNode _treeNode)
+    {
+        TreeNode rootElement = _treeNode;
+
+        while (rootElement &&
+               !rootElement.treeNodeType().isRootElement())
+        {
+            rootElement = rootElement.AOTparent();
+        }
+
+        return rootElement;
+    }
+
+    /// <summary>
+    /// Gets the path of the root element of a tree node.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The tree node of which to find the path of the root element.
+    /// </param>
+    /// <returns>
+    /// The path of the root element.
+    /// </returns>
+    static public TreeNodePath getRootElementPath(TreeNode _treeNode)
+    {
+        return SysTreeNode::applObjectPath(_treeNode.treeNodePath());
+    }
+
+    static ProjectListNode getSharedProject()
+    {
+        TreeNode treeNode;
+        ;
+
+        treeNode = infolog.projectRootNode();
+        treeNode = treeNode.AOTfirstChildEx(true);
+        treeNode = treeNode.AOTnextSibling();
+
+        return treeNode;
+    }
+
+    /// <summary>
+    /// Returns the VCS controllable element for a tree node.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The tree node for which to find the VCS controllable element.
+    /// </param>
+    /// <returns>
+    /// The tree node that represents the VCS controllable element.
+    /// </returns>
+    public static TreeNode getVCSControllableElement(TreeNode _treeNode)
+    {
+        TreeNode controllableElement = _treeNode;
+
+        while (controllableElement &&
+               !controllableElement.treeNodeType().isVCSControllableElement())
+        {
+            controllableElement = controllableElement.AOTparent();
+        }
+
+        return controllableElement;
+    }
+
+    static boolean hasID(TreeNode _treeNode)
+    {
+        //validate arguments before using them
+        if (_treeNode == null || !_treeNode.treeNodeType().isUtilElement())
+        {
+            return false;
+        }
+
+        return xUtilElements::hasID(_treeNode.utilElement().RecordType);
+    }
+
+    /// <summary>
+    /// Indicates whether the specified tree node is expected to have a legacy ID.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The tree node to check.
+    /// </param>
+    /// <returns>
+    /// true if the tree node is expected to have a legacy ID; otherwise false.
+    /// </returns>
+    public static boolean hasLegacyID(TreeNode _treeNode)
+    {
+        //validate arguments before using them
+        if (_treeNode == null || !_treeNode.treeNodeType().isUtilElement())
+        {
+            return false;
+        }
+
+        return (_treeNode.utilElement().RecordType!=UtilElementType::TableFullTextIndex) && SysTreeNode::hasID(_treeNode);
+    }
+
+    /// <summary>
+    /// This functions checks whether the <paramref name="_treeNode" /> parameter that is passed has X++
+    /// code or any text source in the node.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The <c>TreeNode</c> object.
+    /// </param>
+    /// <returns>
+    /// true if the node contains X++ or a text source; otherwise, false.
+    /// </returns>
+    /// <remarks>
+    /// This method is called by various utilities like compare, wash, or scan to inspect the source.
+    /// </remarks>
+    static boolean hasSource(TreeNode _treeNode)
+    {
+        //validate arguments before using them
+        if (_treeNode == null)
+            return false;
+
+        switch (_treeNode.handle())
+        {
+            case classNum(MemberFunction),
+                 classNum(Job),
+                 classNum(webStaticFileNode),
+                 classNum(VSProjectFileNode),
+                 classNum(DocNode):
+                return true;
+        }
+
+        if (_treeNode.treeNodeType().isUtilElement() &&
+            SysTreeNode::codeIsSource(_treeNode.utilElement().RecordType))
+        {
+            return true;
+        }
+
+        if (SysTreeNode::isProject(_treeNode))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    static boolean isNodeInLayer(TreeNode treeNode, UtilEntryLevel layer, boolean old = treeNode ? treeNode.AOTIsOld() : false)
+    {
+        if (treeNode &&
+            treeNode.AOTLayers(old).in(layer))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    static boolean isNodeInPatchLayer(TreeNode treeNode)
+    {
+        if (treeNode && treeNode.treeNodeType().isLayerAware())
+            return SysTreeNode::isPatchLayer(treeNode.AOTLayer());
+        return false;
+    }
+
+    static boolean isPatchLayer(UtilEntryLevel layer)
+    {
+        switch (layer)
+        {
+            case UtilEntryLevel::syp:
+            case UtilEntryLevel::glp:
+            case UtilEntryLevel::fpp:
+            case UtilEntryLevel::slp:
+            case UtilEntryLevel::isp:
+            case UtilEntryLevel::vap:
+            case UtilEntryLevel::cup:
+            case UtilEntryLevel::usp:
+                return true;
+        }
+        return false;
+    }
+
+    static public boolean isProject(TreeNode _treeNode)
+    {
+        #TreeNodeSysNodeType
+        //validate arguments before using them
+        if (_treeNode == null)
+            return false;
+        return _treeNode.treeNodeType().id() == #NT_PROJECT_NODE;
+    }
+
+    /// <summary>
+    /// Indicates whether the specified <c>UtilElementType</c> object has a text source in the node.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// A <c>TreeNode</c> object.
+    /// </param>
+    /// <returns>
+    /// true if the node contains any text; otherwise, false.
+    /// </returns>
+    /// <remarks>
+    /// This method returns false for any X++ source code.
+    /// </remarks>
+    static boolean isSourceText(TreeNode _treeNode)
+    {
+        if (_treeNode is VSProjectFileNode)
+        {
+            return true;
+        }
+
+        //validate arguments before using them
+        if (_treeNode == null || !_treeNode.treeNodeType().isUtilElement())
+            return false;
+
+        switch (_treeNode.handle())
+        {
+            case classNum(DocNode):
+                return true;
+        }
+
+        if (SysTreeNode::codeIsSource(_treeNode.utilElement().RecordType))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    static boolean isType(TreeNode _treeNode)
+    {
+        #TreeNodeSysNodeType
+
+        //validate parameters before using them
+        if (_treeNode == null)
+            return false;
+
+        switch (_treeNode.treeNodeType().id())
+        {
+            case #NT_DBTABLE:
+            case #NT_DBMAP:
+            case #NT_DBVIEW:
+            case #allExtendedDataTypes:
+            case #NT_DBENUMTYPE:
+            case #NT_CLASS:
+            case #SysNodeTypeSystemTable:
+            case #SysNodeTypeSystemType:
+            case #SysNodeTypeSystemEnum:
+            case #SysNodeTypeSystemClass:
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean isUnwanted(TreeNode _treeNode)
+    {
+        UtilElements utilElements;
+
+        if (_treeNode.treeNodeType().isUtilElement())
+        {
+            utilElements = xUtilElements::findTreeNode(_treeNode, true);
+            if (utilElements.Name)
+            {
+                return xUtilElements::isUnwantedObject(utilElements);
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Constructs a treenode path for a model element.
+    /// </summary>
+    /// <param name="_element">
+    /// The model element.
+    /// </param>
+    /// <returns>
+    /// The treenode path
+    /// </returns>
+    /// <remarks>
+    /// This method may cause database queries.Consider using the
+    /// <c>SysTreeNode::modelElement2RootElementPath</c> method when you only require the root element path.
+    /// </remarks>
+    public static TreeNodePath modelElement2Path(SysModelElement _element)
+    {
+        if (_element.RecId == _element.RootModelElement)
+        {
+            return SysTreeNode::modelElement2RootElementPath(_element);
+        }
+
+        //
+        // Go to the Server to construct the path
+        //
+        return SysTreeNode::modelElementRecId2Path(_element.RecId);
+    }
+
+    /// <summary>
+    /// Constructs the treenode path of a root element for a model element.
+    /// </summary>
+    /// <param name="_modelElement">
+    /// The model element.
+    /// </param>
+    /// <returns>
+    /// The treenode path.
+    /// </returns>
+    public static TreeNodePath modelElement2RootElementPath(SysModelElement _modelElement)
+    {
+        SysModelElement rootModelElement;
+        UtilElements utilElements;
+
+        if (_modelElement.RecId == _modelElement.RootModelElement)
+        {
+            rootModelElement = _modelElement;
+        }
+        else
+        {
+            select firstOnly1 Name, ParentId, ElementType from rootModelElement
+                where rootModelElement.RecId == _modelElement.RootModelElement;
+        }
+
+        utilElements.Name = rootModelElement.Name;
+        utilElements.ParentId = rootModelElement.ParentId;
+        utilElements.RecordType = rootModelElement.ElementType;
+
+        return xUtilElements::getNodePathRough(utilElements);
+    }
+
+    private static server TreeNodePath modelElementRecId2Path(ModelElementRecid _elementId)
+    {
+        SysModelElement modelElement;
+        SysModelElementType elementType;
+        TreeNodePath path;
+
+        select firstOnly modelElement
+            where modelElement.RecId == _elementId
+            join elementType
+                where elementType.RecId == modelElement.ElementType;
+
+        if (!modelElement || !elementType)
+        {
+            throw error(error::wrongUseOfFunction(funcName()));
+        }
+
+        if (modelElement.RecId == modelElement.RootModelElement)
+        {
+            return SysTreeNode::modelElement2RootElementPath(modelElement);
+        }
+
+        path = SysTreeNode::modelElementRecId2Path(modelElement.ParentModelElement)+'\\';
+        path += elementType.TreeNodeName ?
+                elementType.TreeNodeName+'\\' : '';
+
+        switch (elementType.RecId)
+        {
+            case CLRInterop::getAnyTypeForObject(Microsoft.Dynamics.AX.Framework.Tools.ModelManagement.ElementType::FormDataSources):
+                path += 'Data sources';
+                break;
+
+            case CLRInterop::getAnyTypeForObject(Microsoft.Dynamics.AX.Framework.Tools.ModelManagement.ElementType::SecurityPermissionSet):
+                if (modelElement.Name == 'Permissions')
+                {
+                    path = subStr(path,1,strlen(path)-1); //Remove trailing '\'
+                }
+                else
+                {
+                    path += modelElement.Name;
+                }
+                break;
+
+            default:
+                path += modelElement.Name;
+                break;
+        }
+
+        return path;
+    }
+
+    /// <summary>
+    /// Creates a new <c>SysTreeNode</c> instance.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// A <c>TreeNode</c> instance.
+    /// </param>
+    /// <returns>
+    /// The new <c>SysTreeNode</c> instance.
+    /// </returns>
+    public static SysTreeNode newTreeNode(TreeNode _treeNode)
+    {
+        SysTreeNode sysTreeNode;
+
+        if (_treeNode is VSProjectNode)
+        {
+            sysTreeNode = new SysTreeNodeVSProject();
+        }
+        else if (_treeNode is VSItemNode)
+        {
+            sysTreeNode = new SysTreeNodeVSItem();
+        }
+        else
+        {
+            sysTreeNode = SysTreeNode::construct();
+        }
+
+        sysTreeNode.parmTreeNode(_treeNode);
+        return sysTreeNode;
+    }
+
+    public static SysTreeNode newTreeNodePath(TreeNodePath _treeNodePath)
+    {
+        return SysTreeNode::newTreeNode(TreeNode::findNode(_treeNodePath));
+    }
+
+    /// <summary>
+    /// Retrieves the specified tree node in the specified layer.
+    /// </summary>
+    /// <param name="_treeNode">
+    /// The tree node.
+    /// </param>
+    /// <param name="_layer">
+    /// The layer.
+    /// </param>
+    /// <param name="_forceLayer">
+    /// A Boolean value that indicates that tree nodes from the provided layer are accepted.
+    /// </param>
+    /// <param name="_old">
+    /// A Boolean value that indicates whether a version of the tree node from the old model store is
+    /// requested.
+    /// </param>
+    /// <returns>
+    /// The tree node from the specified layer.
+    /// </returns>
+    /// <remarks>
+    /// If the requested tree node is the same version as the supplied tree node, it is returned so that
+    /// the parent information is not lost.
+    /// </remarks>
+    static TreeNode nodeInLayer(TreeNode       _treeNode,
+                                UtilEntryLevel _layer,
+                                boolean        _forceLayer = true,
+                                boolean        _old        = false)
+    {
+        int requestedLayer;
+        TreeNode tmp;
+        TreeNode parent;
+        TreeNode parentGetNode;
+        Stack stack;
+        #define.invalidLayer(255)
+
+    UtilEntryLevel getLayer(TreeNode _node)
+    {
+        Set layers;
+        int layer;
+
+        if (!_node.treeNodeType().isLayerAware())
+        {
+            return #invalidLayer;
+        }
+
+        layers = SysTreeNode::getLayeredNodeMap(_node, _old).valueSet();
+
+        for (layer = _layer; layer >=0; layer--)
+        {
+            if (layers.in(layer))
+            {
+                return layer;
+            }
+        }
+        return #invalidLayer;
+    }
+
+
+        if (!_treeNode)
+            return null;
+
+        //
+        // Find first parent that supports getNodeInlayer and layers.
+        //
+        stack = new Stack();
+        parent = _treeNode;
+        while (parent &&
+               !(parent.treeNodeType().isGetNodeInLayerSupported() &&
+                 parent.treeNodeType().isLayerAware()))
+        {
+            stack.push([parent.treeNodeName()]);
+            parent = parent.AOTparent();
+        }
+
+        if (!parent)
+            return null;
+
+        requestedLayer = _forceLayer ? _layer : getLayer(parent);
+
+        if (requestedLayer != #invalidLayer)
+        {
+            //
+            // Parent found - now find the right child again.
+            //
+            parentGetNode = parent.getNodeInLayer(requestedLayer, _old);
+            tmp = parentGetNode;
+            while (tmp && stack.qty())
+            {
+                tmp = tmp.AOTfindChild(conPeek(stack.pop(),1));
+            }
+
+            //
+            // If tmp is not found, or tmp's path is incomplete
+            // return _treenode if it matches criteria.
+            //
+            if (_treeNode.AOTIsOld() == _old &&
+                SysTreeNode::getLayer(_treeNode) == requestedLayer &&       // To preserve path
+                (!tmp || !TreeNode::findNode(SysTreeNode::getPath(tmp)))    // Is the path from the copy invalid?
+               )
+            {
+                if (parentGetNode &&
+                    parentGetNode.treeNodeType().isConsumingMemory())
+                {
+                    //Tmp is not used, so release memory consumed by the local variable parentGetNode - as the caller cannot do it
+                    parentGetNode.treeNodeRelease();
+                }
+                return _treeNode;
+            }
+            else
+            {
+                if (tmp == null &&
+                    parentGetNode &&
+                    parentGetNode.treeNodeType().isConsumingMemory())
+                {
+                    //Tmp is null, so release memory consumed by the local variable parentGetNode - as the caller cannot do it
+                    parentGetNode.treeNodeRelease();
+                }
+                return tmp;
+            }
+        }
+        return null;
+    }
+
+
+    static int numOfLayers(TreeNode treeNode, boolean old = false, boolean includePatchLayers = true)
+    {
+        int counter;
+        SetEnumerator enum;
+
+        //validate parameters before using them
+        if (treeNode == null)
+            return -1;
+
+        enum = treeNode.AOTLayers(old).getEnumerator();
+
+        while (enum.moveNext())
+        {
+            if ( includePatchLayers || !SysTreeNode::isPatchLayer(enum.current()))
+            {
+                counter++;
+            }
+        }
+        return counter;
+    }
+
+    public static TreeNodeName path2ApplObjectName(TreeNodePath _treeNodePath)
+    {
+        return SysTreeNode::applObjectName(_treeNodePath);
+    }
+
+    public static UtilElementType path2ApplObjectType(TreeNodePath _treeNodePath)
+    {
+        #AOT
+        #define.struct('\\\\:a.*\\\\:a')
+        #define.structElement('\\\\:a')
+        #define.startWith('<')
+
+        UtilElementType utilElementType;
+        boolean         found;
+        TreeNodePath    parentPath;
+        MapIterator     mapIterator = new MapIterator(SysTreeNode::applObjectPathTypeMap());
+        Map             map         = SysTreeNode::applObjectPathDoublePathDelimitersMap();
+
+        mapIterator.begin();
+        while (mapIterator.more() &&
+               (!found ||
+                (map.exists(parentPath) &&
+                 match(#startWith + map.lookup(parentPath) + #struct, _treeNodePath))))
+        {
+            if (match(#startWith + map.lookup(mapIterator.key()) + #struct, _treeNodePath))
+            {
+                parentPath      = mapIterator.key();
+                utilElementType = mapIterator.value();
+                found           = true;
+            }
+            else
+            {
+                if (match(#startWith + map.lookup(mapIterator.key()) + #structElement, _treeNodePath))
+                {
+                    parentPath      = mapIterator.key();
+                    utilElementType = mapIterator.value();
+                    found           = true;
+                }
+            }
+            mapIterator.next();
+        }
+
+        return utilElementType;
+    }
+
+    public static client server ImageRes path2Image(TreeNodePath _treeNodePath)
+    {
+        Map path2Image = SysModelMetaData::newFromCache().path2ImageMap();
+        #ResAppl
+
+        if (path2Image.exists(_treeNodePath))
+        {
+            return path2Image.lookup(_treeNodePath);
+        }
+        return #imageFolder;
+    }
+
+    public static GroupNodeType path2ProjectGroupNodeType(TreeNodePath _treeNodePath)
+    {
+        #AOT
+        #define.struct('\\\\:a.')
+        #define.startWith('<')
+
+        GroupNodeType   groupNodeType = GroupNodeType::All;
+        boolean         found;
+        TreeNodePath    parentPath;
+        Map             groupNodeTypeMap    = SysTreeNode::pathProjectGroupNodeTypeMap();
+        Map             map;
+        MapIterator     mapIterator;
+
+        if (groupNodeTypeMap.exists(_treeNodePath))
+        {
+            groupNodeType = groupNodeTypeMap.lookup(_treeNodePath);
+        }
+        else
+        {
+            map                 = SysTreeNode::pathDoublePathDelimitersMap();
+            mapIterator         = new MapIterator(groupNodeTypeMap);
+
+            mapIterator.begin();
+            while (mapIterator.more() &&
+                   (!found ||
+                    (map.exists(parentPath) &&
+                     match(#startWith + map.lookup(parentPath) + #struct, _treeNodePath))))
+            {
+                if (mapIterator.key() == _treeNodePath)
+                {
+                    parentPath      = mapIterator.key();
+                    groupNodeType   = mapIterator.value();
+                    found           = true;
+                }
+                else
+                {
+                    if (match(#startWith + map.lookup(mapIterator.key()) + #struct, _treeNodePath))
+                    {
+                        parentPath      = mapIterator.key();
+                        groupNodeType   = mapIterator.value();
+                        found           = true;
+                    }
+                }
+                mapIterator.next();
+            }
+        }
+
+        return groupNodeType;
+    }
+
+    private static client server Map pathDoublePathDelimitersMap()
+    {
+        Map         map;
+        MapIterator mapIterator;
+        ;
+        if (isRunningOnServer())
+        {
+            map = appl.globalCache().get(classStr(SysTreeNode), funcName(), null);
+        }
+        else
+        {
+            map = infolog.globalCache().get(classStr(SysTreeNode), funcName(), null);
+        }
+
+        if (!map)
+        {
+            map         = new Map(Types::String, Types::String);
+
+            mapIterator = new MapIterator(SysTreeNode::pathProjectGroupNodeTypeMap());
+            mapIterator.begin();
+            while (mapIterator.more())
+            {
+                map.insert(mapIterator.key(), SysTreeNode::duplicatePathDelimiters(mapIterator.key()));
+                mapIterator.next();
+            }
+
+            if (isRunningOnServer())
+            {
+                appl.globalCache().set(classStr(SysTreeNode), funcName(), map);
+            }
+            else
+            {
+                infolog.globalCache().set(classStr(SysTreeNode), funcName(), map);
+            }
+        }
+
+        return map;
+    }
+
+    /*
+        returns the name as a treeNode returns in treeNodeName (treeNodeName is a protected method name)
+        given a path
+    */
+
+    static TreeNodePath pathName(TreeNodePath _path)
+    {
+        int length = strLen(_path);
+        ;
+        return subStr(_path, strFind(_path, '\\', length, -length) + 1, length);
+    }
+
+    /*
+        returns the path-only part of a treeNode path, i.e. the tree node path without the name.
+        This is equivalent to the tree node path of the parent,
+        given a tree node path.
+    */
+
+    static TreeNodePath pathParent(TreeNodePath _path)
+    {
+        int length = strLen(_path);
+        ;
+        return subStr(_path, 1, strFind(_path, '\\', length, -length) - 1);
+    }
+
+    public static Map pathProjectGroupNodeTypeMap()
+    {
+        return SysModelMetaData::newFromCache().path2GroupNodeTypeMap();
+    }
+
+    public static void refreshAll()
+    {
+        Enumerator enumerator = SysModelMetaData::newFromCache().getEnumeratorConcepts();
+        SysModelMetaDataConcept concept;
+        TreeNode treeNode;
+
+        while (enumerator.moveNext())
+        {
+            concept = enumerator.current();
+
+            treeNode = TreeNode::findNode(concept.parmCollectionPath());
+            if (treeNode)
+            {
+                treeNode.AOTrefresh();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the granular source control operations are supported on the given tree node path
+    /// </summary>
+    /// <param name="_treeNodePath">The tree node path of the node.</param>
+    /// <returns>true if the granular source control operations are supported on the tree-node path; otherwise, false.</returns>
+    public static boolean supportsGranularVcsOperations(TreeNodePath _treeNodePath)
+    {
+        #AOT
+
+        // Only Visual Studio Projects supports granular source control operations (on the file level).
+        return strStartsWith(_treeNodePath, #VSProjectsPath);
+    }
+
+    static public FilePath treeNodePath2FilePath(TreeNodePath _treeNodePath)
+    {
+        #AOT
+        str name;
+        str path;
+        int i;
+
+        if (strStartsWith(_treeNodePath, #SystemDocPath))
+        {
+            i = strFind(_treeNodePath, '\\', strLen(_treeNodePath), -maxInt());
+            path = subStr(_treeNodePath, 1, i);
+            name = subStr(_treeNodePath, i+1, maxInt());
+            name = strReplace(name, '*', strFmt('#%1', char2num('*',1)));
+            name = strReplace(name, '?', strFmt('#%1', char2num('?',1)));
+            name = strReplace(name, '.', strFmt('#%1', char2num('.',1)));
+            name = strReplace(name, ':', strFmt('#%1', char2num(':',1)));
+            name = strReplace(name, '\\', strFmt('#%1', char2num('\\',1)));
+            name = strReplace(name, '/', strFmt('#%1', char2num('/',1)));
+            name = strReplace(name, '^', strFmt('#%1', char2num('^',1)));
+            name = strReplace(name, '<', strFmt('#%1', char2num('<',1)));
+            name = strReplace(name, '>', strFmt('#%1', char2num('>',1)));
+            name = strReplace(name, '|', strFmt('#%1', char2num('|',1)));
+            name = strReplace(name, '@', strFmt('#%1', char2num('@',1)));
+            name = strReplace(name, '#', strFmt('#%1', char2num('#',1)));
+
+            path += name;
+        }
+        else if (strStartsWith(_treeNodePath, #VSProjectsPath))
+        {
+            path = SysTreeNodeVSItem::treeNodePath2FilePath(_treeNodePath);
+        }
+        else
+        {
+            path = _treeNodePath;
+        }
+        return path;
+    }
+
+    static container treeNodesWithSource()
+    {
+        return [classNum(MemberFunction), classNum(Job), classNum(DocNode)];
+    }
+}

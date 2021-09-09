@@ -1,0 +1,328 @@
+class DEVDevImportExcelTemplate extends RunBase
+{
+    FilenameOpen           filenameOpen;
+    Line                   fromLine;
+    Line                   toLine;
+
+    DialogField            dlgFilenameOpen;
+    DialogField            dlgFromLine;
+    DialogField            dlgToLine;
+
+    int                   importedLineCount;
+
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        filenameOpen,
+        fromLine,
+        toLine
+    #endmacro
+
+    void afterImport()
+    {
+        ;
+        info(strFmt("%1 records imported", importedLineCount));
+    }
+
+    boolean checkStringLen(str _value, tableid _tableId, fieldid _fieldid)
+    {
+        boolean res = true;
+        DictTable dt = new DictTable(_tableId);
+        DictField   df = new DictField(_tableId, _fieldid);
+        ;
+        if (strLen(_value) >  df.stringLen())
+        {
+            throw error(strFmt("Значение в поле '%1' - '%2' превышает максимально допустимую длину %3",
+                               df.label(),  _value, df.stringLen()));
+        }
+        return res;
+    }
+
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+
+        dlgFilenameOpen            = dialog.addFieldValue(extendedtypestr(FilenameOpen), filenameOpen, "File name", "File path and name.");
+        dlgFilenameOpen.mandatory_RU(true);
+        dlgFromLine                = dialog.addFieldValue(extendedtypestr(Line), fromLine, "From line", "From line");
+        dlgFromLine.mandatory_RU(true);
+        dlgToLine                  = dialog.addFieldValue(extendedtypestr(Line), toLine, "To line(0 - all)", "To line(0 - all)");
+
+        return dialog;
+    }
+
+
+    public boolean getFromDialog()
+    {
+        ;
+
+        filenameOpen       = dlgFilenameOpen.value();
+        fromLine           = dlgFromLine.value();
+        toLine             = dlgToLine.value();
+
+        return super();
+    }
+
+
+    anytype getValue(Map _cellsMap, int _idx, Types _types)
+    {
+        OXMLCell_RU cell;
+        anytype     res = nullValueFromType(_types);
+        str         s;
+        int64       intVal;
+        real        r;
+        date        d;
+
+        DocumentFormat.OpenXml.Spreadsheet.Cell cc;
+        DocumentFormat.OpenXml.Spreadsheet.CellValue cv;
+
+        if (_cellsMap.exists(_idx))
+        {
+            cell = _cellsMap.lookup(_idx);
+
+            switch (_types)
+            {
+                case Types::Integer:
+                case Types::Int64:
+                    s = cell.getValue();
+                    cc = cell.cell();
+                    cv = CC.get_CellValue();
+                    s =cv.get_InnerText();
+                    s = strReplace(s, ' ', '');
+                    intVal = str2int64(s);
+                    res = intVal;
+                    break;
+                case Types::Real:
+                    s = cell.getValue();
+                    cc = cell.cell();
+                    cv = CC.get_CellValue();
+                    s =cv.get_InnerText();
+                    s = strReplace(s, ',', '.');
+                    s = strReplace(s, ' ', '');
+                    r = str2num(s);
+                    res = r;
+                    break;
+                case Types::Date:
+                    s = cell.getValue();
+                    d = dateNull();
+                    if (str2int(s) > 10000)
+                    {
+                        d = dateNull() + (str2int(s) - 2);
+                    }
+                    res = d;
+                    break;
+
+                //case Types::UtcDateTime:
+                //    break;
+
+                default :
+                    s = cell.getValue();
+                    res = s;
+
+            }
+
+        }
+
+        return res;
+    }
+
+    public void initParmDefault()
+    {
+        ;
+
+        super();
+
+        fromLine = 2;
+    }
+
+
+    private void loadExcel()
+    {
+        XMLExcelDocument_RU excelDocument;
+        OXMLWorkbook_RU workbook;
+        MapEnumerator worksheetsEnumerator;
+        OXMLWorksheet_RU worksheet;
+        Map rows;
+        MapEnumerator rowsEnumerator;
+        OXMLRow_RU row;
+        Map cellsMap;
+        int rowCnt;
+        boolean ok = true;
+
+        int startRow = fromLine;
+
+
+        setPrefix(RunBase::getDescription(classIdGet(this)));
+        try
+        {
+
+            excelDocument = XMLExcelDocument_RU::newFromFile(filenameOpen, "", false);
+
+            workbook = excelDocument.workbook();
+            worksheetsEnumerator = workbook.worksheets().getEnumerator();
+
+            if (worksheetsEnumerator.moveNext())
+            {
+                worksheet = worksheetsEnumerator.currentValue();
+            }
+
+            rows = worksheet.rows();
+
+            rowCnt = rows.elements();
+
+            this.progressInit(RunBase::getDescription(classIdGet(this)),
+                              rowCnt,
+                              #AviSearch);
+
+
+
+            rowsEnumerator = rows.getEnumerator();
+
+            while (startRow > 1)
+            {
+                rowsEnumerator.moveNext();
+
+                startRow--;
+            }
+
+            while (rowsEnumerator.moveNext())
+            {
+                progress.incCount();
+
+                row = rowsEnumerator.currentValue();
+
+                cellsMap = row.cells();
+
+                setPrefix(strFmt("Row %1", row.rowIndex()));
+
+                try
+                {
+                    if (! this.processLineData(cellsMap))
+                    {
+                        break;
+                    }
+                }
+                catch (Exception::Error)
+                {
+                    //ok = checkFailed("Error reading line");
+                    continue;
+                }
+            }
+            this.afterImport();
+
+            excelDocument.closeDocument(false);
+        }
+        catch (Exception::CLRError)
+        {
+            error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+    public container pack()
+    {
+        ;
+
+        return [#CurrentVersion, #CurrentList];
+    }
+
+
+    public FilenameOpen parmFilenameOpen(FilenameOpen _filenameOpen = filenameOpen)
+    {
+        ;
+
+        filenameOpen = _filenameOpen;
+
+        return filenameOpen;
+    }
+
+
+    public Line parmFromLine(Line _fromLine = fromLine)
+    {
+        ;
+
+        fromLine = _fromLine;
+
+        return fromLine;
+    }
+
+
+    public Line parmToLine(Line _toLine = toLine)
+    {
+        ;
+
+        toLine = _toLine;
+
+        return toLine;
+    }
+
+
+    boolean processLineData(Map _cellsMap)
+    {
+        boolean  isContinue = true;
+        ItemId itemId;
+        TransDate  transDate;
+        CostAmount costValue;
+
+        ;
+        transDate = this.getValue(_cellsMap, 2, Types::Date);
+        itemId = this.getValue(_cellsMap, 3, Types::String);
+        if (!itemId)
+        {
+            isContinue = false;
+        }
+        info(strFmt("%1 %2", transDate, itemId));
+
+        return isContinue;
+    }
+
+    public void run()
+    {
+        ;
+
+        this.loadExcel();
+    }
+
+
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        ;
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+
+    public static DEVDevImportExcelTemplate construct()
+    {
+        return new DEVDevImportExcelTemplate();
+    }
+
+    static ClassDescription description()
+    {
+        ;
+
+        return "Import from excel template";
+    }
+
+    public static void main(Args _args)
+    {
+        DEVDevImportExcelTemplate    runObject = DEVDevImportExcelTemplate::construct();
+        ;
+
+        if (runObject.prompt())
+        {
+            runObject.run();
+        }
+    }
+
+}

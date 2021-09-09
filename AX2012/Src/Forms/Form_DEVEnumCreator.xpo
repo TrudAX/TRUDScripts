@@ -1,0 +1,395 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #DEVEnumCreator
+  PROPERTIES
+    Name                #DEVEnumCreator
+    Origin              #{E9B7343E-A1AA-45F8-8F5E-7CB37772E2A3}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #addDefaultProperties
+      #private void addDefaultProperties(Map   _propertiesMap)
+      #{
+      #    ;
+      #    _propertiesMap.insert('IsDefault', '0');
+      #}
+    ENDSOURCE
+    SOURCE #createEnum
+      ##AOT
+      #void createEnum()
+      #{
+      #    //CIT_SysStringHelper     sysStringHelper  = new CIT_SysStringHelper();
+      #    int                     i;
+      #    //CIT_SysStringHelper     sysStringHelper2 ;
+      #    TreeNode                treeNodeEnum;
+      #    TreeNode                treeNodeDim;
+      #    Struct          propertiesExt;
+      #    Map             mapNewPropertyValues;
+      #    str     enumLabel, enumElementName;
+      #
+      #    container   sysStringHelper, sysStringHelper2;
+      #    ;
+      #    sysStringHelper = this.splitString(EnumTextEdit.text(), '\n');
+      #
+      #    treeNodeEnum    = TreeNode::findNode(#BaseEnumsPath);
+      #    treeNodeEnum    = treeNodeEnum.AOTfindChild(EnumName.text());
+      #    if (! treeNodeEnum)
+      #    {
+      #        throw error(strFmt("Enum %1 not found", EnumName.text() ));
+      #    }
+      #
+      #
+      #    for (i = 1; i <= conLen(sysStringHelper); i++)
+      #    {
+      #        //sysStringHelper2 = new CIT_SysStringHelper();
+      #        sysStringHelper2 = this.splitString(conPeek(sysStringHelper, i), Separator.text(), 2);
+      #
+      #        enumLabel       = strlrtrim(conPeek(sysStringHelper2, 1));
+      #        enumElementName = strlrtrim(conPeek(sysStringHelper2, 2));
+      #
+      #        treeNodeEnum.AOTadd(enumElementName);
+      #
+      #        treeNodeDim = treeNodeEnum.AOTfindChild(enumElementName);
+      #
+      #        propertiesExt = treeNodeDim.AOTgetPropertiesExt();
+      #
+      #        mapNewPropertyValues = this.getNewPropertiesMap();
+      #        mapNewPropertyValues.insert('Label',        enumLabel);
+      #       // mapNewPropertyValues.insert('EnumValue',    strfmt("%1", this.enumValue()));
+      #
+      #        this.setTreeNodePropertyExt(propertiesExt, mapNewPropertyValues);
+      #        treeNodeDim.AOTsetPropertiesExt(propertiesExt);
+      #   //     info(strFmt("%1 - %2", strlrtrim(sysStringHelper2.splitGetElement(1)),
+      #   //                            strlrtrim(sysStringHelper2.splitGetElement(2))));
+      #    }
+      #
+      #    treeNodeEnum.AOTsave();
+      #
+      #
+      #}
+    ENDSOURCE
+    SOURCE #getNewPropertiesMap
+      #private Map getNewPropertiesMap()
+      #{
+      #    return new Map(Types::String, Types::String);
+      #}
+    ENDSOURCE
+    SOURCE #setTreeNodePropertyExt
+      #private void setTreeNodePropertyExt(
+      #    Struct  _propertiesExt,
+      #    Map     _newProperties
+      #    )
+      #{
+      #    Counter     propertiesCount;
+      #    Array       propertyInfoArray;
+      #    Struct      propertyInfo;
+      #    str         propertyValue;
+      #    int         i;
+      #    ;
+      #
+      #    this.addDefaultProperties(_newProperties);
+      #
+      #    propertiesCount     = _propertiesExt.value('Entries');
+      #    propertyInfoArray   = _propertiesExt.value('PropertyInfo');
+      #
+      #    for (i = 1; i <= propertiesCount; i++)
+      #    {
+      #        propertyInfo = propertyInfoArray.value(i);
+      #
+      #        if (_newProperties.exists(propertyInfo.value('Name')))
+      #        {
+      #            propertyValue = _newProperties.lookup(propertyInfo.value('Name'));
+      #            propertyInfo.value('Value', propertyValue);
+      #        }
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #splitString
+      #container splitString(str  _string, str _char, int _desiredElementCount = 0, boolean  _allowRepeatDelimier = false)
+      #{
+      #    str  currentSymbol;
+      #    int  i;
+      #
+      #    container       splitData;
+      #    ;
+      #    splitData = connull();
+      #
+      #    if (! _allowRepeatDelimier)
+      #    {
+      #        splitData = str2con_RU(_string, _char);
+      #    }
+      #    else
+      #    {
+      #        for (i = 1; i <= strlen(_string); i++)
+      #        {
+      #            if ((substr(_string, i, 1) == _char))
+      #            {
+      #                if (currentSymbol)
+      #                {
+      #                    splitData       += currentSymbol;
+      #                    currentSymbol   = '';
+      #                }
+      #                continue;
+      #            }
+      #            else
+      #            {
+      #                currentSymbol += subStr(_string, i, 1);
+      #            }
+      #        }
+      #        if (currentSymbol)
+      #        {
+      #            splitData       += currentSymbol;
+      #            currentSymbol   = '';
+      #        }
+      #    }
+      #
+      #    if (_desiredElementCount)
+      #    {
+      #        if (conLen(splitData) != _desiredElementCount)
+      #        {
+      #            throw error(StrFmt("Number of elements in string %1 separated by %2 should be %3",
+      #                               _string, _char, _desiredElementCount));
+      #        }
+      #    }
+      #    return splitData;
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Height              #Column height
+      Caption             #Enum element creator
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1431655764
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #EnumGroup
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #715827882
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Group
+          ElementPosition     #1073741822
+          HierarchyParent     #EnumGroup
+          FrameType           #None
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #CreateButton
+          ElementPosition     #1431655764
+          HierarchyParent     #ButtonGroup
+          Text                #Create
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    element.createEnum();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #EnumName
+          AutoDeclaration     #Yes
+          ElementPosition     #1073741822
+          HierarchyParent     #Group
+          Label               #Enum Name
+          ExtendedDataType    
+            ARRAY 
+              #IdentifierName
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #EnumTextEdit
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #EnumGroup
+          Label               #Label - name
+          ExtendedDataType    
+            ARRAY 
+              #Notes
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Separator
+          AutoDeclaration     #Yes
+          ElementPosition     #1610612733
+          HierarchyParent     #Group
+          Text                #|
+          Label               #Separator
+          ExtendedDataType    
+            ARRAY 
+              #char
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

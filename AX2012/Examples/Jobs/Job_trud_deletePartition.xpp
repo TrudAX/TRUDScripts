@@ -1,0 +1,150 @@
+static void trud_deletePartition(Args _args)
+{
+    Dictionary      dictionary  = new Dictionary();
+    DictTable       dictTableMacro   = dictionary.tableObject(dictionary.tableCnt2Id(1));
+    Set             tableSet = new Set(Types::Integer),
+                    fieldSet = new Set(Types::container);
+    boolean         forAllTables, forAllFields;
+    RefRecId        curPartition;
+
+    str             sSQL;
+
+    str             sSQLGlobal;
+
+    TextBuffer      tb = new TextBuffer();
+
+    container       partitionsIdCon;
+
+    Partitions      partitions;
+
+    /*
+    UserConnection connection;
+    Statement  statement;
+    str        sql;
+    ResultSet  resultSet;
+    SqlStatementExecutePermission perm;
+    */
+
+    Query           query;
+    QueryRun        queryRun;
+    QueryBuildDataSource        qBDS;
+    int             i;
+    //Dialog          d = new Dialog("Delete partition");
+    //DialogField     df = d.addField(extendedTypeStr(Partition));
+    SysOperationProgress  progress = new SysOperationProgress();
+
+    boolean checkTable(DictTable dictTable, boolean _silent = false)
+    {
+        DictTable       dt;
+        boolean         tst;
+        TableId         currentTableId;
+
+
+        ;
+
+        tst = dictTable.isMap();
+        tst = dictTable.isTmp();
+        tst = dictTable.isView();
+        tst = tableSet.in(dictTable.id());
+
+        if (! dictTable.isMap() && ! dictTable.isTmp() && ! dictTable.isView() &&
+             dictTable.dataPerPartition() &&
+             dictTable.tableType() == TableType::Regular &&
+             dictTable.name(DbBackend::Sql)
+             )
+
+        {
+            //if (! connection)
+            //{
+            //    connection = new UserConnection();
+            //}
+            //sSQL = strfmt( @"select count(*) from  %1 where %1.Partition = %2",
+            //            dictTable.name(DbBackend::Sql),
+            //            int642str(curPartition));
+            for (i = 1; i <= conLen(partitionsIdCon); i++)
+            {
+                curPartition = conPeek(partitionsIdCon, i);
+                sSQL = strfmt( "delete %1 where %1.Partition = %2; \nGO",
+                        dictTable.name(DbBackend::Sql),
+                        int642str(curPartition));
+
+                sSQLGlobal += sSQL + '\n';
+            }
+            //info(sSQL);
+
+    /*
+            perm = new SqlStatementExecutePermission(sql);
+            perm.assert();
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(sql);
+            // End the scope of the assert call.
+            CodeAccessPermission::revertAssert();
+    */
+        }
+
+        return true;
+    }
+    ;
+    progress.setCaption("Deleting from partition");
+    progress.setTotal(7400);
+
+    query = new query();
+    qBDS = query.addDataSource(tableNum(Partitions));
+    qBDS.addRange(fieldNum(Partitions, PartitionKey));
+
+    queryRun = new queryRun(query);
+
+    if (queryRun.prompt())
+    {
+
+    //d.run();
+    //if (d.closedOk())
+    //{
+        while (queryRun.next())
+        {
+            partitions = queryRun.get(tableNum(partitions));
+            partitionsIdCon += partitions.RecId;
+            if (partitions.RecId == getcurrentpartitionrecid())
+            {
+                throw error(strFmt("Can't delete current partition"));
+            }
+
+        }
+
+        //curPartition = df.value();
+        if (! conLen(partitionsIdCon))
+        {
+            throw error(strFmt("Enter current partition"));
+        }
+        //
+
+        //dictTableMacro = new DictTable(tablename2id('InventTable'));
+        while (dictTableMacro)
+        {
+            progress.setText(strFmt("%1", dictTableMacro.name()));
+            checkTable(dictTableMacro);
+
+            dictTableMacro   = dictionary.tableObject(dictionary.tableNext(dictTableMacro.id()));
+
+            progress.incCount();
+
+
+        }
+        for (i = 1; i <= conLen(partitionsIdCon); i++)
+        {
+            curPartition = conPeek(partitionsIdCon, i);
+            select partitions
+                where partitions.RecId == curPartition;
+            if (partitions.PartitionKey != 'initial')
+            {
+                sSQL = strFmt('DELETE FROM Partitions where RECID = %1', int642str(curPartition));
+                sSQLGlobal += sSQL + '\n';
+            }
+        }
+
+        BOX::info('Press OK to copy SQL text to clipboard. Stop AOS before running SQL command');
+
+        tb.setText(sSQLGlobal);
+        tb.toClipboard();
+    }
+}
