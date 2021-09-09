@@ -1,0 +1,501 @@
+﻿@SDT0 
+@SDT1 Security development tool temp data
+{Locked}
+@SDT2 Effective user license type
+{Locked}
+@SDT3 Effective user CAL (Client Access License) type for this object
+{Locked}
+@SDT4 IsPostBack
+{Locked}
+@SDT5 Indicates whether the page is being rendered for the first time or is being loaded in response to a postback
+{Locked}
+@SDT6 Web module
+{Locked}
+@SDT7 Enterprise Portal navigation structure
+{Locked}
+@SDT8 Page
+{Locked}
+@SDT9 Enterprise Portal page
+{Locked}
+@SDT10 Session
+{Locked}
+@SDT11 Session ID
+{Locked}
+@SDT12 User
+{Locked}
+@SDT13 User name
+{Locked}
+@SDT14 MaintainUserLicense
+{Locked}
+@SDT15 Value of MaintainUserLicense property
+{Locked}
+@SDT16 Desired access level
+{Locked}
+@SDT17 Access level to assign to this entry point
+{Locked}
+@SDT18 AOT name
+{Locked}
+@SDT19 AOT name of the security object
+{Locked}
+@SDT20 Description
+{Locked}
+@SDT21 Previous access level
+{Locked}
+@SDT22 The previous access level for this entry point
+{Locked}
+@SDT23 Recorded
+{Locked}
+@SDT24 Entry point has been recorded
+{Locked}
+@SDT25 System user role access level
+{Locked}
+@SDT26 System user role permission to this object
+{Locked}
+@SDT27 Config key enabled?
+{Locked}
+@SDT28 Configuration key for this entry point is enabled
+{Locked}
+@SDT29 ViewUserLicense
+{Locked}
+@SDT30 Value of ViewUserLicense property
+{Locked}
+@SDT31 Entry points
+{Locked}
+@SDT32 Entry points traced for Enterprise Portal
+{Locked}
+@SDT33 Reference object
+{Locked}
+@SDT34 Set entry point rights
+{Locked}
+@SDT35 Recorded entry points
+{Locked}
+@SDT36 This table stores the recorded entry points for each user
+{Locked}
+@SDT37 Organization assignment
+{Locked}
+@SDT38 Entry point object key
+{Locked}
+@SDT39 Uniquely identifies an entry point
+{Locked}
+@SDT40 AOT display name
+{Locked}
+@SDT41 Securable object AOT name
+{Locked}
+@SDT42 Development type
+{Locked}
+@SDT43 Security development tool supported object types: Role, duty and privilege
+{Locked}
+@SDT44 Cannot convert value '%1' to corresponding permission
+{Locked}
+@SDT45 Cannot convert enum value '%1' to corresponding access level
+{Locked}
+@SDT46 Security development tool
+{Locked}
+@SDT47 Do you want to add node '%1' to version control?
+{Locked}
+@SDT48 Class '%1' does not exist in the AOT
+{Locked}
+@SDT49 Class '%1' needs to be checked out before updates can be applied
+{Locked}
+@SDT50 Class '%1' does not contain method '%2'
+{Locked}
+@SDT51 Enum value '%1' is not a menu item type
+{Locked}
+@SDT52 Enum value '%1' is not a valid menu item type
+{Locked}
+@SDT53 Class %1 already exists
+{Locked}
+@SDT54 Updating security objects is not supported when AOT version control is enabled.
+{Locked}
+@SDT55 Security development tool role %1
+{Locked}
+@SDT56 Auto-generated role for user %1 (Security development tool)
+{Locked}
+@SDT57 Role with AOT name '%1' and label '%2' has been generated to allow you to test duties and privileges
+{Locked}
+@SDT58 Unknown value '%1' for property ObjectType
+{Locked}
+@SDT59 Invalid menu item type %1
+{Locked}
+@SDT60 Type '%1' is not supported
+{Locked}
+@SDT61 Menu item node cannot be null
+{Locked}
+@SDT62 Node '%1' is not a menu item node
+{Locked}
+@SDT63 Node is not a valid privilege node
+{Locked}
+@SDT64 Could not find entry point %1 %2 %3 in AOT
+{Locked}
+@SDT65 Entry point %1 %2 %3 can only be set to '%4'
+{Locked}
+@SDT66 Could not add entry point %1 %2 %3 in AOT
+{Locked}
+@SDT67 Version control is enabled and is not supported for users that are not members of the system administrator role
+{Locked}
+@SDT68 Object '%1' cannot be checked out, no changes can be applied
+{Locked}
+@SDT69 Node '%1' must be checked out before changes can be applied. Do you want to check out the object?
+{Locked}
+@SDT70 Menu '%1' must be checked out
+{Locked}
+@SDT71 Added menu item '%1' to menu '%2'
+{Locked}
+@SDT72 Setup complete
+{Locked}
+@SDT73 Recorder is currently active, you must stop recording in order to close the form
+{Locked}
+@SDT74 Entry point recorder
+{Locked}
+@SDT75 Do you want to save the currently recorded list of entry points?
+{Locked}
+@SDT76 Menu item type '%1' is not supported
+{Locked}
+@SDT77 The security development tool add-in is only available for role, duty and privilege objects
+{Locked}
+@SDT78 The security development tool can only be used in single session mode
+{Locked}
+@SDT79 The security development tool is already active
+{Locked}
+@SDT80 Role
+{Locked}
+@SDT81 Loading additional metadata
+{Locked}
+@SDT82 Processing entry point type: %1
+{Locked}
+@SDT83 Loading data
+{Locked}
+@SDT84 Loading entry points
+{Locked}
+@SDT85 Building main menu tree
+{Locked}
+@SDT86 Xml files
+{Locked}
+@SDT87 Select entry point recording file
+{Locked}
+@SDT88 Invalid entry point recording file
+{Locked}
+@SDT89 Role '%1' needs to be editable
+{Locked}
+@SDT90 %1 '%2' does not exist
+{Locked}
+@SDT91 Object '%1' does not exist
+{Locked}
+@SDT92 The security test workspace is not available when you have users of type AD group in your environment.
+{Locked}
+@SDT93 The security test workspace is only available for developers.
+{Locked}
+@SDT94 The security test workspace is not enabled. Enabling this feature requires an update to system class method Info.workspaceWindowCreated(). Do you want to apply this update?
+{Locked}
+@SDT95 When the security test workspace is opened, your current role assignments except for '%2' and '%3' will be disabled and role '%1' will be assigned. This change will be reverted when you close the security test workspace. Any existing workspaces within this session will also be restricted to the permissions of role '%1'. Do you want to continue?
+{Locked}
+@SDT96 When the security test workspace is opened, your current role assignments except for '%2' will be disabled and role '%1' will be assigned. This change will be reverted when you close the security test workspace. Any existing workspaces within this session will also be restricted to the permissions of role '%1'. Do you want to proceed?
+{Locked}
+@SDT97 If, after you close the security test workspace, your assignment to role '%1' is not re-enabled, perform the following steps.
+{Locked}
+@SDT98 1. Stop the AOS.
+{Locked}
+@SDT99 2. Connect to the Microsoft Dynamics AX database.
+{Locked}
+@SDT100 3. Execute the following Transact-SQL statement: UPDATE SECURITYUSERROLE SET ASSIGNMENTSTATUS=1 WHERE RECID=%1
+{Locked}
+@SDT101 Security test workspace information
+{Locked}
+@SDT102 Mark form controls: on
+{Locked}
+@SDT103 Portal security: on
+{Locked}
+@SDT104 No recorded entry points in list
+{Locked}
+@SDT105 Save entry point recording
+{Locked}
+@SDT106 Role '%1' cannot be selected
+{Locked}
+@SDT107 Role '%1' does not exist
+{Locked}
+@SDT108 Loading permissions
+{Locked}
+@SDT109 Updating permissions
+{Locked}
+@SDT110 Computing user license
+{Locked}
+@SDT111 Home
+{Locked}
+@SDT112 Navigation
+{Locked}
+@SDT113 Metadata
+{Locked}
+@SDT114 Settings
+{Locked}
+@SDT115 Testing
+{Locked}
+@SDT116 Tracing
+{Locked}
+@SDT117 File
+{Locked}
+@SDT118 Open in current workspace
+{Locked}
+@SDT119 Open in security test workspace
+{Locked}
+@SDT120 Set entry point permissions
+{Locked}
+@SDT121 Reference duty
+{Locked}
+@SDT122 Reference privilege
+{Locked}
+@SDT123 Open new AOT window
+{Locked}
+@SDT124 AOT properties
+{Locked}
+@SDT125 Remove filter on recorded entry points
+{Locked}
+@SDT126 Clear filter on recorded objects
+{Locked}
+@SDT127 Load additional metadata: user license information, labels and layer information
+{Locked}
+@SDT128 Load additional metadata
+{Locked}
+@SDT129 Load an Enterprise Portal trace file.
+{Locked}
+@SDT130 Load trace file
+{Locked}
+@SDT131 Select an Enterprise Portal entry point trace file
+{Locked}
+@SDT132 Load recorded entry points from xml file
+{Locked}
+@SDT133 Load recording
+{Locked}
+@SDT134 Enabling this feature marks menu items with NoAccess permission on forms
+{Locked}
+@SDT135 Mark form controls: off
+{Locked}
+@SDT136 Mark form controls is currently not enabled. Enabling this feature requires an update to the system class method SysSetupFormRun.init(). Do you want to enable this feature?
+{Locked}
+@SDT137 Assign organizations to the selected role, duty, or privilege in the security test workspace
+{Locked}
+@SDT138 Assign organizations
+{Locked}
+@SDT139 Update permissions
+{Locked}
+@SDT140 Load
+{Locked}
+@SDT141 Save entry points marked as recorded to an xml file
+{Locked}
+@SDT142 Save recording
+{Locked}
+@SDT143 Record menu items in current client session
+{Locked}
+@SDT144 Client Entry Point Recorder is not enabled. Enabling this feature requires the class SysSecurityRecorder to be generated, after which you must restart the client. Do you want to enable this feature?
+{Locked}
+@SDT145 No entry points recorded
+{Locked}
+@SDT146 Enable security for Reporting Services reports and Enterprise Portal while the security test workspace is open. Permissions for the system administrator role will be disabled while the security workspace is open and X++ breakpoints will not trigger.
+{Locked}
+@SDT147 Portal security: off
+{Locked}
+@SDT148 This function cannot be enabled for the Admin user
+{Locked}
+@SDT149 This function cannot be enabled in a multi-AOS environment
+{Locked}
+@SDT150 Display tree with all duties, privileges, and subroles that grant the currently selected entry point
+{Locked}
+@SDT151 Show the duties and privileges that grant this entry point
+{Locked}
+@SDT152 Go to the Enterprise Portal trace data form
+{Locked}
+@SDT153 Go to the Enterprise Portal trace data window
+{Locked}
+@SDT154 Open a new client workspace with the permissions of the current selected object. You will not have system administrator privileges until you close the security workspace.
+{Locked}
+@SDT155 Open the security test workspace
+{Locked}
+@SDT156 Show entry points with new permission
+{Locked}
+@SDT157 Current user license type
+{Locked}
+@SDT158 Access level
+{Locked}
+@SDT159 Layer
+{Locked}
+@SDT160 Entry point type
+{Locked}
+@SDT161 Select type
+{Locked}
+@SDT162 Type
+{Locked}
+@SDT163 Open role window
+{Locked}
+@SDT164 Open security role
+{Locked}
+@SDT165 Select object
+{Locked}
+@SDT166 Name
+{Locked}
+@SDT167 Entry point name
+{Locked}
+@SDT168 Model
+{Locked}
+@SDT169 Label
+{Locked}
+@SDT170 Open security privileges form
+{Locked}
+@SDT171 Menu item permissions for object
+{Locked}
+@SDT172 Set entry point permissions for current node and expanded subtree items
+{Locked}
+@SDT173 Open new AOT window for web menu item
+{Locked}
+@SDT174 AOT properties for web menu item
+{Locked}
+@SDT175 Expand all children
+{Locked}
+@SDT176 Discover submenu items
+{Locked}
+@SDT177 Open new AOT window for menu item
+{Locked}
+@SDT178 AOT properties for menu item
+{Locked}
+@SDT179 Select organizations to be assigned to selected role in security test workspace
+{Locked}
+@SDT180 Available organization nodes:
+{Locked}
+@SDT181 No privilege node selected to add permissions to
+{Locked}
+@SDT182 Could not find privilege node '%1'
+{Locked}
+@SDT183 Role '%1' does not exist in AOT
+{Locked}
+@SDT184 Loading role
+{Locked}
+@SDT185 Building role tree
+{Locked}
+@SDT186 Duty '%1' does not exist in AOT
+{Locked}
+@SDT187 Loading duty
+{Locked}
+@SDT188 Building duty tree
+{Locked}
+@SDT189 Not all entry points have been updated to the selected permission. Do you want to close?
+{Locked}
+@SDT190 Function does not support node '%1'
+{Locked}
+@SDT191 Parent missing in security tree for node '%1'
+{Locked}
+@SDT192 Function does not support parent node '%1'
+{Locked}
+@SDT193 Enter new %1 information
+{Locked}
+@SDT194 Object with AOT name '%1' already exists
+{Locked}
+@SDT195 Step1: Set the access level for each entry point. Click Next when you are done.
+{Locked}
+@SDT196 Information
+{Locked}
+@SDT197 Bulk update
+{Locked}
+@SDT198 Apply access right to selected rows
+{Locked}
+@SDT199 Apply
+{Locked}
+@SDT200 Move to the next step after setting access levels.
+{Locked}
+@SDT201 Next
+{Locked}
+@SDT202 Step 2: Apply permissions on privileges until you have defined all desired permissions. We expect this to be an iterative process. You can update a selection, or you can add a duplicate of the selection, which removes the original reference. You can also create new duties and privileges.
+{Locked}
+@SDT203 Step 2: Apply permissions on privileges until you have defined all desired permissions. We expect this to be an iterative process. You can update a selection, or you can add a duplicate of the selection, which removes the original reference. You can also create new privileges.
+{Locked}
+@SDT204 Desired access level for each selected entry point
+{Locked}
+@SDT205 Current access level
+{Locked}
+@SDT206 New access level
+{Locked}
+@SDT207 Roles for selected duty or privilege
+{Locked}
+@SDT208 Entry point child name
+{Locked}
+@SDT209 New duty
+{Locked}
+@SDT210 New privilege
+{Locked}
+@SDT211 Duplicate selection and then remove original
+{Locked}
+@SDT212 Apply entry point access levels to selection
+{Locked}
+@SDT213 Enter duty information
+{Locked}
+@SDT214 Duty with AOT name '%1' already exists
+{Locked}
+@SDT215 Enter privilege information
+{Locked}
+@SDT216 Privilege with AOT name '%1' already exists
+{Locked}
+@SDT217 Set permissions for entry points
+{Locked}
+@SDT218 Set permissions for menu items (includes all rows in grid)
+{Locked}
+@SDT219 Update privilege
+{Locked}
+@SDT220 No privilege selected
+{Locked}
+@SDT221 Could not find privilege '%1' in AOT
+{Locked}
+@SDT222 Add to duty
+{Locked}
+@SDT223 Privileges granting entry point %1 %2 %3
+{Locked}
+@SDT224 Privileges granting entry point
+{Locked}
+@SDT225 Add the selected privileges to the current selected object in the security development tool
+{Locked}
+@SDT226 Add to role
+{Locked}
+@SDT227 No object selected
+{Locked}
+@SDT228 Could not find role AOT node '%1'
+{Locked}
+@SDT229 Could not find duty AOT node '%1'
+{Locked}
+@SDT230 Could not find privilege AOT node '%1'
+{Locked}
+@SDT231 Duties granting entry point %1 %2 %3
+{Locked}
+@SDT232 Duties granting entry point
+{Locked}
+@SDT233 Add the selected duties to the current selected object in the security development tool
+{Locked}
+@SDT234 Enterprise Portal entry point trace data %1
+{Locked}
+@SDT235 To grant permissions to entry points that you have traced, select the traced records and click Mark as recorded. This will switch focus to the previous form.
+{Locked}
+@SDT236 Enterprise Portal trace data
+{Locked}
+@SDT237 Marks selected entry points as recorded in the security development tool. You can then define permissions for the currently selected object.
+{Locked}
+@SDT238 Mark as recorded
+{Locked}
+@SDT239 Update permissions with the currently loaded permissions in the security development tool
+{Locked}
+@SDT240 Refresh permissions
+{Locked}
+@SDT241 Access right
+{Locked}
+@SDT242 Duty AOT name
+{Locked}
+@SDT243 Duty name
+{Locked}
+@SDT244 Privilege AOT name
+{Locked}
+@SDT245 Privilege name
+{Locked}
+@SDT246 Manage and test entry points for roles, duties and privileges
+{Locked}
+@SDT247 Security entry point permissions
+{Locked}
+@SDT248 Manage security entry point permissions
+{Locked}
+@SDT249 Manage role entry point permissions
+{Locked}
+@SDT250 Manage entry point permissions for security roles
+{Locked}
