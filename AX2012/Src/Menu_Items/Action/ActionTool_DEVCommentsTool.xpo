@@ -1,0 +1,25 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FTM
+
+; Microsoft Dynamics AX MENUITEM : DEVCommentsTool unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEVCommentsTool
+    Type: 3
+    PROPERTIES
+      Name                #DEVCommentsTool
+      Label               #Add to project
+      ObjectType          #Class
+      Object              #DEVCommentsTool
+      ViewUserLicense     #Functional
+      MaintainUserLicense #Functional
+      Origin              #{936693D1-AAC5-4931-8547-6FFF6C95D446}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+END

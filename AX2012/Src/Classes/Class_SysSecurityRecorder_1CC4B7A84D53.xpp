@@ -1,0 +1,55 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+// Deleting this class will disable the entry point recorder feature in the security development tool. A client restart is required after deleting this class.
+class SysSecurityRecorder_1CC4B7A84D53
+{
+
+    public void menuItemInvoked(UtilElementType _elementType, securableName _menuItemName)
+    {
+
+        #SysTaskRecorderEntryPointManager
+
+        if(xSession::isCLRSession())
+
+        {
+
+            return;
+
+        }
+
+        if(appl.globalCache().isSet(curUserId() + #SecEntryPoint, #EntryPointRecorderKey))
+
+        {
+
+            SysTaskRecorderEntryPointManager::MarkEntryPointAsRecorded(_elementType, _menuItemName);
+
+        }
+
+        //mcl.b
+
+        // copied old code from ACC (before update) is restored
+
+        #SysSecEntryPointManager
+
+        if(xSession::isCLRSession())
+
+            return;
+
+        if(appl.globalCache().isSet(curUserId() + #SecEntryPoint, #EntryPointRecorderKey))
+
+        {
+
+            SysSecEntryPointManager::MarkEntryPointAsRecorded(_elementType, _menuItemName);
+
+        }
+
+        //mcl.e
+
+    }
+
+
+    public void serverMethodCheck(securableName className, securableChildName methodName)
+    {
+        return;
+
+    }
+}

@@ -1,0 +1,991 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysSecEntryPointManager
+{
+    #AOT
+    #SysSecEntryPointManager
+
+    public static AccessRight AccessLevel2AccessRight(str _accessLevel)
+    {
+        switch(_accessLevel)
+        {
+            case 'NoAccess':
+                return AccessRight::NoAccess;
+            case 'Read':
+                return AccessRight::View;
+            case 'Update':
+                return AccessRight::Edit;
+            case 'Create':
+                return AccessRight::Add;
+            case 'Correct':
+                return AccessRight::Correction;
+            case 'Delete':
+            case 'Invoke':
+                return AccessRight::Delete;
+
+            default:
+                throw error(strFmt("@SDT44", _accessLevel));
+        }
+    }
+
+    public static str AccessRight2AccessLevel(AccessRight access)
+    {
+        switch(access)
+        {
+            case AccessRight::NoAccess:
+                return 'NoAccess';
+            case AccessRight::View:
+                return 'Read';
+            case AccessRight::Edit:
+                return 'Update';
+            case AccessRight::Add:
+                return 'Create';
+            case AccessRight::Correction:
+                return 'Correct';
+            case AccessRight::Delete:
+                return 'Delete';
+
+            default:
+                throw error(strFmt("@SDT45", access));
+        }
+    }
+
+    public static void AddObjectToVersionControl(TreeNode _nodeToAdd)
+    {
+        DialogButton dialogButton;
+
+        if(versionControl && versionControl.parmSysVersionControlSystem())
+        {
+            dialogButton = Box::yesNoOnce(strFmt("@SDT46"),
+                                        strFmt("@SDT47",
+                                                _nodeToAdd.treeNodePath()), DialogButton::Yes, 'SecEntryPointAddToVCS');
+
+            if(dialogButton == dialogButton::Yes)
+            {
+                versionControl.create(_nodeToAdd);
+            }
+        }
+    }
+
+    public static void App
+
+    public static MenuItemType convertElementType(UtilElementType _elementType)
+    {
+        switch (_elementType)
+        {
+            case UtilElementType::DisplayTool:
+                return MenuItemType::Display;
+            case UtilElementType::OutputTool:
+                return MenuItemType::Output;
+            case UtilElementType::ActionTool:
+                return MenuItemType::Action;
+
+        }
+        throw error(strFmt("@SDT51", _elementType));
+    }
+
+    public static SecurableType convertMenuItemType(MenuItemType _menuItemType)
+    {
+         switch (_menuItemType)
+        {
+            case MenuItemType::Display:
+                return SecurableType::MenuItemDisplay;
+            case MenuItemType::Output:
+                return SecurableType::MenuItemOutput;
+            case MenuItemType::Action:
+                return SecurableType::MenuItemAction;
+        }
+        throw error(strFmt("@SDT52", _menuItemType));
+    }
+
+    public server static void DisableCurrentSysAdminAssignment()
+    {
+        SecurityUserRole userRole;
+        SecurityRole sysAdminRole;
+
+        select firstOnly Recid from sysAdminRole where sysAdminRole.AotName == '-SYSADMIN-';
+        select firstOnly forUpdate userRole where userRole.User == curUserId() &&
+            userRole.SecurityRole == sysAdminRole.RecId;
+
+        if(userRole.RecId != 0)
+        {
+            ttsBegin;
+            userRole.AssignmentStatus = RoleAssignmentStatus::Disabled;
+            userRole.update();
+            ttsCommit;
+
+            SysSecurity::reload(false, false, false, false);
+        }
+    }
+
+    public static boolean DisableSysAdminAssignmentSetting(boolean _newStatus =
+        infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #DisableSysAdminUserSetting))
+    {
+        if(_newStatus && !infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #DisableSysAdminUserSetting))
+        {
+            infolog.globalCache().set(curUserId() + #SecEntryPoint, #DisableSysAdminUserSetting, #DisableSysAdminUserSetting, false);
+        }
+
+        if(!_newStatus && infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #DisableSysAdminUserSetting))
+        {
+            infolog.globalCache().remove(curUserId() + #SecEntryPoint, #DisableSysAdminUserSetting);
+        }
+
+        return _newStatus;
+    }
+
+    public static void EnableClientRecorder()
+    {
+        TreeNode classesNode = TreeNode::findNode(#ClassesPath);
+        TreeNode classNode, methodNode;
+        str serverMethodCheckSource;
+        str menuItemInvokedSource;
+        str classDeclarationSource;
+
+        classNode = classesNode.AOTfindChild(#ClientRecorderClassName);
+        if(classNode)
+        {
+            throw error(strFmt("@SDT53", #ClientRecorderClassName));
+        }
+        classNode = classesNode.AOTadd(#ClientRecorderClassName);
+
+        methodNode = classNode.AOTadd('MenuItemInvoked');
+        menuItemInvokedSource = 'public void MenuItemInvoked(UtilElementType _elementType, securableName _menuItemName)';
+        menuItemInvokedSource += '\n{';
+        menuItemInvokedSource += '\n    #SysSecEntryPointManager';
+        menuItemInvokedSource +=  '\n    ';
+        menuItemInvokedSource += '\n    if(xSession::isCLRSession())';
+        menuItemInvokedSource +=  '\n        return;';
+        menuItemInvokedSource +=  '\n    if(appl.globalCache().isSet(curUserId() + #SecEntryPoint, #EntryPointRecorderKey))';
+        menuItemInvokedSource +=  '\n    {';
+        menuItemInvokedSource +=  '\n        SysSecEntryPointManager::MarkEntryPointAsRecorded(_elementType, _menuItemName);';
+        menuItemInvokedSource +=  '\n    }';
+        menuItemInvokedSource +=  '\n}';
+        methodNode.AOTsetSource(menuItemInvokedSource);
+
+        methodNode = classNode.AOTadd('ServerMethodCheck');
+        serverMethodCheckSource = 'public void ServerMethodCheck(securableName className, securableChildName methodName)';
+        serverMethodCheckSource += '\n{';
+        serverMethodCheckSource += '\n    return;';
+        serverMethodCheckSource += '\n\}';
+        methodNode.AOTsetSource(serverMethodCheckSource);
+
+        classDeclarationSource = '// This is a framework class. Customizing this class may cause problems with future upgrades to the software.';
+        classDeclarationSource += '\n// Deleting this class will disable the entry point recorder feature in the security development tool. A client restart is required after deleting this class.';
+        classDeclarationSource += strFmt('\nclass %1', #ClientRecorderClassName);
+        classDeclarationSource += '\n{';
+        classDeclarationSource += '\n\}';
+
+        classNode.AOTfindChild('classDeclaration').AOTsetSource(classDeclarationSource);
+
+        classNode.AOTsave();
+        classNode.AOTcompile(1);
+
+        //Force client restart
+        Box::info("@SYS100403");
+        infolog.shutDown(true);
+    }
+
+    public server static void EnableCurrentSysAdminAssignment()
+    {
+        SecurityUserRole userRole;
+        SecurityRole sysAdminRole;
+        SkipAOSValidationPermission skipAOSPermission = new SkipAOSValidationPermission();
+
+        select firstOnly Recid from sysAdminRole where sysAdminRole.AotName == '-SYSADMIN-';
+        select firstOnly forUpdate userRole where userRole.User == curUserId() &&
+            userRole.SecurityRole == sysAdminRole.RecId;
+
+        if(userRole.RecId != 0)
+        {
+            unchecked(Uncheck::TableSecurityPermission)
+            {
+                ttsBegin;
+                skipAOSPermission.assert();
+                userRole.skipAosValidation(true);
+                userRole.AssignmentStatus = RoleAssignmentStatus::Enabled;
+                userRole.update();
+                ttsCommit;
+                CodeAccessPermission::revertAssert();
+
+                SysSecurity::reload(false, false, false, false);
+            }
+        }
+    }
+
+    public static boolean EnableFormHighlight()
+    {
+        SysSecEntryPointManager::App
+
+    public static boolean EnableQuickLaunch()
+    {
+        SysSecEntryPointManager::App
+
+    public static void EnsureVCSDisabledForBusinessUser()
+    {
+        if(versionControl && versionControl.parmSysVersionControlSystem() && !isDeveloper())
+        {
+            throw error(strFmt("@SDT54"));
+        }
+    }
+
+    public static boolean EnvironmentHasADGroups()
+    {
+        UserInfo userInfo;
+
+        select count(RecId) from userInfo
+            where userInfo.accountType == UserAccountType::ADGroup;
+
+        return (userInfo.RecId != 0);
+    }
+
+    public static TreeNode FindOrCreateUniqueRoleForCurrentUser()
+    {
+        #AOT
+        #Properties
+        str roleAOTName = strFmt('%1%2', #SecGeneratedRoleAOTNamePrefix, curUserId());
+
+        TreeNode rolesNode = TreeNode::findNode(#SecRolesPath);
+        TreeNode roleNode = rolesNode.AOTfindChild(roleAOTName);
+        str label;
+
+        if(roleNode == null)
+        {
+            //Dynamically create a unique role for current user
+            roleNode = rolesNode.AOTadd(roleAOTName);
+            label = strFmt("@SDT55", curUserId());
+            roleNode.AOTsetProperty(#PropertyLabel, label);
+            roleNode.AOTsetProperty(#PropertyDescription, strFmt("@SDT56", curUserId()));
+            info(strFmt("@SDT57", roleAOTName, label));
+        }
+
+        return roleNode;
+    }
+
+    public static void FormRunHook(str _formName, Object    _parentControl)
+    {
+        counter                     ctrlCnt;
+        FormBuildcontrol            c;
+        FormControl                 fc;
+        FormFunctionButtonControl   formFunctionButtonControl;
+        ClassId                     classId;
+        Object                      formObject;
+        FormRun                     secEntryPointFormRun;
+
+        if(!SysSecEntryPointManager::FormRunHookStatus())
+        {
+            return;
+        }
+
+        if(!infolog.globalCache().isSet(curuserId() + #SecEntryPointFormKey, #SecEntryPointFormKey))
+        {
+            return;
+        }
+
+        formObject = infolog.globalCache().get(curuserId() + #SecEntryPointFormKey, #SecEntryPointFormKey);
+        if(formObject && formObject is FormRun)
+        {
+            secEntryPointFormRun = formObject as FormRun;
+            if (!SysFormRun::hasMethod(secEntryPointFormRun, identifierStr(GetAccessRightForMenuItem)))
+            {
+                return;
+            }
+
+            //Iterate all controls on the form
+            for (ctrlCnt = 1; ctrlCnt <= _parentControl.controlCount(); ctrlCnt++)
+            {
+                c =  _parentControl.controlNum(ctrlCnt);
+                fc = _parentControl.controlNum(ctrlCnt);
+                if (c.isContainer())
+                {
+                    SysSecEntryPointManager::FormRunHook(_formName, c);
+                }
+
+                classId = classidget(c);
+                switch (classId)
+                {
+                    case classnum(FormFunctionButtonControl):
+                    case classnum(FormBuildFunctionButtonControl):
+                        formFunctionButtonControl = _parentControl.controlNum(ctrlCnt);
+                        if(formObject.GetAccessRightForMenuItem(formFunctionButtonControl.menuItemType(),
+                                                formFunctionButtonControl.menuItemName()) == AccessRight::NoAccess)
+                        {
+                            formFunctionButtonControl.normalImage('12262');
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+
+    public static boolean FormRunHookStatus(boolean _newStatus =
+        infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #FormRunHookKey))
+    {
+        //User disables form run hook by remove key from cache
+        if(_newStatus && !infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #FormRunHookKey))
+        {
+            infolog.globalCache().set(curUserId() + #SecEntryPoint, #FormRunHookKey, #FormRunHookKey, false);
+        }
+
+        if(!_newStatus && infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #FormRunHookKey))
+        {
+            infolog.globalCache().remove(curUserId() + #SecEntryPoint, #FormRunHookKey);
+        }
+
+        return _newStatus;
+    }
+
+    public static server container GetEntryPointPermissionsForRole(RecId _roleId)
+    {
+        container retValue;
+
+        str typeKey;
+        SecurableName securableName;
+        SecurableChildName securableChildName;
+        AccessRight accessRightVar;
+        str objectKey;
+
+        SecurityTaskExplodedGraph taskExplodedGraph;
+        SecurityTaskEntryPoint taskEntryPoint;
+        SecurityRoleTaskGrant srtGrant;
+        SecurityRoleExplodedGraph roleExplodedGraph;
+        SecurableObject securableObject;
+
+        while select maxOf(PermissionGroup), EntryPoint from taskEntryPoint
+            group by EntryPoint
+            join Type, Name, ChildName from securableObject
+                group by Type, Name, ChildName
+                where securableObject.RecId == taskEntryPoint.EntryPoint
+            exists join roleExplodedGraph
+                where roleExplodedGraph.SecurityRole == _roleId
+            join RecId from srtGrant
+                    where srtGrant.SecurityRole == roleExplodedGraph.SecuritySubRole
+            join RecId from taskExplodedGraph
+                    where taskExplodedGraph.SecurityTask == srtGrant.SecurityTask &&
+                            taskExplodedGraph.SecuritySubTask == taskEntryPoint.SecurityTask
+        {
+            typeKey = SysSecEntryPointManager::GetTypeKeyForSecurableType(securableObject.Type);
+            securableName = securableObject.Name;
+            securableChildName = securableObject.ChildName;
+            accessRightVar = taskEntryPoint.PermissionGroup;
+            objectKey = strFmt('%1.%2.%3', typeKey, strLwr(securableName), strLwr(securableChildName));
+
+            retValue += objectKey;
+            retValue += accessRightVar;
+        }
+
+        return retValue;
+    }
+
+
+    public static server container GetEntryPointsContainer()
+    {
+        SecurableObject securableObject;
+        container retValue;
+
+        while select RecId, Type, Name, ChildName from securableObject
+             where (securableObject.Type == SecurableType::MenuItemDisplay ||
+                                        securableObject.Type == SecurableType::MenuItemOutput ||
+                                        securableObject.Type == SecurableType::MenuItemAction ||
+                                        securableObject.Type == SecurableType::ServiceOperation  ||
+                                        securableObject.Type == SecurableType::WebUrlItem ||
+                                        securableObject.Type == SecurableType::WebActionItem ||
+                                        securableObject.Type == SecurableType::WebManagedContentItem)
+        {
+            retValue += strfmt('%1.%2.%3.%4', securableObject.RecId, enum2int(securableObject.Type), securableObject.Name, securableObject.ChildName);
+        }
+
+        return retValue;
+    }
+
+
+    public static str GetKeyForEntryPointNode(TreeNode _entryPointNode)
+    {
+        if(strStartsWith(_entryPointNode.treeNodePath(), #MenuItemsDisplayPath))
+        {
+            return strFmt('%1.%2.', #EntryPointObjectKeyDisplayMenuItem, _entryPointNode.AOTname());
+        }
+        else if(strStartsWith(_entryPointNode.treeNodePath(), #MenuItemsOutputPath))
+        {
+            return strFmt('%1.%2.', #EntryPointObjectKeyOutputMenuItem, _entryPointNode.AOTname());
+        }
+        else if(strStartsWith(_entryPointNode.treeNodePath(), #MenuItemsActionPath))
+        {
+            return strFmt('%1.%2.', #EntryPointObjectKeyActionMenuItem, _entryPointNode.AOTname());
+        }
+        else if(strStartsWith(_entryPointNode.treeNodePath(), #WebMenuItemsUrlPath))
+        {
+            return strFmt('%1.%2.', #EntryPointObjectKeyWebURLItem, _entryPointNode.AOTname());
+        }
+        else if(strStartsWith(_entryPointNode.treeNodePath(), #WebMenuItemsActionPath))
+        {
+            return strFmt('%1.%2.', #EntryPointObjectKeyWebActionItem, _entryPointNode.AOTname());
+        }
+        else if(strStartsWith(_entryPointNode.treeNodePath(), #WebContentItemsPath))
+        {
+            return strFmt('%1.%2.', #EntryPointObjectKeyWebContentItem, _entryPointNode.AOTname());
+        }
+        else if(strStartsWith(_entryPointNode.treeNodePath(), #ServicesPath))
+        {
+            if(_entryPointNode.AOTparent() != null && _entryPointNode.AOTparent().AOTname() == #ServiceOperations)
+            {
+                return strFmt('%1.%2.%3', #EntryPointObjectKeyServiceOperation, _entryPointNode.AOTparent().AOTparent().AOTname(), _entryPointNode.AOTname());
+            }
+        }
+        return '';
+    }
+
+    public static str GetKeyForEntryPointReferenceNode(TreeNode _entryPointReferenceNode)
+    {
+        #Properties
+        str objectType = findProperty(_entryPointReferenceNode.AOTgetProperties(), #PropertyObjectType);
+        str objectName = findProperty(_entryPointReferenceNode.AOTgetProperties(), #PropertyObjectName);
+        str objectChildName = findProperty(_entryPointReferenceNode.AOTgetProperties(), #PropertyObjectChildName);
+        str objectTypeKey;
+
+        switch(objectType)
+        {
+            case 'MenuItemDisplay':
+                objectTypeKey = #EntryPointObjectKeyDisplayMenuItem;
+                break;
+            case 'MenuItemAction':
+                objectTypeKey = #EntryPointObjectKeyActionMenuItem;
+                break;
+            case 'MenuItemOutput':
+                objectTypeKey = #EntryPointObjectKeyOutputMenuItem;
+                break;
+            case 'ServiceOperation':
+                objectTypeKey = #EntryPointObjectKeyServiceOperation;
+                break;
+            case 'WebActionItem':
+                objectTypeKey = #EntryPointObjectKeyWebActionItem;
+                break;
+            case 'WebUrlItem':
+                objectTypeKey = #EntryPointObjectKeyWebURLItem;
+                break;
+            case 'WebManagedContent':
+                objectTypeKey = #EntryPointObjectKeyWebContentItem;
+                break;
+
+            default:
+                throw error(strFmt("@SDT58", objectType));
+        }
+
+        return strFmt('%1.%2.%3', objectTypeKey, strLwr(objectName), strLwr(objectChildName));
+    }
+
+    public static str GetKeyForSysSecEntryPointTmp(SysSecEntryPointTmp _SysSecEntryPointTmp)
+    {
+        #Properties
+        str objectTypeKey;
+
+        objectTypeKey = SysSecEntryPointManager::GetTypeKeyForSecurableType(_SysSecEntryPointTmp.ObjectType);
+        return strFmt('%1.%2.%3', objectTypeKey,
+            strLwr(_SysSecEntryPointTmp.ObjectAOTName), strLwr(_SysSecEntryPointTmp.ObjectAOTChildName));
+    }
+
+    public static TreeNode GetLinkedFormNode(TreeNode _menuItemNode)
+    {
+        #Properties
+        str linkedForm;
+        str objectType;
+        str permissionType;
+
+        objectType = findProperty(_menuItemNode.AOTgetProperties(),#PropertyObjectType);
+
+        if(objectType == #PropertyForm)
+        {
+            linkedForm = findProperty(_menuItemNode.AOTgetProperties(),#PropertyObject);
+        }
+        else
+        {
+            //Let's check if there is a linked form for security
+            permissionType = findProperty(_menuItemNode.AOTgetProperties(),#PropertyLinkedPermissionType);
+
+            if(permissionType == #PropertyForm)
+            {
+                linkedForm = findProperty(_menuItemNode.AOTgetProperties(),#PropertyLinkedPermissionObject);
+            }
+        }
+
+        if(linkedForm != '')
+        {
+            return TreeNode::findNode(strFmt(@'%1\%2', #FormsPath, linkedForm));
+        }
+
+        return null;
+    }
+
+    public static TreeNode GetLinkedMenuItemNode(TreeNode _treeNode)
+    {
+        #Properties
+        str       itemvalue;
+        str       itemtype;
+
+        if(!_treeNode)
+            return null;
+
+        itemvalue = findProperty(_treeNode.AOTgetProperties(),#PropertyMenuItemName);
+        itemtype  = findProperty(_treeNode.AOTgetProperties(),#PropertyMenuItemType);
+
+        if(itemType == '')
+        {
+            itemtype = 'Display';
+        }
+
+        if(itemvalue != '')
+        {
+            return SysSecEntryPointManager::GetMenuItemNode(itemtype, itemvalue);
+        }
+        return null;
+    }
+
+    public static TreeNode GetMenuItemNode(str _menuItemType, str _menuItemName)
+    {
+        #AOT
+        TreeNode tNode;
+        str menuItemPath;
+
+        switch(_menuItemType)
+        {
+            case 'Display':
+                menuItemPath = #MenuItemsDisplayPath;
+                break;
+            case 'Output':
+                menuItemPath = #MenuItemsOutputPath;
+                break;
+            case 'Action':
+                menuItemPath = #MenuItemsActionPath;
+                break;
+
+            default:
+                throw error(strFmt("@SDT59", _menuItemType));
+        }
+
+        tNode = TreeNode::findNode(strFmt('%1\\%2', menuItemPath, _menuItemName));
+        return tNode;
+    }
+
+    public static TreeNode GetNodeForSecurableType(SecurableType _securableType, str _objectName, str _objectChildName = '')
+    {
+        #AOT
+        TreeNode tNode;
+        str menuItemPath;
+
+        switch(_securableType)
+        {
+            case SecurableType::MenuItemDisplay:
+                menuItemPath = #MenuItemsDisplayPath;
+                tNode = TreeNode::findNode(strFmt('%1\\%2', menuItemPath, _objectName));
+                break;
+            case SecurableType::MenuItemOutput:
+                menuItemPath = #MenuItemsOutputPath;
+                tNode = TreeNode::findNode(strFmt('%1\\%2', menuItemPath, _objectName));
+                break;
+            case SecurableType::MenuItemAction:
+                menuItemPath = #MenuItemsActionPath;
+                tNode = TreeNode::findNode(strFmt('%1\\%2', menuItemPath, _objectName));
+                break;
+            case SecurableType::ServiceOperation:
+                tNode = TreeNode::findNode(strFmt(#ServiceOperationPath, _objectName, _objectChildName));
+                break;
+            case SecurableType::WebUrlItem:
+                menuItemPath = #WebMenuItemsUrlPath;
+                tNode = TreeNode::findNode(strFmt('%1\\%2', menuItemPath, _objectName));
+                break;
+            case SecurableType::WebActionItem:
+                menuItemPath = #WebMenuItemsActionPath;
+                tNode = TreeNode::findNode(strFmt('%1\\%2', menuItemPath, _objectName));
+                break;
+            case SecurableType::WebManagedContentItem:
+                menuItemPath = #WebContentItemsManagedPath;
+                tNode = TreeNode::findNode(strFmt('%1\\%2', menuItemPath, _objectName));
+                break;
+
+            default:
+                throw error(strFmt("@SDT60", _securableType));
+        }
+
+        return tNode;
+    }
+
+    public static SecurableType GetSecurableMenuItemType(TreeNode _menuItemNode)
+    {
+        #AOT
+
+        if(_menuItemNode == null)
+        {
+            throw error(strFmt("@SDT61"));
+        }
+        if(Global::strStartsWith(_menuItemNode.treeNodePath(), #MenuItemsDisplayPath))
+        {
+            return SecurableType::MenuItemDisplay;
+        }
+
+        if(Global::strStartsWith(_menuItemNode.treeNodePath(), #MenuItemsOutputPath))
+        {
+            return SecurableType::MenuItemOutput;
+        }
+
+        if(Global::strStartsWith(_menuItemNode.treeNodePath(), #MenuItemsActionPath))
+        {
+            return SecurableType::MenuItemAction;
+        }
+
+        throw error(strFmt("@SDT62", _menuItemNode.treeNodePath()));
+    }
+
+    public static str GetTypeKeyForSecurableType(SecurableType _type)
+    {
+        switch(_type)
+        {
+            case SecurableType::MenuItemDisplay:
+                return #EntryPointObjectKeyDisplayMenuItem;
+            case SecurableType::MenuItemOutput:
+                return #EntryPointObjectKeyOutputMenuItem;
+            case SecurableType::MenuItemAction:
+                return #EntryPointObjectKeyActionMenuItem;
+            case SecurableType::ServiceOperation:
+                return #EntryPointObjectKeyServiceOperation;
+            case SecurableType::WebActionItem:
+                return #EntryPointObjectKeyWebActionItem;
+            case SecurableType::WebUrlItem:
+                return #EntryPointObjectKeyWebURLItem;
+            case SecurableType::WebManagedContentItem:
+                return #EntryPointObjectKeyWebContentItem;
+            default:
+                return '';
+        }
+    }
+
+    public server static boolean IsClientRecorderEnabled()
+    {
+        TreeNode recorderClass = TreeNode::findNode(#ClassesPath).AOTfindChild(#ClientRecorderClassName);
+        return (recorderClass != null);
+    }
+
+    public server static boolean IsFormHighlightEnabled()
+    {
+        TreeNode sysSetupFormRunClassNode = TreeNode::findNode(#ClassesPath).AOTfindChild('SysSetupFormRun');
+        TreeNode initMethodNode;
+
+        if(!isDeveloper())
+        {
+            return false;
+        }
+
+        if(sysSetupFormRunClassNode != null)
+        {
+            sysSetupFormRunClassNode.AOTrestore();
+            initMethodNode = sysSetupFormRunClassNode.AOTfindChild('init');
+
+            if(initMethodNode != null)
+            {
+                if(strContains(initMethodNode.AOTgetSource(), @'SysSecEntryPointManager::FormRunHook'))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public server static boolean IsInSingleClientSessionMode()
+    {
+        SysClientSessions clientSessions;
+
+        select count(RecId) from clientSessions where clientSessions.userId == curUserId() &&
+                            clientSessions.clientType == SessionType::GUI &&
+                            clientSessions.Status == SessionState::Running;
+
+        return (clientSessions.RecId == 1);
+    }
+
+    public server static boolean IsQuickLaunchEnabled()
+    {
+        TreeNode infoClassNode = TreeNode::findNode(#ClassesPath).AOTfindChild('Info');
+        TreeNode methodNode;
+
+        if(!isDeveloper())
+        {
+            return false;
+        }
+
+        if(infoClassNode != null)
+        {
+            infoClassNode.AOTrestore();
+            methodNode = infoClassNode.AOTfindChild('workspaceWindowCreated');
+
+            if(methodNode != null)
+            {
+                if(strContains(methodNode.AOTgetSource(), @'SysSecEntryPointManager::WorkSpaceWindowCreated'))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public server static boolean IsSingleServerRunning()
+    {
+        SysServerSessions serverSessions;
+
+        serverSessions.disableCache(true);
+        select count(RecId) from serverSessions
+            where serverSessions.Status == 1 && serverSessions.LoadBalance == NoYes::No;
+
+        return (serverSessions.RecId == 1);
+    }
+
+    public static void MarkEntryPointAsRecorded(UtilElementType _elementType, securableName _menuItemName)
+    {
+        SysSecRecordedEntryPoint recordedObject;
+        SecurableObject securableObject;
+        MenuItemType menuItemType;
+        SecurableType securableType;
+
+        menuItemType = SysSecEntryPointManager::convertElementType(_elementType);
+        securableType = SysSecEntryPointManager::convertMenuItemType(menuItemType);
+
+        select firstOnly recid from securableObject
+            where securableObject.Type == securableType &&
+                    securableObject.Name == _menuItemName &&
+                    securableObject.ChildName == '';
+
+        if(securableObject.RecId != 0)
+        {
+            ttsBegin;
+            recordedObject.User = curUserId();
+            recordedObject.SecurableObject = securableObject.RecId;
+            recordedObject.SessionId = sessionId();
+            recordedObject.insert();
+            ttsCommit;
+        }
+
+    }
+
+    public static boolean MergeEntryPointRightsIntoPrivilegeNode(TreeNode _privilegeNode, SysSecEntryPointTmp _SysSecEntryPointTmpTable)
+    {
+        #Properties
+        TreeNode privilegeEntryPointsNode, privilegeEntryPointNode;
+        TreeNode entryPointNode;
+        TreeNodeIterator tIterator;
+        IdentifierName entryPointName;
+        int i = 0;
+        str newEntryPointName;
+        str securableObjectType;
+        SecuritySkipFlush skipFlush = new SecuritySkipFlush();
+
+        if(!SysSecEntryPointManager::ObjectEditableVCS(_privilegeNode))
+        {
+            return false;
+        }
+
+        privilegeEntryPointsNode = _privilegeNode.AOTfindChild('Entry Points');
+
+        if(privilegeEntryPointsNode == null)
+        {
+            throw error(strFmt("@SDT63"));
+        }
+
+        skipFlush.set();
+
+        //Remove all entry points for which permission will be updated or removed
+        tIterator = privilegeEntryPointsNode.AOTiterator();
+        privilegeEntryPointNode = tIterator.next();
+        while(privilegeEntryPointNode != null)
+        {
+            while select _SysSecEntryPointTmpTable
+            {
+                securableObjectType = strLwr(strFmt('%1', enum2symbol(enumnum(SecurableType), _SysSecEntryPointTmpTable.ObjectType)));
+                if(_SysSecEntryPointTmpTable.ObjectType == SecurableType::WebManagedContentItem)
+                {
+                    securableObjectType = 'WebManagedContent';
+                }
+
+                if(strLwr(privilegeEntryPointNode.AOTgetProperty(#PropertyObjectType)) == securableObjectType &&
+                    strLwr(privilegeEntryPointNode.AOTgetProperty(#PropertyObjectName)) == strLwr(_SysSecEntryPointTmpTable.ObjectAOTName) &&
+                    strLwr(privilegeEntryPointNode.AOTgetProperty(#PropertyObjectChildName)) == strLwr(_SysSecEntryPointTmpTable.ObjectAOTChildName))
+                {
+                    privilegeEntryPointNode.AOTdelete();
+                    break;
+                }
+            }
+
+            privilegeEntryPointNode = tIterator.next();
+        }
+
+        //Drop all the entry points so new 'Name' property gets generated
+        while select _SysSecEntryPointTmpTable where _SysSecEntryPointTmpTable.NewAccessRight != AccessRight::NoAccess
+        {
+            entryPointNode = SysSecEntryPointManager::GetNodeForSecurableType(
+                _SysSecEntryPointTmpTable.ObjectType, _SysSecEntryPointTmpTable.ObjectAOTName, _SysSecEntryPointTmpTable.ObjectAOTChildName);
+
+            if(entryPointNode == null)
+            {
+                _privilegeNode.AOTrestore();
+                throw error(strFmt("@SDT64",
+                    _SysSecEntryPointTmpTable.ObjectType, _SysSecEntryPointTmpTable.ObjectAOTName, _SysSecEntryPointTmpTable.ObjectAOTChildName));
+            }
+
+            //AOTDrop does not work for service operations so use AOTAdd
+            if(_SysSecEntryPointTmpTable.ObjectType == SecurableType::ServiceOperation)
+            {
+                entryPointName = strFmt('%1', _SysSecEntryPointTmpTable.ObjectAOTChildName);
+                i = 0;
+                newEntryPointName = entryPointName;
+                do
+                {
+                    i++;
+                    if (i>1)
+                    {
+                        newEntryPointName = entryPointName + int2str(i);
+                    }
+                } while (privilegeEntryPointsNode.AOTfindChild(newEntryPointName));
+
+                entryPointNode = privilegeEntryPointsNode.AOTadd(newEntryPointName);
+                entryPointNode.AOTsetProperty(#PropertyObjectType, strFmt('%1', enum2symbol(enumnum(SecurableType), _SysSecEntryPointTmpTable.ObjectType)));
+                entryPointNode.AOTsetProperty(#PropertyObjectName, _SysSecEntryPointTmpTable.ObjectAOTName);
+                entryPointNode.AOTsetProperty(#PropertyObjectChildName, _SysSecEntryPointTmpTable.ObjectAOTChildName);
+
+                if(_SysSecEntryPointTmpTable.NewAccessRight != AccessRight::Delete)
+                {
+                    _privilegeNode.AOTrestore();
+                    throw error(strFmt("@SDT65",
+                                        _SysSecEntryPointTmpTable.ObjectType, _SysSecEntryPointTmpTable.ObjectAOTName,
+                                        _SysSecEntryPointTmpTable.ObjectAOTChildName, AccessRight::Delete));
+                }
+                entryPointNode.AOTsetProperty(#PropertyAccessLevel, SysSecEntryPointManager::AccessRight2AccessLevel(_SysSecEntryPointTmpTable.NewAccessRight));
+            }
+            else if(!privilegeEntryPointsNode.AOTDrop(entryPointNode))
+            {
+                _privilegeNode.AOTrestore();
+                throw error(strFmt("@SDT66",
+                    _SysSecEntryPointTmpTable.ObjectType, _SysSecEntryPointTmpTable.ObjectAOTName, _SysSecEntryPointTmpTable.ObjectAOTChildName));
+            }
+        }
+
+        //New set all the correct access levels
+        tIterator = privilegeEntryPointsNode.AOTiterator();
+        privilegeEntryPointNode = tIterator.next();
+        while(privilegeEntryPointNode != null)
+        {
+            //Exclude service operation as we already set the access level property
+            while select _SysSecEntryPointTmpTable where _SysSecEntryPointTmpTable.ObjectType != SecurableType::ServiceOperation
+            {
+                securableObjectType = strLwr(strFmt('%1', enum2symbol(enumnum(SecurableType), _SysSecEntryPointTmpTable.ObjectType)));
+                if(_SysSecEntryPointTmpTable.ObjectType == SecurableType::WebManagedContentItem)
+                {
+                    securableObjectType = 'WebManagedContent';
+                }
+
+                if(strLwr(privilegeEntryPointNode.AOTgetProperty(#PropertyObjectType)) == securableObjectType &&
+                    strLwr(privilegeEntryPointNode.AOTgetProperty(#PropertyObjectName)) == strLwr(_SysSecEntryPointTmpTable.ObjectAOTName) &&
+                    strLwr(privilegeEntryPointNode.AOTgetProperty(#PropertyObjectChildName)) == strLwr(_SysSecEntryPointTmpTable.ObjectAOTChildName))
+                {
+                    privilegeEntryPointNode.AOTsetProperty(#PropertyAccessLevel, SysSecEntryPointManager::AccessRight2AccessLevel(_SysSecEntryPointTmpTable.NewAccessRight));
+                    break;
+                }
+            }
+
+            privilegeEntryPointNode = tIterator.next();
+        }
+
+        _privilegeNode.AOTsave();
+
+        skipFlush.clear();
+        SecurityUtil::flushAll();
+
+        return true;
+    }
+
+    public static boolean ObjectEditableVCS(TreeNode _node)
+    {
+        DialogButton dialogButton;
+
+        if(versionControl && versionControl.parmSysVersionControlSystem())
+        {
+            if(!isDeveloper())
+            {
+                throw error(strFmt("@SDT67"));
+            }
+
+            //Check if object is checked in
+            if(!versionControl.allowEdit(_node))
+            {
+                //Abort if object cannot be checked out
+                if(!versionControl.canCheckOut(_node))
+                {
+                    error(strFmt("@SDT68"));
+                    return false;
+                }
+
+                dialogButton = Box::yesNoOnce(strFmt("@SDT46"),
+                                            strFmt("@SDT69",
+                                                    _node.treeNodePath()), DialogButton::Yes, 'SecEntryPointVCS');
+
+                if(dialogButton == dialogButton::Yes)
+                {
+                    //Error is added by VCS if object cannot be checked out
+                    return versionControl.checkOut(_node);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean SkipDefaultFormRunHook(boolean _newStatus =
+        infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #SkipDefaultFormRunHookOnLoadFormKey))
+    {
+        if(_newStatus && !infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #SkipDefaultFormRunHookOnLoadFormKey))
+        {
+            infolog.globalCache().set(curUserId() + #SecEntryPoint, #SkipDefaultFormRunHookOnLoadFormKey, #SkipDefaultFormRunHookOnLoadFormKey, false);
+        }
+
+        if(!_newStatus && infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #SkipDefaultFormRunHookOnLoadFormKey))
+        {
+            infolog.globalCache().remove(curUserId() + #SecEntryPoint, #SkipDefaultFormRunHookOnLoadFormKey);
+        }
+
+        return _newStatus;
+    }
+
+    public static boolean TreeNodeIsServiceOperation(TreeNode _node)
+    {
+        return ((SysTreeNode::path2ApplObjectType(_node.treeNodePath()) == UtilElementType::Service &&
+                _node.AOTparent() != null &&
+                _node.AOTparent().AOTparent() != null &&
+                _node.AOTparent().AOTparent() != null &&
+                _node.AOTparent().AOTparent().AOTparent() != null &&
+                _node.AOTparent().AOTparent().AOTparent().treeNodePath() == #ServicesPath));
+    }
+
+    public static void WorkSpaceWindowCreated()
+    {
+        TreeNode tNode;
+        str treeNodePath;
+
+        if(infolog.globalCache().isSet(curUserId() + #SecEntryPoint, #OpenInWorkspaceKey))
+        {
+            treeNodePath = infolog.globalCache().get(curUserId() + #SecEntryPoint, #OpenInWorkspaceKey);
+            infolog.globalCache().remove(curUserId() + #SecEntryPoint, #OpenInWorkspaceKey);
+        }
+
+        if(treeNodePath)
+        {
+            tNode = TreeNode::findNode(treeNodePath);
+        }
+
+        if(tNode)
+        {
+            tNode.AOTrun();
+        }
+    }
+}

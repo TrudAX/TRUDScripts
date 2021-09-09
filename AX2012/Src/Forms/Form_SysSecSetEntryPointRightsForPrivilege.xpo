@@ -1,0 +1,480 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysSecSetEntryPointRightsForPrivilege
+  PROPERTIES
+    Name                #SysSecSetEntryPointRightsForPrivilege
+    Origin              #{35D2AA4D-98D2-44F3-BAF9-849DEB347040}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    SysSecEntryPointTmp tmpData;
+      #
+      #    super();
+      #
+      #    AccessRight.selection(AccessRight::NoAccess);
+      #
+      #    if(element.args() && element.args().caller() &&
+      #        formHasMethod(element.args().caller(), identifierStr(GetSelectionDataGrid)) &&
+      #        formHasMethod(element.args().caller(), identifierStr(GetTreeData)))
+      #    {
+      #        if(element.args().parmEnum() == NoYes::Yes)
+      #        {
+      #            tmpData = element.args().caller().GetSelectionDataGrid();
+      #        }
+      #        else
+      #        {
+      #            tmpData = element.args().caller().GetTreeData();
+      #        }
+      #
+      #        Grid_ObjectLabel.visible(element.args().caller().AreLabelsLoaded());
+      #
+      #        Grid_UserLicenseApplies.visible(element.args().caller().IsLicenseInfoLoaded());
+      #        Grid_ViewUserLicense.visible(element.args().caller().IsLicenseInfoLoaded());
+      #        Grid_MaintainUserLicense.visible(element.args().caller().IsLicenseInfoLoaded());
+      #
+      #        Grid_ObjectAOTLayer.visible(element.args().caller().IsLayerModelInfoLoaded());
+      #        Grid_ObjectAOTModel.visible(element.args().caller().IsLayerModelInfoLoaded());
+      #
+      #        SysSecEntryPointTmp.setTmpData(tmpData);
+      #        SysSecEntryPointTmp_ds.executeQuery();
+      #    }
+      #
+      #
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysSecEntryPointTmp
+          Table               #SysSecEntryPointTmp
+          AllowCreate         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SDT217
+      Frame               #Dialog
+      SetCompany          #No
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #805306367
+          DataSource          #SysSecEntryPointTmp
+          DataGroup           #SetEntryPointRights
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #BottomGroup
+          Width               #Column width
+          ElementPosition     #1610612734
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #MultiSelection
+          AutoDeclaration     #Yes
+          ElementPosition     #1073741822
+          HierarchyParent     #BottomGroup
+          FrameType           #Edged 3D
+          Caption             #@SDT197
+          Columns             #3
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #ApplyAccessRight
+          HelpText            #@SDT198
+          ElementPosition     #1610612733
+          HierarchyParent     #MultiSelection
+          Text                #@SDT199
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    SysSecEntryPointTmp tmpData2 = SysSecEntryPointTmp;
+            #    SysSecEntryPointTmp tmpData;
+            #    Map selectedRows = new Map(Types::Int64, Types::Record);
+            #    SysSecEntryPointTmp curRecord = SysSecEntryPointTmp.data();
+            #    MapIterator mapIterator;
+            #
+            #    for (tmpData = getFirstSelection(SysSecEntryPointTmp_ds);
+            #            tmpData;
+            #            tmpData = SysSecEntryPointTmp_ds.getNext())
+            #    {
+            #        selectedRows.insert(tmpData.RecId, tmpData);
+            #    }
+            #
+            #    ttsBegin;
+            #    while select forUpdate tmpData2
+            #    {
+            #        if(selectedRows.exists(tmpData2.RecId))
+            #        {
+            #            tmpData2.NewAccessRight = AccessRight.selection();
+            #            tmpData2.update();
+            #        }
+            #    }
+            #    ttsCommit;
+            #
+            #    SysSecEntryPointTmp.setTmpData(tmpData2);
+            #    SysSecEntryPointTmp_ds.executeQuery();
+            #    SysSecEntryPointTmp_ds.findRecord(curRecord);
+            #    SysSecEntryPointTmp_ds.setCurrent();
+            #
+            #    mapIterator = new mapIterator(selectedRows);
+            #    while(mapIterator.more())
+            #    {
+            #        tmpData = mapIterator.value();
+            #        SysSecEntryPointTmp_DS.markRecord(tmpData, 1);
+            #        mapIterator.next();
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #Update
+          Left                #Right edge
+          HelpText            #@SDT218
+          ElementPosition     #1610612733
+          HierarchyParent     #BottomGroup
+          Text                #@SDT219
+          MultiSelect         #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    #AOT
+            #    #Properties
+            #    SecurityTaskAotName aotName;
+            #    TreeNode privilegeNode, privilegesNode = TreeNode::findNode(strFmt('%1', #SecPrivilegesPath));
+            #
+            #    if(element.args() && element.args().caller() &&
+            #        formHasMethod(element.args().caller(), identifierStr(CurrentDevelopmentObject)))
+            #    {
+            #        aotName = element.args().caller().CurrentDevelopmentObject();
+            #    }
+            #
+            #    if(aotName == '')
+            #    {
+            #        throw error(strFmt("@SDT220"));
+            #    }
+            #
+            #    super();
+            #
+            #    privilegeNode = privilegesNode.AOTfindChild(aotName);
+            #
+            #    if(privilegeNode == null)
+            #    {
+            #        throw error(strFmt("@SDT221", aotName));
+            #    }
+            #
+            #    SysSecEntryPointManager::MergeEntryPointRightsIntoPrivilegeNode(privilegeNode, SysSecEntryPointTmp);
+            #
+            #    if(element.args() && element.args().caller() &&
+            #        formHasMethod(element.args().caller(), identifierStr(SetPermissions)))
+            #    {
+            #        element.args().caller().SetPermissions();
+            #    }
+            #
+            #    element.close();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #Grid_UserLicenseApplies
+          AutoDeclaration     #Yes
+          Visible             #No
+          AllowEdit           #No
+          ElementPosition     #1651910490
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          Label               #@SDT27
+          DataSource          #SysSecEntryPointTmp
+          DataField           #UserLicenseApplies
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #AccessRight
+          AutoDeclaration     #Yes
+          ElementPosition     #1073741822
+          HierarchyParent     #MultiSelection
+          Label               #@SDT204
+          EnumType            #AccessRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_AccessRight
+          AllowEdit           #No
+          ElementPosition     #825955245
+          HierarchyParent     #Grid
+          Label               #@SDT205
+          DataSource          #SysSecEntryPointTmp
+          DataField           #AccessRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_MaintainUserLicense
+          AutoDeclaration     #Yes
+          Visible             #No
+          AllowEdit           #No
+          ElementPosition     #1486719441
+          HierarchyParent     #Grid
+          Label               #@SDT14
+          DataSource          #SysSecEntryPointTmp
+          DataField           #MaintainUserLicense
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_NewAccessRight
+          ElementPosition     #660764196
+          HierarchyParent     #Grid
+          Label               #@SDT206
+          DataSource          #SysSecEntryPointTmp
+          DataField           #NewAccessRight
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    boolean ret;
+            #
+            #    ret = super();
+            #
+            #    SysSecEntryPointTmp_ds.write();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_ObjectAOTLayer
+          AutoDeclaration     #Yes
+          Visible             #No
+          AllowEdit           #No
+          ElementPosition     #1817101539
+          HierarchyParent     #Grid
+          Label               #@SDT159
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectAOTLayer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_ObjectType
+          AllowEdit           #No
+          ElementPosition     #330382098
+          HierarchyParent     #Grid
+          Label               #@SDT160
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectType
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_SystemUserRight
+          AllowEdit           #No
+          ElementPosition     #991146294
+          HierarchyParent     #Grid
+          Label               #@SDT25
+          DataSource          #SysSecEntryPointTmp
+          DataField           #SystemUserRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_ViewUserLicense
+          AutoDeclaration     #Yes
+          Visible             #No
+          AllowEdit           #No
+          ElementPosition     #1321528392
+          HierarchyParent     #Grid
+          Label               #@SDT29
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ViewUserLicense
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Grid_ObjectAOTDisplayName
+          AllowEdit           #No
+          ElementPosition     #495573147
+          HierarchyParent     #Grid
+          Label               #@SDT167
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectAOTDisplayName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Grid_ObjectAOTModel
+          AutoDeclaration     #Yes
+          Visible             #No
+          AllowEdit           #No
+          ElementPosition     #1982292588
+          HierarchyParent     #Grid
+          Label               #@SDT168
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectAOTModel
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Grid_ObjectLabel
+          AutoDeclaration     #Yes
+          Visible             #No
+          AllowEdit           #No
+          ElementPosition     #1156337343
+          HierarchyParent     #Grid
+          Label               #@SDT169
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectLabel
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+      ReadPermissions     #No
+      UpdatePermissions   #No
+      CreatePermissions   #No
+      DeletePermissions   #No
+    ENDPROPERTIES
+    
+  ENDPERMISSIONS
+  
+ENDFORM
+
+
+END

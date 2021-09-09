@@ -1,0 +1,2097 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class SysSetupForm extends Object
+{
+    #ResAppl
+    #File
+
+    FormRun                     editFormRun;
+    FormRun                     sysSetupFormRun;
+    FormRun                     fieldFormRun;
+
+    FormTreeControl             formControlTree;
+    FormTreeControl             fieldTree;
+
+    TmpSysTableField            tmpSysTableField;
+
+    UtilElements                utilElements;
+
+    boolean                     lockLayout;
+
+    ImageListAppl_Form          imageListAppl_Form;
+    ImageListAppl_Query         imageListAppl_Query;
+
+    Map                         displayMethodsInFormMap;
+
+    Map                         tableOccurrenceMap;
+    Map                         innerJoinedMap;
+
+    TreeNodeName                callerName;
+    TreeNodePath                callerPath;
+
+    MenuItemName                menuItemName;
+    TreeNodePath                menuItemPath;
+
+    TreeItemIdx                 dragItemIdx;
+    TreeItemIdx                 lastParentItemIdx;
+    TreeItemIdx                 lastItemIdx;
+
+    TreeItemIdx                 selectedTreeItemIdx;
+
+    #define.methodName('Name')
+    #define.methodLabel('Label')
+    #define.methodControlType('Type')
+    #define.methodHelp('Help')
+    #define.methodImage('Image')
+
+    /// <summary>
+    /// Blocks the user from re-entering the personalization form until they close and re-open the form
+    /// that is being personalized.
+    /// </summary>
+    private void blockPersonalizationReEntry()
+    {
+        Object setupForm;
+
+        editFormRun.blockPersonalization(true);
+
+        setupForm = sysSetupformRun;
+        setupForm.showWarningMessage();
+    }
+
+    /// <summary>
+    /// Compare two masterObjectSets of formdatasources, if they are the same, return true; Otherwise, false;
+    /// </summary>
+    /// <param name="gridDataSource">
+    /// The data source of a form grid control
+    /// </param>
+    /// <param name="dragDataSource">
+    /// The data source of a bound field
+    /// </param>
+    /// <returns>
+    /// True if the two masterObjectSets of the formdatasources
+    /// </returns>
+    private boolean canAddToGrid(FormDataSource gridDataSource, FormDataSource dragDataSource)
+    {
+        FormObjectSet gridObjectSet, dragObjectSet;
+        ;
+
+        if(gridDataSource == null || dragDataSource == null)
+        {
+            return false;
+        }
+
+        gridObjectSet = gridDataSource.masterObjectSet();
+        dragObjectSet = dragDataSource.masterObjectSet();
+        if(gridObjectSet.name() == dragObjectSet.name())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    // AOSRunMode::client
+    private int dataSourceTableOccurrence(DataSourceNumber _dataSourceNumber)
+    {
+        FormDataSource          formDataSource;
+        Counter                 dataSourceCount;
+        Map                     map;
+        int                     i;
+        int                     tableOccurrence;
+
+        if (!tableOccurrenceMap)
+        {
+            tableOccurrenceMap  = new Map(Types::Integer, Types::Integer);
+            map                 = new Map(Types::Integer, Types::Integer);
+            dataSourceCount     = editFormRun.dataSourceCount();
+
+            for (i = 1; i <= dataSourceCount; i++)
+            {
+                formDataSource = editFormRun.dataSource(i);
+
+                if (map.exists(formDataSource.table()))
+                {
+                    tableOccurrence = map.lookup(formDataSource.table());
+                }
+                else
+                {
+                    tableOccurrence = 0;
+                }
+                tableOccurrence++;
+                map.insert(formDataSource.table(), tableOccurrence);
+
+                tableOccurrenceMap.insert(i, tableOccurrence);
+            }
+        }
+
+        if (tableOccurrenceMap.exists(_dataSourceNumber))
+        {
+            tableOccurrence = tableOccurrenceMap.lookup(_dataSourceNumber);
+        }
+
+        return tableOccurrence;
+    }
+
+    public FormDesign design()
+    {
+        return editFormRun.design();
+    }
+
+    private void designArrange()
+    {
+        editFormRun.resetSize();
+        editFormRun.arrange();
+    }
+
+    public boolean designCanAddDataField(DataSourceNumber _dataSourceNumber, fieldId _fieldId)
+    {
+        return editFormRun.design().canAddDataField(_dataSourceNumber , _fieldId);
+    }
+
+    public boolean designCanContain(FormControl _formControl)
+    {
+        return editFormRun.design().canContain(_formControl);
+    }
+
+    public container designPackUserSetting()
+    {
+        return editFormRun.design().packUserSetting();
+    }
+
+    public boolean designUnpackUserSetting(container _pack)
+    {
+        return editFormRun.design().unpackUserSetting(_pack);
+    }
+
+    public ClassName determineCallerName()
+    {
+        #aot
+        Object caller = editFormRun.args().caller();
+
+        SrsReportRunController      sdsSrsReportRunController;
+
+        if (caller)
+        {
+            switch (true)
+            {
+                case SysDictClass::isEqualOrSuperclass(classidget(caller), classnum(SysSetupFormRun)):
+                    callerName   = caller.name();
+                    callerPath   = #formsPath;
+                    break;
+                case SysDictClass::isEqualOrSuperclass(classidget(caller), classnum(RunBase)):
+                    callerName   = classId2Name(classidget(caller.runBase()));
+                    callerPath   = #classesPath;
+                    break;
+                case SysDictClass::isEqualOrSuperclass(classidget(caller), classnum(DialogRunbase)):
+                    switch (true)
+                    {
+                        case SysDictClass::isEqualOrSuperclass(classidget(caller.runBase()), classnum(RunbaseReportStd)):
+                            caller       = caller.runBase();
+                            callerName   = caller.lastValueElementName();
+                            callerPath   = #reportsPath;
+                            break;
+                        default:
+                            callerName   = classId2Name(classidget(caller.runBase()));
+                            callerPath   = #classesPath;
+                            break;
+                    }
+                    break;
+                case SysDictClass::isEqualOrSuperclass(classidget(caller), classnum(ReportRun)):
+                    callerName   = caller.name();
+                    callerPath   = #reportsPath;
+                    break;
+                case SysDictClass::isEqualOrSuperclass(classidget(caller), classnum(QueryRun)):
+                    callerName   = caller.name();
+                    callerPath   = #queriesPath;
+                    break;
+                // define caller for SysOperationDialog fix, trud -->
+                case SysDictClass::isEqualOrSuperclass(classidget(caller), classnum(SysOperationDialog)):
+                    caller       = caller.controller();
+                    if (SysDictClass::isEqualOrSuperclass(classidget(caller), classnum(SrsReportRunController)))
+                    {
+                        sdsSrsReportRunController = caller;
+                        callerName   = sdsSrsReportRunController.parmReportContract().parmRdpName();
+                    }
+                    else
+                    {
+                        callerName   = classId2Name(classidget(caller));
+                    }
+                    callerPath   = #classesPath;
+                    break;
+                // fix <--
+
+                default:
+                    callerName   = classId2Name(classidget(caller));
+                    callerPath   = #classesPath;
+                    break;
+            }
+
+            if (callerName)
+            {
+                callerPath += #FilePathDelimiter + callerName;
+            }
+        }
+
+        return callerName;
+    }
+
+    public void fieldFormRunClose()
+    {
+        if (fieldFormRun)
+        {
+            fieldFormRun.closeCancel();
+        }
+    }
+
+    public boolean fieldFormRunSetFocus()
+    {
+        boolean ret;
+
+        if (fieldFormRun)
+        {
+            ret = true;
+            fieldFormRun.setActive();
+        }
+
+        return ret;
+    }
+
+    private TreeItemIdx fieldTreeAddDataSource(DataSourceNumber _dataSourceNo, TreeItemIdx _parentItemIdx)
+    {
+        FormDataSource  formDataSource;
+        SysDictTable    sysDictTable;
+        TreeItemIdx     treeItemIdx;
+        str             tableOccurrenceText;
+        LabelType       label;
+
+        formDataSource      = editFormRun.dataSource(_dataSourceNo);
+
+        sysDictTable        = new SysDictTable(formDataSource.table());
+        tableOccurrenceText = SysQuery::tableOccurrenceText(this.dataSourceTableOccurrence(_dataSourceNo));
+
+        if (tableOccurrenceText)
+        {
+            label = strfmt('%1 %2', sysDictTable.getLabelOrName(), tableOccurrenceText);
+        }
+        else
+        {
+            label = sysDictTable.getLabelOrName();
+        }
+        treeItemIdx = SysFormTreeControl::addTreeItem(fieldTree, label, _parentItemIdx, _dataSourceNo, imageListAppl_Query.image(#ImageTable), true);
+
+        this.fieldTreeAddFields(treeItemIdx, sysDictTable);
+
+        return treeItemIdx;
+    }
+
+
+    // AOSRunMode::client
+    private void fieldTreeAddFields(TreeItemIdx _parentItemIdx, SysDictTable _sysDictTable)
+    {
+        FormDataSource      formDataSource;
+        FormDataObject      formDataObject;
+        DataSourceNumber    dataSourceNumber;
+        SetIterator         setIterator;
+        Struct              struct;
+
+        dataSourceNumber    = fieldTree.getItem(_parentItemIdx).data();
+        formDataSource      = editFormRun.dataSource(dataSourceNumber);
+        tmpSysTableField    = TmpSysTableField::findTableFields(tmpSysTableField, _sysDictTable.id(), formDataSource.query());
+
+        while select forupdate tmpSysTableField
+            index LabelIdx
+            where !tmpSysTableField.DataSourceNumber
+               && tmpSysTableField.DictTableId == _sysDictTable.id()
+        {
+            tmpSysTableField.DataSourceNumber = dataSourceNumber;
+            formDataObject                    = formDataSource.object(tmpSysTableField.FieldId);
+
+            if (formDataObject)
+            {
+                switch (formDataObject.allowAdd())
+                {
+                    case FormAllowAdd::Restricted:
+                    //By default RecId isn't shown unless explicitly set to yes.
+                    if(tmpSysTableField.ExtendedFieldId == fieldId2Ext(fieldNum(Common, RecId), 1))
+                    {
+                        break;
+                    }
+                    case FormAllowAdd::Yes:
+                        SysFormTreeControl::addTreeItem(fieldTree, tmpSysTableField.FieldLabel, _parentItemIdx, tmpSysTableField.ExtendedFieldId, imageListAppl_Query.image(tmpSysTableField.ImageRes));
+                        break;
+                }
+            }
+            tmpSysTableField.update();
+        }
+
+        // It is not possible to add display methods. at run time
+        if (displayMethodsInFormMap.exists(formDataSource.id()) && false)
+        {
+            setIterator = new SetIterator(displayMethodsInFormMap.lookup(formDataSource.id()));
+            setIterator.begin();
+            while(setIterator.more())
+            {
+                struct = setIterator.value();
+                SysFormTreeControl::addTreeItem(fieldTree,
+                                                struct.value(#methodLabel),
+                                                _parentItemIdx,
+                                                struct,
+                                                struct.value(#methodImage),
+                                                false,
+                                                0,
+                                                SysFormTreeControl::findInsertAfterIdx(fieldTree, _parentItemIdx, struct.value(#methodLabel)));
+                setIterator.next();
+            }
+        }
+    }
+
+    public boolean fieldTreeBeginDrag(int _x, int _y)
+    {
+        boolean ret;
+
+        [dragItemIdx] = fieldTree.hitTest(_x, _y);
+
+        if (dragItemIdx &&
+            fieldTree.getItem(dragItemIdx) &&
+            !fieldTree.getItem(dragItemIdx).children())
+        {
+            ret = true;
+        }
+        return ret;
+    }
+
+    public void fieldTreeBuild()
+    {
+        DataSourceNumber    dataSourceNo;
+        FormDataSource      formDataSource;
+        TreeItemIdx         dropItemIdx;
+        FormGridControl     formGridControl;
+        Counter             dataSourceCount     = editFormRun.dataSourceCount();
+
+        fieldTree.deleteAll();
+
+        fieldTree.setImagelist(imageListAppl_Query.imageList());
+        fieldTree.setStateImagelist(imageListAppl_Query.imageList());
+
+        dropItemIdx = formControlTree.getSelection();
+        formGridControl = this.getNearestFormGridControl(dropItemIdx);
+
+        for (dataSourceNo = 1; dataSourceNo <= dataSourceCount; dataSourceNo++)
+        {
+            formDataSource = editFormRun.dataSource(dataSourceNo);
+
+            /* If the dropItem is a FormGridControl or it has FormGridControl ancestor,
+               tables with LinkType of Delayed/Active/Passive should be restricted.
+            */
+            if(formGridControl != null && !this.canAddToGrid(formGridControl.dataSourceObject(), formDataSource))
+            {
+                continue;
+            }
+
+            if (formDataSource.linkType() != FormLinkType::Passive)
+            {
+                this.fieldTreeAddDataSource(dataSourceNo, FormTreeAdd::Root);
+            }
+        }
+
+        if (dataSourceCount == 1)
+        {
+            SysFormTreeControl::expandTree(fieldTree, fieldTree.getRoot());
+        }
+    }
+
+    private boolean formContolCanContain(Object _dropControl, Object _dragControl)
+    {
+        Object  childControl;
+        boolean ret;
+        Set     set;
+        Counter controlCount;
+        int     i;
+
+        if (!_dropControl)
+        {
+            _dropControl = editFormRun.design();
+        }
+
+        if ((classidget(_dropControl) == classnum(FormDesign) || _dropControl.isContainer()) &&
+            (classidget(_dropControl) != classnum(FormTabControl) ||
+             classidget(_dragControl) == classnum(FormTabPageControl)))
+        {
+            // Grid accept groups, but only in one level (not a group in a group ...)
+            ret          = true;
+
+            if (classidget(_dropControl) == classnum(FormGridControl))
+            {
+                if (innerJoinedMap.exists(_dropControl.dataSource()))
+                {
+                    set = innerJoinedMap.lookup(_dropControl.dataSource());
+                }
+                else
+                {
+                    set = new Set(Types::Integer);
+                }
+
+                if (this.formControlIsDataBound(_dragControl) ||
+                    (classidget(_dragControl) == classnum(FormGroupControl) &&
+                     _dragControl.dataSource() &&
+                     _dragControl.dataGroup()))
+                {
+                    ret = set.in(_dragControl.dataSource());
+                }
+                else
+                {
+                    if (classidget(_dragControl) == classnum(FormGroupControl))
+                    {
+                        controlCount = _dragControl.controlCount();
+                        for (i=1; i < controlCount; i++)
+                        {
+                            childControl = _dragControl.controlNum(i);
+
+                            if (childControl.isContainer()  ||
+                                !_dropControl.canContain(childControl))
+                            {
+                                ret = false;
+                                break;
+                            }
+                            else
+                            {
+                                if (this.formControlIsDataBound(childControl))
+                                {
+                                    if (!set.in(childControl.dataSource()))
+                                    {
+                                        ret = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (ret)
+            {
+                ret = _dropControl.canContain(_dragControl);
+            }
+        }
+
+        return ret;
+    }
+
+    public FormControl formControl(int _formControlId = 0)
+    {
+        FormControl formControl;
+
+        if (_formControlId)
+        {
+            formControl = editFormRun.design().control(_formControlId);
+        }
+        else
+        {
+            formControl = editFormRun.selectedControl();
+        }
+        return formControl;
+    }
+
+    public str formControlConfigurationKeys(FormControl _formControl)
+    {
+        str                     ret;
+        ListIterator            listIterator;
+        DictConfigurationKey    dictConfigurationKey;
+
+        if (_formControl)
+        {
+            listIterator = new ListIterator(_formControl.configurationKeyEx());
+            listIterator.begin();
+            while (listIterator.more())
+            {
+                dictConfigurationKey = new DictConfigurationKey(listIterator.value());
+                if (dictConfigurationKey)
+                {
+                    if (ret)
+                    {
+                        ret += ', ';
+                    }
+                    ret += dictConfigurationKey.label();
+                }
+                listIterator.next();
+            }
+        }
+
+
+        return ret;
+    }
+
+    private boolean formControlHasUserAdjustment(Object _formControl ,boolean _lookDeep = true)
+    {
+        Object          childFormControl;
+        Counter         controlCount;
+        boolean         ret;
+        int             i;
+
+        if (!classidget(_formControl) == classnum(FormDesign) &&
+            _formControl.userOrgContainer())
+        {
+            ret = true;
+        }
+
+        if (!ret)
+        {
+            if (_formControl.hasUserSetting())
+            {
+                ret = true;
+            }
+            else
+            {
+                if (_formControl.isContainer() &&
+                    _lookDeep)
+                {
+                    controlCount = _formControl.controlCount();
+                    for (i=1; i <= controlCount; i++)
+                    {
+                        childFormControl = _formControl.controlNum(i);
+
+                        if (this.formControlHasUserAdjustment(childFormControl, _lookDeep))
+                        {
+                            ret = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    private boolean formControlIsDataBound(Object _formControl)
+    {
+        FormControlType formControlType = SysFormRun::controlType(classidget(_formControl));
+        boolean         ret;
+
+        if (formControlType == FormControlType::CheckBox ||
+            formControlType == FormControlType::ComboBox ||
+            formControlType == FormControlType::ListBox ||
+            formControlType == FormControlType::RadioButton ||
+            formControlType == FormControlType::String ||
+            formControlType == FormControlType::StaticText ||
+            formControlType == FormControlType::Date ||
+            formControlType == FormControlType::Integer ||
+            formControlType == FormControlType::Real ||
+            formControlType == FormControlType::Time ||
+            formControlType == FormControlType::Image ||
+            formControlType == FormControlType::ReferenceGroup ||
+            formControlType == FormControlType::SegmentedEntry)
+        {
+            ret = true;
+        }
+
+        return ret;
+    }
+
+    private boolean formControlIsNameUsed(TreeNodeName _treeNodeName, TreeItemIdx _treeItemIdx = formControlTree.getRoot())
+    {
+        TreeItemIdx treeItemIdx = _treeItemIdx;
+        FormControl formControl;
+        boolean     ret;
+
+        while (treeItemIdx && !ret)
+        {
+            formControl = this.formControlTreeIdx2Control(treeItemIdx);
+
+            if (formControl &&
+                formControl.name() == _treeNodeName)
+            {
+                ret = true;
+                break;
+            }
+            else
+            {
+                if (formControlTree.getChild(treeItemIdx))
+                {
+                    ret = this.formControlIsNameUsed(_treeNodeName, formControlTree.getChild(treeItemIdx));
+                }
+            }
+            treeItemIdx = formControlTree.getNextSibling(treeItemIdx);
+        }
+
+        return ret;
+    }
+
+    public LabelType formControlLabel(FormControl _formControl, boolean _onlyLabel = false)
+    {
+        LabelType labelText;
+
+        if (_formControl.labelText())
+        {
+            labelText = _formControl.labelText();
+        }
+        else
+        {
+            labelText = _formControl.name();
+        }
+
+        if (!_onlyLabel &&
+             _formControl.userPromptText())
+        {
+            labelText = strfmt('%1 (%2)', _formControl.userPromptText(), labelText);
+        }
+
+        return labelText;
+    }
+
+    private void formControlMove(TreeItemIdx _newItemIdx)
+    {
+        FormControl     formControl;
+        Object          parentControl;
+        Object          inserAfterContol;
+        Object          oldParentControl;
+        int             formControlUserOrgContainer;
+
+        formControl  = this.formControlTreeIdx2Control(_newItemIdx);
+
+        if(!formControl)
+            return;
+
+        // If control was already moved userOrgContainer is different from 0
+        formControlUserOrgContainer = formControl.userOrgContainer();
+
+        if (formControl.containerId())
+        {
+            oldParentControl = editFormRun.design().control( formControl.containerId() );
+            // Do not override a previous original container
+            if (!formControlUserOrgContainer)
+                formControlUserOrgContainer = formControl.containerId();
+        }
+        else
+        {
+            oldParentControl = editFormRun.design();
+            // Do not override a previous original container
+            if (!formControlUserOrgContainer)
+                formControlUserOrgContainer = -1;
+        }
+
+        if (formControlTree.getParent(_newItemIdx))
+        {
+            parentControl = this.formControlTreeIdx2Control(formControlTree.getParent(_newItemIdx));
+        }
+        else
+        {
+            parentControl = editFormRun.design();
+        }
+
+
+        if (formControlTree.getPrevSibling(_newItemIdx))
+        {
+            inserAfterContol = this.formControlTreeIdx2Control(formControlTree.getPrevSibling(_newItemIdx));
+        }
+
+        parentControl.useUserLayout(true);  // useUserLayot should be called before moving controls around
+        oldParentControl.useUserLayout(true);
+
+        if (inserAfterContol)
+        {
+             parentControl.moveControl(formControl.id(), inserAfterContol.id());
+        }
+        else
+        {
+             parentControl.moveControl(formControl.id());
+        }
+
+        // now we need to set the orgContainer
+        formControl.userOrgContainer(formControlUserOrgContainer);
+        this.designArrange();
+
+        this.blockPersonalizationReEntry();
+    }
+
+
+    private TreeItemIdx formControlTreeAddControl(Object _formControl, TreeItemIdx _parentIdx, int _siblingIdx = 0, boolean _userAdd = false)
+    {
+        ImageRes        imageRes;
+        TreeItemIdx     treeItemIdx;
+        TreeItemIdx     insertAfterItemIdx  = _siblingIdx;
+        ImageRes        stateImage;
+        LabelType       labelText;
+        FormTreeItem    formTreeItem;
+
+        if (!insertAfterItemIdx)
+        {
+            if (_parentIdx && _userAdd)
+            {
+                insertAfterItemIdx = FormTreeAdd::First;
+            }
+            else
+            {
+                insertAfterItemIdx = FormTreeAdd::Last;
+            }
+        }
+
+        if (_userAdd ||
+            _formControl.markAsUserAdd())
+        {
+            imageRes    = imageListAppl_Form.image(#ImageExpandAll);
+        }
+        else
+        {
+            imageRes    = imageListAppl_Form.formControlType2Image(SysFormRun::controlType(classidget(_formControl)));
+        }
+
+        // 'labelText' is retrieved from AOT metadata
+        labelText   = this.formControlLabel(_formControl);
+
+        //BP deviation documented
+        formTreeItem = new FormTreeItem(labelText, imageRes, _formControl.isContainer(), _formControl.id());
+
+        if (this.formControlHasUserAdjustment(_formControl, false ))
+        {
+            formTreeItem.stateBold(true);
+        }
+
+        treeItemIdx = formControlTree.addItem(_parentIdx, insertAfterItemIdx, formTreeItem);
+        stateImage  = this.formControlTreeStateImage(_formControl);
+
+        this.formControlTreeSetStateImage(treeItemIdx, stateImage);
+
+        if (_userAdd &&
+            _parentIdx)
+        {
+            this.formControlTreeSetStateImage(_parentIdx, stateImage);
+        }
+
+
+        return treeItemIdx;
+    }
+
+    public boolean formControlTreeAllowDrop(TreeItemIdx _dragItemIdx, TreeItemIdx _dropItemIdx, boolean _doNotCheckParent = false)
+    {
+        FormTreeItem    dropItem,
+                        dragItem;
+        Object          dropControl,
+                        dragControl;
+        boolean         ret;
+        FormGridControl formGridControl;
+
+        dropItem = formControlTree.getItem(_dropItemIdx);
+        dragItem = formControlTree.getItem(_dragItemIdx);
+
+        if (dropItem)
+        {
+            dropControl = this.formControlTreeIdx2Control(dropItem.idx());
+        }
+
+        if (dragItem)
+        {
+            dragControl = this.formControlTreeIdx2Control(dragItem.idx());
+        }
+
+        //Check if dropControl is a container type such as FormGroupControl in a FormGridControl.
+        //If it is, check if the dragControl can add into the FormGridControl.
+        if(dropControl && dragControl)
+        {
+            formGridControl = this.getNearestFormGridControl(_dropItemIdx);
+            if(formGridControl != null)
+            {
+                if(!this.canAddToGrid(formGridControl.dataSourceObject(), dragControl.dataSourceObject()))
+                {
+                    return false;
+                }
+            }
+        }
+
+        if (this.formControlTreeAllowUserSetup(_dropItemIdx) == FormAllowUserSetup::Yes)
+        {
+            if (dropControl)
+            {
+                if (dropControl.isContainer())
+                {
+                    if (classidget(dropControl) != classnum(FormReferenceGroupControl))
+                    {
+                        ret = this.formContolCanContain(dropControl, dragControl);
+                    }
+                }
+                else
+                {
+                    if (formControlTree.getParent(_dropItemIdx) &&
+                        !_doNotCheckParent)
+                    {
+                        ret = this.formControlTreeAllowDrop(_dragItemIdx, formControlTree.getParent(_dropItemIdx));
+                    }
+                }
+            }
+            else
+            {
+                ret = this.designCanContain(dragControl);
+            }
+        }
+        return ret;
+    }
+
+
+    public boolean formControlTreeAllowLeft(TreeItemIdx _treeItemIdx)
+    {
+        TreeItemIdx         prevItemIdx;
+        TreeItemIdx         parentItemIdx;
+        boolean             ret;
+
+        if (!lockLayout &&
+            this.formControlTreeAllowMove(_treeItemIdx))
+        {
+            parentItemIdx   = formControlTree.getParent(_treeItemIdx);
+            if (parentItemIdx)
+            {
+                prevItemIdx     = parentItemIdx;
+                parentItemIdx   = formControlTree.getParent(parentItemIdx);
+
+                if (this.formControlTreeAllowDrop(_treeItemIdx, parentItemIdx, true))
+                {
+                    ret = true;
+                }
+            }
+        }
+        return ret;
+    }
+
+    public boolean formControlTreeAllowMove(TreeItemIdx _treeItemIdx)
+    {
+        TreeItemIdx         parentItemIdx;
+        boolean             ret;
+
+        if (!lockLayout)
+        {
+            parentItemIdx = formControlTree.getParent(_treeItemIdx);
+
+            if (this.formControlTreeAllowUserMove(parentItemIdx) == FormAllowUserSetup::Yes && !this.formControlTreeNeverAllowUserMove(_treeItemIdx))
+            {
+                ret = true;
+            }
+        }
+        return ret;
+    }
+
+    public boolean formControlTreeAllowRemove(TreeItemIdx _treeItemIdx = 0)
+    {
+        FormControl     formControl = this.formControlTreeIdx2Control(_treeItemIdx);
+        boolean         ret;
+
+        if (formControl)
+        {
+            ret =  formControl.markAsUserAdd();
+        }
+        return ret;
+    }
+
+    public boolean formControlTreeAllowRight(TreeItemIdx _treeItemIdx)
+    {
+        TreeItemIdx         parentItemIdx;
+        boolean             ret;
+
+        if (!lockLayout &&
+            this.formControlTreeAllowMove(_treeItemIdx))
+        {
+            parentItemIdx   = formControlTree.getPrevSibling(_treeItemIdx);
+            if (parentItemIdx &&
+                this.formControlTreeAllowDrop(_treeItemIdx, parentItemIdx, true))
+            {
+                ret = true;
+            }
+        }
+        return ret;
+    }
+
+    public FormAllowUserSetup formControlTreeAllowUserMove(TreeItemIdx _treeItemIdx)
+    {
+        TreeItemIdx         treeItemIdx = _treeItemIdx;
+        Object              formControl;
+        FormAllowUserSetup  formAllowUserSetup = FormAllowUserSetup::Yes;
+
+        if (treeItemIdx)
+        {
+            formControl = this.formControlTreeIdx2Control(treeItemIdx);
+        }
+        else
+        {
+            formControl = editFormRun.design();
+        }
+
+        if (formControl)
+        {
+            switch (true)
+            {
+                case formControl.isUserSetupEnabled(FormAllowUserSetup::Yes):
+                    formAllowUserSetup = FormAllowUserSetup::Yes;
+                    break;
+                case formControl.isUserSetupEnabled(FormAllowUserSetup::Restricted):
+                    formAllowUserSetup = FormAllowUserSetup::Restricted;
+                    break;
+                default:
+                    formAllowUserSetup = FormAllowUserSetup::No;
+                    break;
+            }
+        }
+        return formAllowUserSetup;
+    }
+
+    public FormAllowUserSetup formControlTreeAllowUserSetup(TreeItemIdx _treeItemIdx)
+    {
+        TreeItemIdx         treeItemIdx = _treeItemIdx;
+        Object              formControl;
+        FormAllowUserSetup  formAllowUserSetup = FormAllowUserSetup::Yes;
+
+        if (treeItemIdx)
+        {
+            formControl = this.formControlTreeIdx2Control(treeItemIdx);
+        }
+        else
+        {
+            formControl = editFormRun.design();
+        }
+
+        if (formControl)
+        {
+            if (!this.formControlTreeTabWithChangeOverRides(formControl))
+            {
+                switch (true)
+                {
+                    case formControl.isUserSetupEnabled(FormAllowUserSetup::Yes):
+                        formAllowUserSetup = FormAllowUserSetup::Yes;
+                        break;
+                    case formControl.isUserSetupEnabled(FormAllowUserSetup::Restricted):
+                        formAllowUserSetup = FormAllowUserSetup::Restricted;
+                        break;
+                    default:
+                        formAllowUserSetup = FormAllowUserSetup::No;
+                        break;
+                }
+            }
+            else
+            {
+                return FormAllowUserSetup::No;
+            }
+        }
+        return formAllowUserSetup;
+    }
+
+    public boolean formControlTreeBeginDrag()
+    {
+        boolean ret;
+
+        if (this.formControlTreeAllowMove(dragItemIdx))
+        {
+            ret = true;
+        }
+        return ret;
+    }
+
+    private void formControlTreeBuild(int _formControlId = 0,TreeItemIdx _parentIdx = 0)
+    {
+        Counter         controlCount;
+        int             i;
+        TreeItemIdx     treeItemIdx;
+        boolean         hasChildrenUserAdjust;
+        Object          formControl;
+        Object          formGroupControl;
+        Set             set;
+        Struct          struct;
+
+        if (_formControlId)
+        {
+            formGroupControl = editFormRun.design().control(_formControlId);
+        }
+        else
+        {
+            formGroupControl = editFormRun.design();
+        }
+
+        controlCount            = formGroupControl.controlCount();
+        hasChildrenUserAdjust   = false;
+
+        for (i = 1; i <= controlCount; i++)
+        {
+            formControl = formGroupControl.controlNum(i);
+
+            if (formControl.allowSysSetup())
+            {
+                if (this.formControlIsDataBound(formControl))
+                {
+                    if (formControl.dataSource())
+                    {
+                        if (!formControl.dataField() && formControl.dataMethod())
+                        {
+                            if (!displayMethodsInFormMap.exists(formControl.dataSource()))
+                            {
+                                displayMethodsInFormMap.insert(formControl.dataSource(), new Set(Types::Class));
+                            }
+
+                            set = displayMethodsInFormMap.lookup(formControl.dataSource());
+
+                            struct = new Struct(Types::String,  #methodName,
+                                                Types::Enum,    #methodControlType,
+                                                Types::String,  #methodLabel,
+                                                Types::String,  #methodHelp,
+                                                Types::Integer, #methodImage);
+
+                            struct.value(#methodName,        formControl.dataMethod());
+                            struct.value(#methodControlType, SysFormRun::controlType(classidget(formControl)));
+                            struct.value(#methodHelp,        formControl.helpText());
+                            struct.value(#methodImage,       imageListAppl_Query.image(#ImageField));
+
+                            if (formControl.handle() != classnum(FormStaticTextControl))
+                            {
+                                //struct.value(#methodLabel, formControl.label());
+                                // Start
+                                struct.value(#methodLabel, formControl.labeltext());
+                                // Stop
+                            }
+
+                            set.add(struct);
+                        }
+                    }
+                }
+
+                treeItemIdx = this.formControlTreeAddControl(formControl, _parentIdx);
+                if (formControl.isContainer())
+                {
+                    this.formControlTreeBuild(formControl.id(), treeItemIdx);
+                }
+                if (this.formControlHasUserAdjustment(formControl, false ))
+                {
+                    hasChildrenUserAdjust = true;
+                }
+
+                if (editFormRun && editFormRun.selectedControl() && formControl.id() == editFormRun.selectedControl().id())
+                {
+                    selectedTreeItemIdx = treeItemIdx;
+                }
+            }
+        }
+
+        if (hasChildrenUserAdjust)
+        {
+            this.formControlTreeUpdateStatus(_parentIdx, true);
+        }
+        formControlTree.select(formControlTree.getRoot());
+    }
+
+
+    public int formControlTreeControl2Idx(int _formControlId, TreeItemIdx _treeItemIdx = formControlTree.getRoot())
+    {
+        TreeItemIdx     treeItemIdx = _treeItemIdx;
+        TreeItemIdx     foundItemIdx;
+        FormTreeItem    formTreeItem;
+        FormControl     formControl;
+
+        while (treeItemIdx &&
+               !foundItemIdx)
+        {
+            formTreeItem    =  formControlTree.getItem(treeItemIdx);
+
+            if (formTreeItem)
+            {
+                formControl     =  this.formControlTreeIdx2Control(treeItemIdx);
+                if (_formControlId == formControl.id())
+                {
+                    foundItemIdx =  treeItemIdx;
+                }
+                else
+                {
+                    if (formTreeItem.children() &&
+                        formControlTree.getChild(treeItemIdx))
+                    {
+                        foundItemIdx = this.formControlTreeControl2Idx(_formControlId ,formControlTree.getChild(treeItemIdx));
+                    }
+                }
+            }
+            treeItemIdx = formControlTree.getNextSibling(treeItemIdx);
+        }
+
+        return foundItemIdx;
+    }
+
+    public FormDrag formControlTreeDragOver(FormTreeControl _dragSource, int _x, int _y)
+    {
+        TreeItemIdx treeItemIdx;
+        TreeItemIdx parentItemIdx;
+        FormDrag    formDrag        = FormDrag::None;
+
+        [treeItemIdx] = formControlTree.hitTest(_x,_y);
+
+        if (treeItemIdx &&
+            !this.formControlTreeNeverAllowUserMove(dragItemIdx) &&
+            !this.formControlTreeNeverAllowUserAdd(treeItemIdx))
+        {
+            if (_dragSource.equal(formControlTree))
+            {
+                if (treeItemIdx == dragItemIdx ||
+                    SysFormTreeControl::isParent(_dragSource, treeItemIdx, dragItemIdx))
+                {
+                    formDrag = FormDrag::None;
+                }
+                else
+                {
+                    if (this.formControlTreeAllowDrop(dragItemIdx, treeItemIdx))
+                    {
+                        this.formControlTreeDragOverHilite(treeItemIdx);
+                        formDrag = FormDrag::Move;
+                    }
+                    else
+                    {
+                        parentItemIdx = formControlTree.getParent(treeItemIdx);
+                        if (this.formControlTreeAllowDrop(dragItemIdx, parentItemIdx))
+                        {
+                            this.formControlTreeDragOverHilite(parentItemIdx, treeItemIdx);
+                            formDrag = FormDrag::Move;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (_dragSource.equal(fieldTree))
+                {
+                    if (this.formControlTreeUserAllowAdd(treeItemIdx, dragItemIdx))
+                    {
+                        this.formControlTreeDragOverHilite(treeItemIdx);
+                        formDrag = FormDrag::Copy;
+                    }
+                    else
+                    {
+                        parentItemIdx = formControlTree.getParent(treeItemIdx);
+                        if (this.formControlTreeUserAllowAdd(parentItemIdx, dragItemIdx))
+                        {
+                            this.formControlTreeDragOverHilite(parentItemIdx, treeItemIdx);
+                            formDrag = FormDrag::Copy;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (formDrag == FormDrag::None)
+        {
+            this.formControlTreeDragOverHilite();
+        }
+
+        return formDrag;
+    }
+
+    public void formControlTreeDragOverHilite(TreeItemIdx _parentItemIdx = 0, TreeItemIdx _treeItemIdx = 0)
+    {
+        if (_treeItemIdx)
+        {
+            lastItemIdx = _treeItemIdx;
+        }
+        else
+        {
+            lastItemIdx = _parentItemIdx;
+        }
+
+        if (lastItemIdx)
+        {
+            formControlTree.setInsertMark(lastItemIdx, true);
+        }
+        else
+        {
+            if (lastParentItemIdx)
+            {
+                formControlTree.setInsertMark(formControlTree.getChild(lastParentItemIdx), false);
+            }
+            else
+            {
+                formControlTree.setInsertMark(0, false);
+            }
+        }
+    }
+
+
+    public void formControlTreeDrop(FormTreeControl _dragSource, TreeItemIdx _dropItemIdx)
+    {
+        FormTreeItem    formTreeItem;
+        TreeItemIdx     parentItemIdx;
+        TreeItemIdx     inserAfterIdx;
+        boolean         allowDrop;
+
+        if (_dropItemIdx &&
+            !this.formControlTreeNeverAllowUserMove(dragItemIdx) &&
+            !this.formControlTreeNeverAllowUserAdd(_dropItemIdx))
+        {
+            formTreeItem = formControlTree.getItem(_dropItemIdx);
+
+            if (formTreeItem)
+            {
+                if (_dragSource.equal(formControlTree))
+                {
+                    if (this.formContolCanContain(this.formControlTreeIdx2Control(_dropItemIdx),
+                                                  this.formControlTreeIdx2Control(dragItemIdx)) &&
+                        (formTreeItem.stateExpanded() ||
+                         !formControlTree.getChild(_dropItemIdx)) ||
+                         !this.formContolCanContain(this.formControlTreeIdx2Control(formControlTree.getParent(_dropItemIdx)),
+                                                    this.formControlTreeIdx2Control(dragItemIdx)))
+                    {
+                        parentItemIdx = _dropItemIdx;
+                        inserAfterIdx = FormTreeAdd::First;
+                    }
+                    else
+                    {
+                        parentItemIdx = formControlTree.getParent(_dropItemIdx);
+                        inserAfterIdx = _dropItemIdx;
+                    }
+
+                    if (parentItemIdx != dragItemIdx &&
+                        !SysFormTreeControl::isParent(_dragSource, parentItemIdx, dragItemIdx))
+                    {
+                        allowDrop = this.formControlTreeAllowDrop(dragItemIdx, parentItemIdx);
+                        if (!allowDrop)
+                        {
+                            inserAfterIdx = parentItemIdx;
+                            parentItemIdx = formControlTree.getParent(parentItemIdx);
+                            allowDrop     = this.formControlTreeAllowDrop(dragItemIdx, parentItemIdx);
+                        }
+
+                        if (allowDrop)
+                        {
+                            this.formControlTreeMove(parentItemIdx, dragItemIdx, inserAfterIdx);
+                        }
+                    }
+                }
+                else
+                {
+                    if (_dragSource.equal(fieldTree))
+                    {
+                        if (this.formControlTreeUserAllowAdd(parentItemIdx, dragItemIdx))
+                        {
+                            this.formControlTreeUserAdd(dragItemIdx, parentItemIdx, inserAfterIdx);
+                        }
+                        else
+                        {
+                            inserAfterIdx = parentItemIdx;
+                            parentItemIdx = formControlTree.getParent(parentItemIdx);
+                            if (this.formControlTreeUserAllowAdd(parentItemIdx, dragItemIdx))
+                            {
+                                this.formControlTreeUserAdd(dragItemIdx, parentItemIdx, inserAfterIdx);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        this.formControlTreeDragOverHilite();
+    }
+
+    private void formControlTreeExpand()
+    {
+        if (!selectedTreeItemIdx)
+            return;
+
+        formControlTree.select(selectedTreeItemIdx);
+        SysFormTreeControl::expandTree(formControlTree, selectedTreeItemIdx, 1);
+    }
+
+    public FormControl formControlTreeIdx2Control(TreeItemIdx _treeItemIdx)
+    {
+        FormControl     formControl;
+        FormTreeItem    formTreeItem;
+
+        formTreeItem = formControlTree.getItem(_treeItemIdx);
+
+        if (formTreeItem &&
+            formTreeItem.data())
+        {
+            formControl = editFormRun.design().control(formTreeItem.data());
+        }
+
+        return formControl;
+    }
+
+
+    public void formControlTreeMouseDown(int _x, int _y, int _button)
+    {
+        if (_button == 1)
+        {
+            [dragItemIdx] = formControlTree.hitTest(_x, _y);
+        }
+    }
+
+    private void formControlTreeMove(TreeItemIdx _parentItemIdx, TreeItemIdx _treeItemIdx, TreeItemIdx _insertAfterItemIdx)
+    {
+        TreeItemIdx treeItemIdx;
+        Set         set;
+        SetIterator setIterator;
+        int         formControlId;
+        FormControl fcontrol;
+        Set         itemIdxSet = new Set(Types::Integer);
+
+        formControlId   = this.formControlTreeIdx2Control(_treeItemIdx).id();
+
+        itemIdxSet.add(_treeItemIdx);
+        set             = SysFormTreeControl::moveTreeItem(formControlTree,  itemIdxSet, formControlTree, _parentItemIdx, _insertAfterItemIdx);
+
+
+        setIterator     = new SetIterator(set);
+
+        setIterator.begin();
+        while (setIterator.more())
+        {
+            treeItemIdx = setIterator.value();
+
+            fcontrol = this.formControlTreeIdx2Control(treeItemIdx);
+            if (fcontrol && fcontrol.id() == formControlId)
+            {
+                break;
+            }
+            setIterator.next();
+        }
+        formControlTree.select(treeItemIdx);
+        this.formControlMove(treeItemIdx);
+    }
+
+    public void formControlTreeMoveLeft()
+    {
+        TreeItemIdx treeItemIdx     = formControlTree.getSelection();
+        TreeItemIdx prevItemIdx;
+        TreeItemIdx parentItemIdx;
+
+        if (!lockLayout)
+        {
+            parentItemIdx   = formControlTree.getParent(treeItemIdx);
+            if (parentItemIdx)
+            {
+                prevItemIdx     = parentItemIdx;
+                parentItemIdx   = formControlTree.getParent(parentItemIdx);
+
+                if (this.formControlTreeAllowDrop(treeItemIdx, parentItemIdx))
+                {
+                    this.formControlTreeMove(parentItemIdx, treeItemIdx, prevItemIdx);
+                }
+            }
+        }
+    }
+
+    public void formControlTreeMoveRight()
+    {
+        TreeItemIdx treeItemIdx     = formControlTree.getSelection();
+        TreeItemIdx parentItemIdx;
+
+        if (!lockLayout)
+        {
+            parentItemIdx   = formControlTree.getPrevSibling(treeItemIdx);
+            if (this.formControlTreeAllowDrop(treeItemIdx, parentItemIdx))
+            {
+                this.formControlTreeMove(parentItemIdx, treeItemIdx, FormTreeAdd::Last);
+            }
+        }
+    }
+
+    public void formControlTreeMoveVertical(boolean _upDown)
+    {
+        TreeItemIdx     selectionIdx           = formControlTree.getSelection();
+
+        if (selectionIdx)
+        {
+            SysFormTreeControl::moveVertical(formControlTree, _upDown);
+            selectionIdx = formControlTree.getSelection();
+            this.formControlMove(selectionIdx);
+        }
+    }
+
+
+    /// <summary>
+    /// Determines whether the user cannot add a control to the control that is represented by the
+    /// specified tree index.
+    /// </summary>
+    /// <param name="_controlIdx">
+    /// The tree index of the control.
+    /// </param>
+    /// <returns>
+    /// true if the user can never add a control to the control; otherwise, false.
+    /// </returns>
+    public boolean formControlTreeNeverAllowUserAdd(TreeItemIdx _controlIdx)
+    {
+        FormControl     dropControl, dropControlParent;
+        boolean         neverAllowAdd = false;
+
+        dropControl = this.formControlTreeIdx2Control(_controlIdx);
+
+        if (dropControl)
+        {
+            if ((classidget(dropControl) == classnum(FormReferenceGroupControl)) ||
+                (classidget(dropControl) == classnum(FormActionPaneControl)))
+            {
+                neverAllowAdd = true;
+            }
+            else
+            {
+                dropControlParent = dropControl.parentControl();
+                if (dropControlParent &&
+                        ((classidget(dropControlParent) == classnum(FormReferenceGroupControl)) ||
+                         (classidget(dropControlParent) == classnum(FormActionPaneControl))))
+                {
+                    neverAllowAdd = true;
+                }
+            }
+        }
+
+        return neverAllowAdd;
+    }
+
+
+    /// <summary>
+    /// Determines whether the user cannot move the control that is represented by the specified tree index.
+    /// </summary>
+    /// <param name="_controlIdx">
+    /// The tree index of the control.
+    /// </param>
+    /// <returns>
+    /// true if the user can never move the control; otherwise, false.
+    /// </returns>
+    public boolean formControlTreeNeverAllowUserMove(TreeItemIdx _controlIdx)
+    {
+        FormControl     dropControl, dropControlParent;
+        boolean         neverAllowAdd = false;
+
+        dropControl = this.formControlTreeIdx2Control(_controlIdx);
+
+        if (dropControl)
+        {
+            dropControlParent = dropControl.parentControl();
+            if (dropControlParent && classidget(dropControlParent) == classnum(FormReferenceGroupControl))
+            {
+                neverAllowAdd = true;
+            }
+        }
+
+        return neverAllowAdd;
+    }
+
+    private boolean formControlTreeSetStateImage(TreeItemIdx _treeItemIdx, ImageRes _stateImage)
+    {
+        FormTreeItem formTreeItem;
+        boolean      ret;
+
+        if (_stateImage)
+        {
+            ret = true;
+        }
+        formTreeItem = formControlTree.getItem(_treeItemIdx);
+        formTreeItem.overlayImage(_stateImage);
+        formControlTree.setItem(formTreeItem);
+
+        return ret;
+    }
+
+    private ImageRes formControlTreeStateImage(Object _formControl)
+    {
+        TreeItemIdx treeItemIdx;
+        ImageRes    imageRes;
+
+        treeItemIdx = this.formControlTreeControl2Idx(_formControl.id());
+
+        switch (this.formControlTreeAllowUserSetup(treeItemIdx))
+        {
+            case FormAllowUserSetup::No:
+                imageRes = #ImageOverlayRedLock;
+                break;
+            case FormAllowUserSetup::Restricted:
+                imageRes = #ImageOverlayYellowLock;
+                break;
+            default:
+                break;
+        }
+
+        if (imageRes)
+        {
+            imageRes = imageListAppl_Form.image(imageRes);
+        }
+
+        return imageRes;
+    }
+
+    public boolean formControlTreeTabWithChangeOverRides(formControl _control)
+    {
+
+        if (classidget(_control) == classnum(FormTabControl))
+        {
+            return this.formTabControlHasChangeOverrides(_control);
+        }
+
+        return false;
+    }
+
+    public void formControlTreeUpdateStatus(TreeItemIdx _treeItemIdx = formControlTree.getRoot(), boolean _forceAdjustStatus = false)
+    {
+        boolean         hasAdjustments;
+        FormTreeItem    formTreeItem    = formControlTree.getItem(_treeItemIdx);
+        Object          formControl     = this.formControlTreeIdx2Control(_treeItemIdx);
+        TreeItemIdx     parentIdx;
+        LabelType       labelText;
+
+        if (formTreeItem &&
+            formControl)
+        {
+            hasAdjustments = (_forceAdjustStatus ||
+                              this.formControlHasUserAdjustment(formControl));
+
+            // 'labelText' is retrieved from AOT metadata
+            labelText      = this.formControlLabel(formControl);
+
+            formTreeItem.stateBold(hasAdjustments);
+
+            //BP deviation documented
+            formTreeItem.text(labelText);
+
+            formControlTree.setItem(formTreeItem);
+        }
+
+        parentIdx = formControlTree.getParent(_treeItemIdx);
+        if (parentIdx)
+        {
+            this.formControlTreeUpdateStatus(parentIdx, (_forceAdjustStatus || hasAdjustments));
+        }
+    }
+
+    public FormControl formControlTreeUserAdd(TreeItemIdx _dragItemIdx, TreeItemIdx _parentItemIdx = formControlTree.getSelection(), TreeItemIdx _insertAfterItemIdx = 0)
+    {
+        Object          newControl,
+                        insertAfterControl;
+        FormTreeItem    dragItem;
+        FormDataSource  formDataSource;
+        Object          parentControl;
+        fieldId         fieldId;
+        TreeItemIdx     insertAfterItemIdx  = _insertAfterItemIdx;
+        TreeItemIdx     parentItemIdx       = _parentItemIdx;
+        TreeNodeName    treeNodeName;
+        Struct          struct;
+        int             i;
+
+        if (!this.formControlTreeUserAllowAdd(parentItemIdx, _dragItemIdx) &&
+            parentItemIdx)
+        {
+            insertAfterItemIdx  = parentItemIdx;
+            parentItemIdx       = formControlTree.getParent(insertAfterItemIdx);
+        }
+
+        if (this.formControlTreeUserAllowAdd(parentItemIdx, _dragItemIdx))
+        {
+            if (formControlTree.getItem(parentItemIdx))
+            {
+                parentControl = this.formControlTreeIdx2Control(parentItemIdx);
+
+                if (parentControl &&
+                    !parentControl.isContainer())
+                {
+                    insertAfterItemIdx  = parentItemIdx;
+                    parentItemIdx       = formControlTree.getParent(insertAfterItemIdx);
+                    parentControl       = this.formControlTreeIdx2Control(parentItemIdx);
+                }
+            }
+
+            if (!parentControl)
+            {
+                parentControl = this.design();
+            }
+
+            if (parentControl)
+            {
+                parentControl.useUserLayout(true);
+
+                if (insertAfterItemIdx)
+                {
+                    insertAfterControl = this.formControlTreeIdx2Control(insertAfterItemIdx);
+                }
+                dragItem        = fieldTree.getItem(_dragItemIdx);
+
+                formDataSource  = editFormRun.dataSource(fieldTree.getItem(fieldTree.getParent(_dragItemIdx)).data());
+
+                if (typeof(dragItem.data()) == Types::Integer)
+                {
+                    fieldId         = dragItem.data();
+                    newControl      = parentControl.addDataField(formDataSource.id(), fieldId, insertAfterControl);
+                }
+                else
+                {
+                    if (typeof(dragItem.data()) == Types::Class)
+                    {
+                        struct          = dragItem.data();
+                        i               = 0;
+                        do
+                        {
+                            i++;
+                            treeNodeName    = strfmt('%1_%2_%3', curuserid(), i, struct.value(#methodName));
+                        }
+                        while(this.formControlIsNameUsed(treeNodeName));
+
+                        newControl = parentControl.addControl(struct.value(#methodControlType), treeNodeName, insertAfterControl);
+                        newControl.dataSource(formDataSource.id());
+                        newControl.dataMethod(struct.value(#methodName));
+                        newControl.label(struct.value(#methodLabel));
+                        newControl.helpText(struct.value(#methodHelp));
+                    }
+                }
+
+                if (newControl)
+                {
+                    newControl.markAsUserAdd(true);
+                    this.formControlTreeAddControl(newControl, parentItemIdx, insertAfterItemIdx, true);
+                    formControlTree.expand(parentItemIdx, FormTreeExpand::Expand);
+
+                    this.blockPersonalizationReEntry();
+                }
+            }
+        }
+
+        this.formControlTreeDragOverHilite();
+
+        return newControl;
+    }
+
+    private boolean formControlTreeUserAllowAdd(TreeItemIdx _dropItemIdx, TreeItemIdx _dragItemIdx)
+    {
+        FormTreeItem    dropItem,dragItem;
+        Object          dropControl;
+        fieldId         fieldId;
+        FormDataSource  formDataSource;
+        FormGridControl formGridControl;
+        boolean         ret;
+
+        dropItem = formControlTree.getItem(_dropItemIdx);
+        dragItem = fieldTree.getItem(_dragItemIdx);
+
+        if (dragItem &&
+            !dragItem.children() &&
+            !this.formControlTreeNeverAllowUserAdd(_dropItemIdx) &&
+            !this.formControlTreeNeverAllowUserMove(_dragItemIdx) &&
+            this.formControlTreeAllowUserSetup(_dropItemIdx) == FormAllowUserSetup::Yes)
+        {
+            switch (typeof(dragItem.data()))
+            {
+                case Types::Integer:
+                    fieldId         = dragItem.data();
+                    formDataSource  = editFormRun.dataSource(fieldTree.getItem(fieldTree.getParent(_dragItemIdx)).data());
+                    if (dropItem)
+                    {
+                        dropControl = this.formControlTreeIdx2Control(dropItem.idx());
+                    }
+
+                    if (dropControl)
+                    {
+                        if (dropControl.isContainer())
+                        {
+                            if (dropControl.canAddDataField(formDataSource.id(), fieldId) &&
+                               classidget(dropControl) != classnum(FormReferenceGroupControl))
+                            {
+                                ret = true;
+                            }
+                            else
+                            {
+                                ret = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (this.designCanAddDataField(formDataSource.id(), fieldId))
+                        {
+                            ret = true;
+                        }
+                        else
+                        {
+                            ret = false;
+                        }
+                    }
+                    break;
+                case Types::Class:
+                    formDataSource  = editFormRun.dataSource(fieldTree.getItem(fieldTree.getParent(_dragItemIdx)).data());
+                    if (dropItem)
+                    {
+                        dropControl = this.formControlTreeIdx2Control(dropItem.idx());
+                    }
+
+                    if (dropControl)
+                    {
+                        if (dropControl.isContainer() &&
+                            classidget(dropControl) != classnum(FormTabControl) &&
+                            classidget(dropControl) != classnum(FormReferenceGroupControl))
+                        {
+                            ret = true;
+                        }
+                    }
+                    else
+                    {
+                        ret = true;
+                    }
+                    break;
+            }
+        }
+
+        if(ret == true)
+        {
+
+            if(dropControl == null)
+            {
+                dropControl = this.formControlTreeIdx2Control(_dropItemIdx);
+            }
+            formDataSource = editFormRun.dataSource(fieldTree.getItem(fieldTree.getParent(_dragItemIdx)).data());
+
+            // If the drop control is a formgrid, we need check if the drag and drop control have the same data source
+            formGridControl = dropControl as FormGridControl;
+            if(formGridControl != null)
+            {
+                if(!this.canAddToGrid(formGridControl.dataSourceObject(), formDataSource))
+                {
+                    ret = false;
+                }
+            }
+
+            //When add a field to a form, we always need check whether the field is in a group by query
+            if(!this.isDragFieldInGroupBy(formDataSource, fieldId))
+            {
+                ret = false;
+            }
+        }
+        return ret;
+    }
+
+
+    public void formControlTreeUserRemove(TreeItemIdx _treeItemIdx = 0)
+    {
+        TreeItemIdx     treeItemIdx     = _treeItemIdx;
+        TreeItemIdx     parentItemIdx;
+        FormTreeItem    formTreeItem;
+        Object          formControl;
+
+        if (!treeItemIdx)
+        {
+            treeItemIdx = formControlTree.getSelection();
+        }
+
+        if (treeItemIdx)
+        {
+            formTreeItem = formControlTree.getItem(treeItemIdx);
+
+            if (formTreeItem)
+            {
+                formControl = this.formControlTreeIdx2Control(formTreeItem.idx());
+                if (formControl)
+                {
+                    editFormRun.design().removeControl(formControl.id());
+                    editFormRun.arrange();
+
+                    parentItemIdx = formControlTree.getParent(formTreeItem.idx());
+                    formControlTree.delete(formTreeItem.idx());
+
+                    formControl = this.formControlTreeIdx2Control(parentItemIdx);
+                    this.formControlTreeUpdateStatus(parentItemIdx);
+
+                    this.blockPersonalizationReEntry();
+                }
+            }
+        }
+    }
+
+    public void formControlTreeVisible(boolean _visible)
+    {
+        FormControl formControl;
+        TreeItemIdx treeItemIdx = formControlTree.getSelection();
+
+        if (treeItemIdx)
+        {
+            formControl = this.formControlTreeIdx2Control(treeItemIdx);
+
+            editFormRun.resetSize();
+            formControl.userHide(_visible);
+
+            this.formControlTreeUpdateStatus(treeItemIdx);
+        }
+    }
+
+    private boolean formTabControlHasChangeOverrides(FormTabControl _control)
+    {
+        if (classidget(_control) == classnum(FormTabControl))
+        {
+
+            if (_control.hasControlPositionOverride())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public ClassName getCallerName()
+    {
+        return callerName;
+    }
+
+    public TreeNodePath getCallerPath()
+    {
+        return callerPath;
+    }
+
+    public userId getElementCreatedBy()
+    {
+        userId userId;
+        if (utilElements)
+        {
+            userId = utilElements.CreatedBy;
+        }
+        return userId;
+    }
+
+    public UTCDateTime getElementCreatedDateTime()
+    {
+        UTCDateTime createdDateTime;
+        if (utilElements)
+        {
+            createdDateTime = utilElements.CreatedDateTime;
+        }
+        return createdDateTime;
+    }
+
+    public userId getElementModifiedBy()
+    {
+        userId userId;
+        if (utilElements)
+        {
+            userId = utilElements.ModifiedBy;
+        }
+        return userId;
+    }
+
+    public UTCDateTime getElementModifiedDateTime()
+    {
+        UTCDateTime modifiedDateTime;
+        if (utilElements)
+        {
+            modifiedDateTime = utilElements.ModifiedDateTime;
+        }
+        return modifiedDateTime;
+    }
+
+    public FormName getFormName()
+    {
+        return editFormRun.name();
+    }
+
+    public FormRun getFormRun()
+    {
+        return editFormRun;
+    }
+
+    public MenuItemName getMenuItemName()
+    {
+        return menuItemName;
+    }
+
+    public TreeNodePath getMenuItemPath()
+    {
+        return menuItemPath;
+    }
+
+    /// <summary>
+    /// This function is to get the nearest FormGridControl of a drop item.
+    /// It is used when a item is added or dragged into a FormControl container.
+    /// </summary>
+    /// <param name="_dropItemIdx">
+    /// Index of drop item
+    /// </param>
+    /// <returns>
+    /// If the dropItem is a FormGridControl, return the FormGridControl.
+    /// Or if it has a FormGridControl ancestor, return the FormGridControl ancestor,  otherwise return null.
+    /// </returns>
+
+    private FormGridControl getNearestFormGridControl(TreeItemIdx _dropItemIdx)
+    {
+        Object              dropControl         = this.formControlTreeIdx2Control(_dropItemIdx);
+        FormGridControl     formGridControl     = dropControl as FormGridControl;
+        TreeItemIdx         itemIdx             = _dropItemIdx;
+        ;
+
+        while(formGridControl == null)
+        {
+            itemIdx = formControlTree.getParent(itemIdx);
+            dropControl = this.formControlTreeIdx2Control(itemIdx);
+
+            if(dropControl)
+            {
+                formGridControl = dropControl as FormGridControl;
+            }
+            else
+            {
+                //did not find FormGridControl ancestor
+                return null;
+            }
+        }
+        return formGridControl;
+    }
+
+    public void init()
+    {
+        #aot
+
+        Object          caller          = editFormRun.args().caller();
+
+        this.innerJoinedMapBuild();
+
+        select utilElements where
+            utilElements.RecordType == UtilElementType::Form &&
+            utilElements.Name       == editFormRun.name();
+
+        formControlTree.setImagelist(imageListAppl_Form.imageList());
+
+        this.DetermineCallerName();
+
+        menuItemName    = editFormRun.args().menuItemName();
+
+        if (menuItemName)
+        {
+            menuItemPath = #MenuItemsPath + #FilePathDelimiter + enum2str(editFormRun.args().menuItemType()) + #AOTDelimiter + menuItemName;
+        }
+
+        formControlTree.deleteAll();
+        this.formControlTreeBuild();
+        this.formControlTreeExpand();
+    }
+
+
+    private void innerJoinedMapBuild()
+    {
+        FormDataSource      formDataSource;
+        DataSourceNumber    dataSourceNo;
+        Counter             dataSourceCount     = editFormRun.dataSourceCount();
+        Set                 set;
+
+        innerJoinedMap = new Map(Types::Integer, Types::Class);
+
+        for (dataSourceNo = 1; dataSourceNo <= dataSourceCount; dataSourceNo++)
+        {
+            formDataSource = editFormRun.dataSource(dataSourceNo);
+
+            if (!innerJoinedMap.exists(formDataSource.id()))
+            {
+                set =  new Set(Types::Integer);
+                set.add(formDataSource.id());
+
+                innerJoinedMap.insert(formDataSource.id(), set);
+            }
+            set = innerJoinedMap.lookup(formDataSource.id());
+
+            if (formDataSource.joinSource() &&
+                formDataSource.linkType() == FormLinkType::InnerJoin)
+            {
+                set.add(formDataSource.joinSource());
+
+                if (!innerJoinedMap.exists(formDataSource.joinSource()))
+                {
+                    set =  new Set(Types::Integer);
+                    set.add(formDataSource.id());
+
+                    innerJoinedMap.insert(formDataSource.joinSource(), set);
+                }
+                set = innerJoinedMap.lookup(formDataSource.joinSource());
+                set.add(formDataSource.id());
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determine whether the field is in a group by query data source
+    /// </summary>
+    /// <param name="dragDataSource">
+    /// The data source that needs do check
+    /// </param>
+    /// <param name="dragExtendFieldId">
+    /// The extend id of the field that needs do check
+    /// </param>
+    /// <returns>
+    /// True if the query data source doesn't contain group by or the field is in the group by list;
+    /// False if the field is not in the group by list
+    /// </returns>
+    private boolean isDragFieldInGroupBy(FormDataSource dragDataSource, FieldId dragExtendFieldId)
+    {
+        Query query;
+        int groupByFieldCount;
+        int groupByFieldIndex;
+        QueryGroupByField queryGroupByField;
+        QueryBuildFieldList qbfl;
+        int fieldIndex;
+        SelectionField selectionField;
+        ;
+
+        if(dragDataSource == null)
+        {
+            return false;
+        }
+
+        query = dragDataSource.query();
+        if(query ==null)
+        {
+            return false;
+        }
+
+        groupByFieldCount = query.groupByFieldCount();
+        if(groupByFieldCount == 0)
+        {
+            return true;
+        }
+
+        for(groupByFieldIndex = 1; groupByFieldIndex <= groupByFieldCount; groupByFieldIndex++)
+        {
+            queryGroupByField = query.groupByField(groupByFieldIndex);
+            if(queryGroupByField.dataSource().table() == dragDataSource.table())
+            {
+                // Check if the field is in group by field list
+                if(queryGroupByField.fieldID() == fieldExt2Id(dragExtendFieldId))
+                {
+                    return true;
+                }
+
+                // check if the field is in aggregate field list
+                qbfl = query.dataSourceTable(dragDataSource.table()).fields();
+                for(fieldIndex = 1; fieldIndex <= qbfl.fieldCount(); fieldIndex++)
+                {
+                    selectionField = qbfl.fieldKind(fieldIndex);
+                    if(qbfl.field(fieldIndex) == fieldExt2Id(dragExtendFieldId)
+                    && (selectionField == SelectionField::Avg || selectionField == SelectionField::Max
+                       || selectionField == SelectionField::Min|| selectionField == SelectionField::Sum || selectionField == SelectionField::Count)
+                      )
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void new(FormRun _editFormRun, FormRun _sysSetupformRun)
+    {
+        super();
+
+        editFormRun = _editformRun;
+        sysSetupformRun = _sysSetupformRun;
+
+        displayMethodsInFormMap     = new Map(Types::Integer, Types::Class);
+
+        imageListAppl_Form          = new ImageListAppl_Form();
+        imageListAppl_Query         = new ImageListAppl_Query();
+    }
+
+    public void parmFieldForm(FormRun _formRun)
+    {
+        fieldFormRun = _formRun;
+    }
+
+    public void parmFieldTree(FormTreeControl _formTreeControl)
+    {
+        fieldTree = _formTreeControl;
+    }
+
+    public void parmFormControlTree(FormTreeControl _formTreeControl)
+    {
+        formControlTree = _formTreeControl;
+    }
+
+    public void parmLockLayout(boolean _lockLayout)
+    {
+        lockLayout = _lockLayout;
+    }
+}

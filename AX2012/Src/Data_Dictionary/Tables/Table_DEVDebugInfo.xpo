@@ -1,0 +1,319 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : DEVDebugInfo unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEVDebugInfo
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #DEVDebugInfo
+      Label               #@SYS40348
+      SaveDataPerCompany  #No
+      PrimaryIndex        #SessionLoginDateTimeIdx
+      ClusterIndex        #SessionLoginDateTimeIdx
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+      CreatedTransactionId #Yes
+      Origin              #{D0E8ED8C-E888-46F0-BBE3-AC4E78385766}
+      LegacyId            #51153
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #BatchCaption
+        STRING
+        PROPERTIES
+          Name                #BatchCaption
+          Label               #@SYS106675
+          HelpText            #@SYS107274
+          Table               #DEVDebugInfo
+          Origin              #{5A4B6950-7B40-4744-9A09-08068A386A22}
+          LegacyId            #50005
+          ExtendedDataType    #BatchCaption
+          StringSize          #100
+        ENDPROPERTIES
+        
+      FIELD #BatchJobCaption
+        STRING
+        PROPERTIES
+          Name                #BatchJobCaption
+          Label               #@SYS114518
+          HelpText            #@SYS107273
+          Table               #DEVDebugInfo
+          Origin              #{9AA5F2E2-66CB-4F59-84ED-73FA9402AE06}
+          LegacyId            #50006
+          ExtendedDataType    #BatchCaption
+          StringSize          #100
+        ENDPROPERTIES
+        
+      FIELD #BatchJobRefRecId
+        INT64
+        PROPERTIES
+          Name                #BatchJobRefRecId
+          Table               #DEVDebugInfo
+          Origin              #{E86E3F6C-BC5D-4FB6-A68D-0C3515D7C229}
+          LegacyId            #50004
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+      FIELD #BatchRefRecId
+        INT64
+        PROPERTIES
+          Name                #BatchRefRecId
+          Table               #DEVDebugInfo
+          Origin              #{DC44E732-87F1-450F-AF42-358E2DBA1544}
+          LegacyId            #50003
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+      FIELD #Callstack
+        STRING
+        PROPERTIES
+          Name                #Callstack
+          Table               #DEVDebugInfo
+          Origin              #{1100D540-6D29-4576-9B9F-88CA5EBE8F73}
+          LegacyId            #50007
+          ExtendedDataType    #SysTraceCallstack
+          StringSize          #(Memo)
+        ENDPROPERTIES
+        
+      FIELD #CompanyId
+        STRING
+        PROPERTIES
+          Name                #CompanyId
+          Table               #DEVDebugInfo
+          Origin              #{56E6AD29-0AD5-4BAB-A7EB-11C517D6F0A4}
+          LegacyId            #50009
+          ExtendedDataType    #CompanyId
+          StringSize          #4
+        ENDPROPERTIES
+        
+      FIELD #Description
+        STRING
+        PROPERTIES
+          Name                #Description
+          Table               #DEVDebugInfo
+          Origin              #{169DB3AD-D1A4-43FC-9417-6EB3008192D4}
+          LegacyId            #50008
+          StringSize          #300
+        ENDPROPERTIES
+        
+      FIELD #SessionId
+        INT
+        PROPERTIES
+          Name                #SessionId
+          Table               #DEVDebugInfo
+          Origin              #{CDC54800-239D-44AB-931F-82D58C2C96BF}
+          LegacyId            #50001
+          ExtendedDataType    #SessionId
+        ENDPROPERTIES
+        
+      FIELD #SessionLoginDateTime
+        DATETIME
+        PROPERTIES
+          Name                #SessionLoginDateTime
+          Table               #DEVDebugInfo
+          Origin              #{BECF9872-A930-4DE5-8EBD-7319CE894329}
+          LegacyId            #50002
+          ExtendedDataType    #SessionLoginDateTime
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+    ENDGROUPS
+    
+    INDICES
+      #SessionLoginDateTimeIdx
+      PROPERTIES
+        Name                #SessionLoginDateTimeIdx
+        AllowDuplicates     #No
+        Origin              #{34B8E715-B4E2-4AE0-AB2A-5F9CC7DC6B12}
+        LegacyId            #50001
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #SessionLoginDateTime
+        #SessionId
+        #RecId
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+      REFERENCE #Batch
+        PROPERTIES
+          Name                #Batch
+          Table               #Batch
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #BatchRefRecId
+            RelatedField        #RecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #BatchJob
+        PROPERTIES
+          Name                #BatchJob
+          Table               #BatchJob
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE NORMAL
+          PROPERTIES
+            Field               #BatchJobRefRecId
+            RelatedField        #RecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #callStack
+        #static str callStack()
+        #{
+        #    str         result  = "========= call stack =============";
+        #    container   c       = xSession::xppCallStack();
+        #    int         i;
+        #    ;
+        #    if (xSession::isCLRSession())
+        #    {
+        #        new InteropPermission(InteropKind::ClrInterop).assert();
+        #        result += '\r\n' + CLRInterop::getAnyTypeForObject(new System.Diagnostics.StackTrace(1, true).ToString());
+        #    }
+        #    else
+        #    {
+        #        for( i = 1; i <= conLen(c); i++ )
+        #        {
+        #            result += '\r\n' + strfmt( '%1', conPeek(c, i) );
+        #        }
+        #    }
+        #
+        #    return result;
+        #}
+      ENDSOURCE
+      SOURCE #callStack2infolog
+        ##define.PathPrefixLen       (4)
+        ##localmacro.ClientPrefix    '(C)' #endmacro
+        ##localmacro.ServerPrefix    '(S)' #endmacro
+        ##localmacro.RegexPatternFmt '^\\s*\\S+\\s+\%1\\.\%2.+\%1\\.(\%3\\.\%4|\%5\\.(\%6|\%7|\%8))\\(.+?\\n(.*)' #endmacro
+        ##define.RegexResultStr      ('$3')
+        ##define.DotNetAppNamespace  ('Dynamics.Ax.Application')
+        #public static void callStack2infolog(str _prefix = "@SYS65092", Counter _skipLevels = 0)
+        #{
+        #    System.Text.RegularExpressions.MatchCollection  matches;
+        #    System.Text.RegularExpressions.Match            oneMatch;
+        #    System.Diagnostics.StackTrace                   stackTrace;
+        #    container                                       stack;
+        #    TreeNodePath                                    correctPath;
+        #    TreeNodePath                                    stackPath;
+        #    Counter                                         n;
+        #    str                                             regexPattern;
+        #    str                                             clrStack;
+        #    int                                             skipLevels = max(0, _skipLevels);
+        #    int                                             line;
+        #    ;
+        #    setPrefix(_prefix);
+        #    if (xSession::isCLRSession())
+        #    {
+        #        new InteropPermission(InteropKind::ClrInterop).assert();
+        #        stackTrace = new System.Diagnostics.StackTrace(true);
+        #        clrStack = stackTrace.ToString();
+        #        stackTrace = null;
+        #        regexPattern = strFmt(  #RegexPatternFmt,
+        #                                strReplace(#DotNetAppNamespace, '.', '\\.'),
+        #                                strReplace(funcName(), '::', '\\.'),
+        #                                classStr(Info),
+        #                                methodStr(Info, Add),
+        #                                classStr(Global),
+        #                                staticMethodStr(Global, error),
+        #                                staticMethodStr(Global, warning),
+        #                                staticMethodStr(Global, info)
+        #                             );
+        #        matches = System.Text.RegularExpressions.Regex::Matches(clrStack, regexPattern, System.Text.RegularExpressions.RegexOptions::Singleline);
+        #        n = matches.get_Count();
+        #        if (n > 0)
+        #        {
+        #            oneMatch = matches.get_Item(0);
+        #            clrStack = oneMatch.Result(#RegexResultStr);
+        #            oneMatch = null;
+        #        }
+        #        matches = null;
+        #        CodeAccessPermission::revertAssert();
+        #        info(clrStack);
+        #    }
+        #    else
+        #    {
+        #        stack = xSession::xppCallStack();
+        #        for (n = 3 + skipLevels * 2; n <= conLen(stack); n += 2)
+        #        {
+        #            stackPath   = conPeek(stack,n);
+        #            line        = conPeek(stack,n+1);
+        #            correctPath = stackPath;
+        #            if (line)
+        #            {
+        #                if (    substr(stackPath, 1, #PathPrefixLen) == #ClientPrefix
+        #                    ||  substr(stackPath, 1, #PathPrefixLen) == #ServerPrefix
+        #                   )
+        #                {
+        #                    correctPath = substr(stackPath, #PathPrefixLen + 1, maxint());
+        #                }
+        #                info(strFmt('%1 %2', stackPath, line),'', SysInfoAction_Editor::newLineColumn(correctPath, line));
+        #            }
+        #            else
+        #            {
+        #                info(strFmt('%1', stackPath));
+        #            }
+        #        }
+        #    }
+        #}
+        #
+      ENDSOURCE
+      SOURCE #logEvent
+        #static void logEvent(str _description = '', Batch _batch = null)
+        #{
+        #    DEVDebugInfo   debugInfo;
+        #    xSession        session     = new xSession();
+        #    UserConnection  connection  = new UserConnection();
+        #    ;
+        #    debugInfo.setConnection(connection);
+        #
+        #    debugInfo.clear();
+        #    debugInfo.initValue();
+        #
+        #    debugInfo.Description           = _description;
+        #    debugInfo.Callstack             = DEVDebugInfo::callStack();
+        #    debugInfo.BatchRefRecId         = _batch.RecId;
+        #    debugInfo.BatchCaption          = _batch.Caption;
+        #    debugInfo.BatchJobRefRecId      = _batch.BatchJobId;
+        #    //debugInfo.BatchJobCaption       = BatchJob::kar_findRecId(_batch.BatchJobId).Caption;
+        #    debugInfo.CompanyId             = curExt();
+        #    debugInfo.SessionId             = session.sessionId();
+        #    debugInfo.SessionLoginDateTime  = session.loginDateTime();
+        #
+        #    debugInfo.insert();
+        #}
+      ENDSOURCE
+      SOURCE #logEvent_Closing
+        #static void logEvent_Closing(str _description = '', Batch _batch = null)
+        #{
+        #    ;
+        #    DEVDebugInfo::logEvent(_description, _batch);
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

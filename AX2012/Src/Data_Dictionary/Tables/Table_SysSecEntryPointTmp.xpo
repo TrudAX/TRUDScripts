@@ -1,0 +1,395 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : SysSecEntryPointTmp unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #SysSecEntryPointTmp
+    EnforceFKRelation 1
+    PROPERTIES
+      Name                #SysSecEntryPointTmp
+      Label               #@SDT1
+      TableType           #InMemory
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      PrimaryIndex        #SurrogateKey
+      ClusterIndex        #SurrogateKey
+      DeveloperDocumentation  #This table holds the security development tool temp data
+      Origin              #{A5D98382-37E7-4E7F-9EF7-CCF5A8C48099}
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #AccessRight
+        ENUM
+        PROPERTIES
+          Name                #AccessRight
+          Label               #@SYS338612
+          HelpText            #@SYS338613
+          Table               #SysSecEntryPointTmp
+          Origin              #{BF78D9D4-D133-4FA4-8A2D-35A654546E61}
+          EnumType            #AccessRight
+        ENDPROPERTIES
+        
+      FIELD #EffectiveUserLicense
+        ENUM
+        PROPERTIES
+          Name                #EffectiveUserLicense
+          Label               #@SDT2
+          HelpText            #@SDT3
+          Table               #SysSecEntryPointTmp
+          Origin              #{AD50BAD1-46B1-4FCE-A62F-602E7377128C}
+          EnumType            #UserLicenseType
+        ENDPROPERTIES
+        
+      FIELD #EPTraceIsPostBack
+        ENUM
+        PROPERTIES
+          Name                #EPTraceIsPostBack
+          Label               #@SDT4
+          HelpText            #@SDT5
+          Table               #SysSecEntryPointTmp
+          Origin              #{6A25F953-5DCA-4763-A282-FA2D523565BC}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #EPTraceModuleName
+        STRING
+        PROPERTIES
+          Name                #EPTraceModuleName
+          Label               #@SDT6
+          HelpText            #@SDT7
+          Table               #SysSecEntryPointTmp
+          Origin              #{4BED41DE-9ED3-4168-BF71-844A5A2658DD}
+          ExtendedDataType    #Str1260
+          StringSize          #1260
+        ENDPROPERTIES
+        
+      FIELD #EPTracePageName
+        STRING
+        PROPERTIES
+          Name                #EPTracePageName
+          Label               #@SDT8
+          HelpText            #@SDT9
+          Table               #SysSecEntryPointTmp
+          Origin              #{58DF83CD-C67A-4CFC-802A-1173294A500E}
+          ExtendedDataType    #IdentifierName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #EPTraceSessionId
+        INT
+        PROPERTIES
+          Name                #EPTraceSessionId
+          Label               #@SDT10
+          HelpText            #@SDT11
+          Table               #SysSecEntryPointTmp
+          Origin              #{6E1C2765-908C-4F93-9FED-556890786C2E}
+          ExtendedDataType    #SessionId
+        ENDPROPERTIES
+        
+      FIELD #EPTraceUserName
+        STRING
+        PROPERTIES
+          Name                #EPTraceUserName
+          Label               #@SDT12
+          HelpText            #@SDT13
+          Table               #SysSecEntryPointTmp
+          Origin              #{E3EB0EE3-0268-4304-B904-5E06876173A3}
+          ExtendedDataType    #Str1260
+          StringSize          #1260
+        ENDPROPERTIES
+        
+      FIELD #MaintainUserLicense
+        ENUM
+        PROPERTIES
+          Name                #MaintainUserLicense
+          Label               #@SDT14
+          HelpText            #@SDT15
+          Table               #SysSecEntryPointTmp
+          Origin              #{D04BDD6C-4E66-45DC-9764-E3A48B30416F}
+          EnumType            #UserLicenseType
+        ENDPROPERTIES
+        
+      FIELD #NewAccessRight
+        ENUM
+        PROPERTIES
+          Name                #NewAccessRight
+          Label               #@SDT16
+          HelpText            #@SDT17
+          Table               #SysSecEntryPointTmp
+          Origin              #{65D4F909-7264-4D24-AF06-5D351E548097}
+          EnumType            #AccessRight
+        ENDPROPERTIES
+        
+      FIELD #ObjectAOTChildName
+        STRING
+        PROPERTIES
+          Name                #ObjectAOTChildName
+          Label               #@SYS338630
+          HelpText            #@SYS338631
+          Table               #SysSecEntryPointTmp
+          Origin              #{84BC5E89-9552-45EE-969A-2CF52E19AD24}
+          ExtendedDataType    #IdentifierName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #ObjectAOTDisplayName
+        STRING
+        PROPERTIES
+          Name                #ObjectAOTDisplayName
+          Table               #SysSecEntryPointTmp
+          Origin              #{5E6DA975-E343-4E8E-AC9D-200744C93413}
+          ExtendedDataType    #SysSecObjectAOTDisplayName
+          StringSize          #81
+        ENDPROPERTIES
+        
+      FIELD #ObjectAOTLayer
+        ENUM
+        PROPERTIES
+          Name                #ObjectAOTLayer
+          Label               #@SYS342472
+          HelpText            #@SYS26367
+          Table               #SysSecEntryPointTmp
+          Origin              #{7CC9015E-E2C6-400B-889C-77F86C25F89E}
+          EnumType            #UtilEntryLevel
+        ENDPROPERTIES
+        
+      FIELD #ObjectAOTModel
+        STRING
+        PROPERTIES
+          Name                #ObjectAOTModel
+          Table               #SysSecEntryPointTmp
+          Origin              #{733DAB1B-093D-4EE2-8AC5-70981A1A03AA}
+          ExtendedDataType    #ModelDisplayName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #ObjectAOTName
+        STRING
+        PROPERTIES
+          Name                #ObjectAOTName
+          Label               #@SDT18
+          HelpText            #@SDT19
+          Table               #SysSecEntryPointTmp
+          Origin              #{5B1DA45E-3E27-46E0-A99D-90DD3A182983}
+          ExtendedDataType    #IdentifierName
+          StringSize          #40
+        ENDPROPERTIES
+        
+      FIELD #ObjectDescription
+        STRING
+        PROPERTIES
+          Name                #ObjectDescription
+          Label               #@SDT20
+          Table               #SysSecEntryPointTmp
+          Origin              #{7CF59953-2133-4247-A9B6-1F9E47F06524}
+          ExtendedDataType    #LabelType
+          StringSize          #1999
+        ENDPROPERTIES
+        
+      FIELD #ObjectID
+        INT64
+        PROPERTIES
+          Name                #ObjectID
+          Label               #@SYS338606
+          Visible             #No
+          Table               #SysSecEntryPointTmp
+          Origin              #{471119DE-05A1-40EC-BEC8-BBE5B7832B9E}
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+      FIELD #ObjectKey
+        STRING
+        PROPERTIES
+          Name                #ObjectKey
+          Visible             #No
+          Table               #SysSecEntryPointTmp
+          Origin              #{F4B2429B-175B-46D0-983D-EBEB129EC995}
+          ExtendedDataType    #SysSecEntryPointKey
+          StringSize          #100
+        ENDPROPERTIES
+        
+      FIELD #ObjectLabel
+        STRING
+        PROPERTIES
+          Name                #ObjectLabel
+          Table               #SysSecEntryPointTmp
+          Origin              #{E8526236-7715-48E6-BBE0-2F0BBEF9A4B8}
+          ExtendedDataType    #LabelType
+          StringSize          #1999
+        ENDPROPERTIES
+        
+      FIELD #ObjectType
+        ENUM
+        PROPERTIES
+          Name                #ObjectType
+          Label               #@SYS338628
+          HelpText            #@SYS338629
+          Table               #SysSecEntryPointTmp
+          Origin              #{5E64BAC1-AE5E-43A7-AC78-FF7D7DCA2912}
+          EnumType            #SecurableType
+        ENDPROPERTIES
+        
+      FIELD #OldAccessRight
+        ENUM
+        PROPERTIES
+          Name                #OldAccessRight
+          Label               #@SDT21
+          HelpText            #@SDT22
+          Table               #SysSecEntryPointTmp
+          Origin              #{C13E8665-950B-4B06-8E19-B67FF1FEF0D7}
+          EnumType            #AccessRight
+        ENDPROPERTIES
+        
+      FIELD #Recorded
+        ENUM
+        PROPERTIES
+          Name                #Recorded
+          Label               #@SDT23
+          HelpText            #@SDT24
+          Table               #SysSecEntryPointTmp
+          Origin              #{27C3FE0D-1A34-4131-A6FC-E5BF0EEE811A}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #SystemUserRight
+        ENUM
+        PROPERTIES
+          Name                #SystemUserRight
+          Label               #@SDT25
+          HelpText            #@SDT26
+          Table               #SysSecEntryPointTmp
+          Origin              #{EDC92341-EAB2-4C65-BBC6-CA078E9BD911}
+          EnumType            #AccessRight
+        ENDPROPERTIES
+        
+      FIELD #UserLicenseApplies
+        ENUM
+        PROPERTIES
+          Name                #UserLicenseApplies
+          Label               #@SDT27
+          HelpText            #@SDT28
+          Table               #SysSecEntryPointTmp
+          Origin              #{0D1E33F0-BC86-4FEE-915B-F429AB9B0FDA}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #ViewUserLicense
+        ENUM
+        PROPERTIES
+          Name                #ViewUserLicense
+          Label               #@SDT29
+          HelpText            #@SDT30
+          Table               #SysSecEntryPointTmp
+          Origin              #{2BF98D15-AC69-4F70-9EA3-AD16AB26FD4A}
+          EnumType            #UserLicenseType
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #EntryPointManager
+        PROPERTIES
+          Name                #EntryPointManager
+          Label               #@SDT31
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Recorded
+          #ObjectType
+          #ObjectAOTDisplayName
+          #AccessRight
+          #OldAccessRight
+          #SystemUserRight
+          #ObjectLabel
+          #UserLicenseApplies
+          #EffectiveUserLicense
+          #ObjectAOTLayer
+          #ObjectAOTModel
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #EPTrace
+        PROPERTIES
+          Name                #EPTrace
+          Label               #@SDT32
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #EPTraceUserName
+          #EPTraceSessionId
+          #EPTraceModuleName
+          #EPTracePageName
+          #EPTraceIsPostBack
+          #ObjectType
+          #ObjectAOTName
+          #AccessRight
+          #SystemUserRight
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #ReferenceObject
+        PROPERTIES
+          Name                #ReferenceObject
+          Label               #@SDT33
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #ObjectLabel
+          #ObjectAOTName
+          #AccessRight
+          #ObjectDescription
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #SetEntryPointRights
+        PROPERTIES
+          Name                #SetEntryPointRights
+          Label               #@SDT34
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #ObjectType
+          #ObjectAOTDisplayName
+          #NewAccessRight
+          #AccessRight
+          #SystemUserRight
+          #ObjectLabel
+          #UserLicenseApplies
+          #ViewUserLicense
+          #MaintainUserLicense
+          #ObjectAOTLayer
+          #ObjectAOTModel
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #ObjectKeyIdx
+      PROPERTIES
+        Name                #ObjectKeyIdx
+        AllowDuplicates     #No
+        Origin              #{396393DE-36AD-42D0-9E19-EF74AA90DCCA}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #ObjectKey
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

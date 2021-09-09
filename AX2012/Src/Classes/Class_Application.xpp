@@ -1,0 +1,2369 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+class Application extends xApplication
+{
+    char                            charMax;
+
+    SysCodeProfiler                 sysCodeProfiler;
+    xRef                            lastxRef;
+    boolean                         updatexRefDisable;      // Update of xRef in database. Can be temporarely canceled
+
+    // Handling of startupcommands
+    SysStartupCmd                   sysStartupCmd;
+
+    // Multipurpose cache used e.g. for imagelists and Forms security setup
+    SysGlobalCache                  globalCache;
+
+    // Handle for Inventory Multi Transaction System
+    InventUpdateOnhandGlobal        inventUpdateOnhandGlobal;
+
+    // Handle for caching mechanism for Number Sequences
+    NumberSeqNumCache               numberSeqNumCache;
+
+    // Transactional scope caching
+    boolean                         transactionalScopeCacheExists;
+
+    // Handle for numbersequence system
+    NumberSeqGlobal                 numberSeqGlobal;
+
+    // Handle for transaction log update control
+    TransactionlogUpdateTTSControl  transactionlogUpdateTTSControl;
+
+    ReleaseUpdateTmpVersionInfo releaseUpdateTmpVersionInfo;
+
+    // Handle for cost transactions
+    InventCostUpdateGlobal          inventCostUpdateGlobal;
+
+    // Handle for resource scheduling logger
+    WrkCtrSchedulerLogger           resourceSchedulerLogger;
+
+    // Handle for WMSLocationChecks
+    WMSLocationConstraintCheckerGlobal wmsLocationConstraintCheckerGlobal;
+
+    // Handle for budget control processor
+    BudgetControlProcessor budgetControlProcessor;
+
+    // Track whether setDefaultCompany has been called at least once
+    boolean setDefaultCompanyCalled;
+
+    // Wraps the systemSequence.suspendRecIds(...) functionallity.
+    SysRecIdSequence sysRecIdSequence;
+
+    // Allow code using RunAs to transition to IL to use interpreter instead
+    boolean executeBusinessOperationsWithCLR;
+    boolean executeOperationsWithCLRInitialized;
+    #define.PropertyString("Property")
+
+    LedgerPostingProcessor ledgerPostingProcessor;
+
+    // Handle for source document processing
+    SourceDocumentProcessContext   sourceDocumentProcessContext;
+
+    /// <summary>
+    ///   Gets the <c>BudgetControlProcessor</c> class instance.
+    /// </summary>
+    /// <returns>
+    ///   The <c>BudgetControlProcessor</c> class instance.
+    /// </returns>
+    public BudgetControlProcessor budgetControlProcessor()
+    {
+        if (!budgetControlProcessor)
+        {
+            budgetControlProcessor = BudgetControlProcessor::construct();
+        }
+
+        return budgetControlProcessor;
+    }
+
+
+    public boolean canDeleteCompany(SelectableDataArea dataareaId)
+    {
+        DocuRef             docuRef;
+        DocuValue           docuValue;
+        SysUserProfiles     sysUserProfiles;
+        EventCompanyRule    eventCompanyRule;
+        UserInfo            userInfo;
+
+        // SYP Modifications - SP2 - Begin
+        // correcting error HQ-230-50-8JHc
+        VirtualDataAreaList virtualDataAreaList;
+        SysRecordLevelSecurity sysRecordLevelSecurity;
+        // SYP Modifications - SP2 - ENd
+
+        BatchJob batchJob;
+        Batch batch;
+        BatchJobHistory batchJobHistory;
+        BatchHistory batchHistory;
+
+        select firstonly RecId from batchJob where batchJob.Company ==dataareaId;
+
+        if (batchJob)
+        return false;
+
+        select firstonly RecId from batch where batch.Company == dataareaId;
+
+        if (batch)
+        return false;
+
+        select firstonly RecId from batchJobHistory where batchJobHistory.Company == dataareaId;
+
+        if (batchJobHistory)
+        return false;
+
+        select firstonly RecId from batchHistory where batchHistory.Company == dataareaId;
+
+        if (batchHistory)
+        return false;
+
+        if (!super(dataareaId))
+        {
+            return false;
+        }
+
+        select docuRef
+            where docuRef.RefCompanyId == dataareaId;
+
+        if (docuRef)
+        return false;
+
+        select docuValue
+            notexists join docuRef where docuRef.ValueRecId == docuValue.RecId;
+
+        if (docuValue)
+        return false;
+
+        select virtualDataAreaList
+            where virtualDataAreaList.Id == dataareaId;
+
+        if (virtualDataAreaList)
+        return false;
+
+        select sysRecordLevelSecurity
+            where sysRecordLevelSecurity.CompanyId == dataareaId;
+
+        if (sysRecordLevelSecurity)
+        return false;
+
+
+        select sysUserProfiles
+            where sysUserProfiles.Company == dataareaId;
+
+        if (sysUserProfiles)
+        return false;
+
+        select eventCompanyRule
+            where eventCompanyRule.CompanyId == dataareaId;
+
+        if (eventCompanyRule)
+        return false;
+
+        select firstonly RecId from userInfo where userInfo.Company ==dataareaId;
+
+        if (userInfo)
+        return false;
+
+        return true;
+    }
+
+
+    /// <summary>
+    ///    Retrieves a Boolean value that determines whether constraint checks on <c>WMSLocation</c> locations
+    ///    should be performed.
+    /// </summary>
+    /// <returns>
+    ///    true if the checks can be done; otherwise, false.
+    /// </returns>
+    /// <remarks>
+    ///    This is done for performance reasons to avoid overhead for customers that does not have the
+    ///    <c>WMSBasic</c> configurationr key enabled.
+    /// </remarks>
+    private boolean canDoWMSLocationConstraintChecks()
+    {
+        return isConfigurationkeyEnabled(configurationKeyNum(WMSBasic));
+    }
+
+    /// <summary>
+    ///   check whether cross reference can be updated.
+    /// </summary>
+    /// <returns>
+    ///   return boolean specifying the result.
+    /// </returns>
+    boolean canUpdatexRef()
+    {
+        // update db as we are running in updating xref
+        if (!updatexRefDisable)
+            return true;
+
+        // no update as we are running in updating xref for instance view
+        return false;
+    }
+
+    char charMax()
+    {
+        SysSortOrder sysSortOrder;
+
+        if (xSession::isCLRSession() && charMax=="")
+        {
+            ttsbegin;
+            select firstonly forupdate sysSortOrder
+                order by Char desc;
+            ttscommit;
+
+            if (sysSortOrder)
+            {
+                charMax = sysSortOrder.Char;
+            }
+        }
+
+        return charMax;
+    }
+
+    private void clearTransactionalScopeCache()
+    {
+        this.globalCache().clear(classStr(SysTransactionScopeCache));
+
+        transactionalScopeCacheExists = false;
+    }
+
+    void closingDown()  //called when Axapta is shutting down. The process can not be stopped
+    {
+        SysUserLog userLog;
+        Session session = new Session();
+        #OccRetryCount
+
+        if (!Session::isServer())
+        {
+            SysUtilElementsLog::persistRegisteredUsages();
+
+            DimensionMRUProvider::saveInstance();
+
+            ttsbegin;
+            select firstonly forupdate userLog
+                where userLog.UserId      == curUserId() &&
+                     userLog.CreatedDateTime == session.loginDateTime();
+            try
+            {
+                if (userLog)
+                {
+                    userLog.LogoutDateTime = DateTimeUtil::utcNow();
+                    userLog.TerminatedOk = true;
+                    userLog.update();
+                }
+            }
+            catch (Exception::UpdateConflict)
+            {
+                if (xSession::currentRetryCount() >= #RetryNum)
+                {
+                    throw Exception::UpdateConflictNotRecovered;
+                }
+                else
+                {
+                    userLog.reread();
+                    retry;
+                }
+            }
+            ttscommit;
+        }
+    }
+
+    private void createEventCUD(
+        Common          bufferCur,
+        EventLogType    logType,
+        container       changedFields   = conNull(),
+        Common          bufferOrig      = null
+        )
+    {
+        EventCUD    eventCUD;
+        List        list;
+        SysDictTable dictTable;
+        VirtualDataAreaList virtualDataAreaList;
+
+        dictTable = new SysDictTable(bufferCur.TableId);
+
+        if (dictTable.dataPrCompany() && bufferCur.DataAreaId == curext() &&
+            !EventCompanyRule::hasCompanyRules(curext()))
+        {
+            return;
+        }
+
+        ttsbegin;
+
+        //construct the cud record
+        eventCUD.CudTableId = bufferCur.TableId;
+        eventCUD.CudRecId   = bufferCur.RecId;
+        eventCUD.Event      = logType;
+        eventCUD.Status     = BatchStatus::Hold;
+        eventCUD.CudTableId     = bufferCur.TableId;
+        eventCUD.CudRecId       = bufferCur.RecId;
+        if (dictTable.instanceRelationType() != 0)
+        {
+            eventCUD.CudInstanceRelationType = bufferCur.getFieldValue(fieldId2name(dictTable.id(), dictTable.instanceRelationType()));
+        }
+
+        eventCUD.Event          = logType;
+        eventCUD.Status         = BatchStatus::Hold;
+        eventCUD.DataPerCompany = dictTable.dataPrCompany();
+
+        // CUD records now write the bufferOrig differently, so it will
+        // have to be unpacked differently.
+        eventCUD.CudRecordVersion = 2;
+
+        if (conLen(changedFields) > 0)
+        {
+            eventCUD.LogMap::setData(bufferCur, bufferOrig, changedFields);
+        }
+        else if (logType == EventLogType::Insert)
+        {
+            eventCUD.LogMap::setData(bufferCur);
+        }
+
+        list                = SysDictTable::getUniqueIndexFields(bufferCur.TableId);
+        if (list)
+        {
+            eventCUD.keyFieldList(list.pack());
+            eventCUD.keyFieldData(SysDictTable::mapFieldIds2Values(list,bufferCur).pack());
+        }
+        if (bufferOrig)
+        {
+            eventCUD.PreviousRecord = buf2Con(bufferOrig);
+        }
+
+        //if it's a shared table, create a CUD record for each company
+        if (!dictTable.dataPrCompany())
+        {
+            eventCUD.CompanyId = '';
+            eventCUD.insert();
+        }
+        else
+        {
+            if (bufferCur.DataAreaId == curext())
+            {
+                 eventCUD.CompanyId = curext();
+                 eventCUD.insert();
+            }
+            else
+            {
+                // for each company being part of the virtual company generate a CUD record
+                while select Id from virtualDataAreaList
+                    where virtualDataAreaList.VirtualDataArea == bufferCur.DataAreaId
+                {
+                    if (EventCompanyRule::hasCompanyRules(virtualDataAreaList.Id))
+                    {
+                        eventCUD.CompanyId = virtualDataAreaList.Id;
+                        eventCUD.insert();
+                    }
+                }
+            }
+        }
+
+
+        ttscommit;
+    }
+
+    ///   <summary />
+    ///    <param name="p1" />
+    ///    <returns />
+    ///
+    /// <remarks>
+    ///    This API has a built-in authorization check that is invoked at run time. An exception is thrown if calls to this method are made by users who do not have access to the <see cref="Development Security
+    ///    Key (SysDevelopment)" />
+    /// </remarks>
+    public boolean dbSynchronize(
+        TableId         tableId                 = 0,   // 0 = all tables, non-zero is a valid table handle
+        boolean         syncAsNeeded            = true,  // true = objects touched in the AOT, false = unconditional synchronize
+        boolean         continueOnError         = true,
+        boolean         showProgress            = true,  // true = report all problems, but throw only after all tables are synchronized, false = stop synchronize after first error/problem
+        container       checkSyncTables         = conNull(), // [0] all tables or [x, y, z, ...] for 1 or more tables
+        boolean         createAllIndexes        = true,
+        boolean         useLockForSingleTable   = true)
+    {
+        boolean ok;
+        ReqReaderWriterLock reqReaderWriterLock = ReqReaderWriterLock::construct();
+        str lockName = 'AXSYNC' + (tableId == 0 ? 'TABLES' : ('TABLEID' + int2str(tableId)));
+        SqlSyncPending      sqlSyncPending;
+
+        setPrefix("@SYS22807");
+        //trud developer tool, 25.05.2004 -->
+        if (! tableId && DEVCommentsTool::isSuperUser() && isRunningMode() )
+        {
+            sqlSyncPending = new SqlSyncPending();
+
+            if (SQLSyncPending.databaseTouched())
+            {
+                if (Box::okCancel('Sync database?', DialogButton::Cancel) == DialogButton::Cancel)
+                {
+                    SQLSyncPending.databaseTouched(false);
+                    return false;
+                }
+
+            }
+        }
+        //trud developer tool, 25.05.2004 <--
+
+        // Use a database-level lock (name defined above, based on which table we're attempting to synchronize)
+        // This prevents multiple synchronizations from happening in parallel, which can be an issue if you're
+        // trying to start up multiple AOS instances at the same time.
+        // We release the lock at the bottom of this method.
+        reqReaderWriterLock.enterUpdateLock(lockName);
+
+        ok = super(tableId, syncAsNeeded, continueOnError, showProgress, checkSyncTables, createAllIndexes, useLockForSingleTable);
+
+        if (ok)
+        {
+            if (this.isRunningMode())
+            {
+                SysApplicationSetup::saveApplicationVersion(SysApplicationSetupMode::Synhronize);
+
+                // flush the AIF Caches.
+                AifUtil::flushAifCaches();
+            }
+
+            if (syncAsNeeded == false &&
+                isConfigurationkeyEnabled(configurationKeyNum(ShipCarrier)) &&
+                (tableId == 0 || tableId == tableNum(ShipCarrierStaging)) &&
+                ShipCarrierStaging::isPhysicallyExistingInDB())
+            {
+                ShipCarrierStaging::createDBTrigger();
+            }
+
+            if (syncAsNeeded == false &&
+                isConfigurationkeyEnabled(configurationKeyNum(ShipCarrier)) &&
+                (tableId == 0 || (tableId == tableNum(ShipCarrierStaging) ||
+                                  tableId == tableNum(ShipCarrierShippingRequest) ||
+                                  tableId == tableNum(ShipCarrierCODPackage) ||
+                                  tableId == tableNum(ShipCarrierSQLRoleUser))) &&
+                 ShipCarrierStaging::isPhysicallyExistingInDB() &&
+                 ShipCarrierSQLRoleUser::isPhysicallyExistingInDB() &&
+                 ShipCarrierCODPackage::isPhysicallyExistingInDB())
+            {
+                // super() call above will have validated security;
+                // so running the createDBSToredProcedure unchecked.
+                unchecked(Uncheck::TableSecurityPermission)
+                {
+                    ShipCarrierSQLRoleUser::createDBStoredProcedure();
+                }
+            }
+
+            if (syncAsNeeded == false
+                && isConfigurationkeyEnabled(configurationKeyNum(WHSandTMS))
+                && (tableId == 0 || tableId == tableNum(WHSInventReserve) || tableId == tableNum(InventDim))
+                && InventDim::isPhysicallyExistingInDB()
+                && WHSInventReserve::isPhysicallyExistingInDB())
+            {
+                WHSOnHandSPHelper::syncDBStoredProcedures();
+            }
+
+            if (syncAsNeeded == false
+                && (tableId == 0 || (tableId == tableNum(InventTrans) ||
+                                     tableId == tableNum(SystemSequences) ||
+                                     tableId == tableNum(InventClosingNonFinancialInventTrans) ||
+                                     tableId == tableNum(InventTransOriginTransfer) ||
+                                     tableId == tableNum(InventDim) ||
+                                     tableId == tableNum(InventTransOrigin)))
+                && isPhysicallyExistingInDB(tableNum(InventTransOriginTransfer))
+                && isPhysicallyExistingInDB(tableNum(InventClosingNonFinancialInventTrans))
+                && isPhysicallyExistingInDB(tableNum(InventTrans))
+                && isPhysicallyExistingInDB(tableNum(InventDim))
+                && isPhysicallyExistingInDB(tableNum(InventTransOrigin)))
+            {
+                InventCostPreCloseNonFinTransferHelper::syncDBStoredProcedure();
+            }
+
+            // Create AIF Change Tracking stored procedures
+            if (syncAsNeeded == false &&
+                (tableId == 0 || (tableId == tableNum(AifSqlCdcEnabledTables))) &&
+                 AifSqlCdcEnabledTables::isPhysicallyExistingInDB())
+            {
+                new AifChangeTrackingPermission().assert();
+                AifChangeTrackingConfiguration::initialize();
+            }
+
+
+            if (syncAsNeeded == false &&
+                tableId == 0 &&
+                !SysCheckList_Upgrade::isUpgrade())
+            {
+                SysSetupInstaller::loadAllData(true);
+            }
+        }
+
+        reqReaderWriterLock.exit(lockName);
+
+        return ok;
+    }
+
+    public void deleteCompany(SelectableDataArea dataareaId, boolean fDeleteCompanyInfo = true)
+    {
+        DocuRef             docuRef;
+        DocuValue           docuValue;
+        SysUserProfiles     sysUserProfiles;
+        CompanyInfo         companyInfo;
+        EventCompanyRule    eventCompanyRule;
+
+        SysLastValue        sysLastValue;
+
+        // SYP Modifications - SP2 - Begin
+        // correcting error HQ-230-50-8JHc
+        VirtualDataAreaList virtualDataAreaList;
+        SysRecordLevelSecurity sysRecordLevelSecurity;
+        // SYP Modifications - SP2 - ENd
+
+        BatchJob batchJob;
+        Batch batch;
+        BatchJobHistory batchJobHistory;
+        BatchHistory batchHistory;
+
+        ttsbegin;
+        //Delete data in batch framework related tables
+        delete_from batchJob where batchJob.Company == dataareaId
+            notexists join batch where batch.BatchJobId == batchJob.RecId
+            && batch.Company != dataareaId;
+
+        delete_from batchJobHistory where batchJobHistory.Company == dataareaId
+            notexists join batchHistory where batchHistory.BatchJobHistoryId == batchJobHistory.RecId
+            && batchHistory.Company != dataareaId;
+
+        //find if there's still data in batch tables, if this is the case then it's a cross company job
+        //and admin needs to manually go and delete them.
+        select firstonly RecId from batchJob where batchJob.Company ==dataareaId;
+        select firstonly RecId from batch where batch.Company == dataareaId;
+        select firstonly RecId from batchJobHistory where batchJobHistory.Company == dataareaId;
+        select firstonly RecId from batchHistory where batchHistory.Company == dataareaId;
+        if (batchJob.RecId || batch.RecId || batchJobHistory.RecId || batchHistory.RecId)
+        {
+            throw error("@SYS121668");
+        }
+
+        ttscommit;
+
+        super(dataareaId);
+
+        // Delete all docuRef records relating to the deleted company
+        ttsbegin;
+
+        docuRef.skipDeleteMethod(true);
+        docuRef.skipDeleteActions(true);
+        docuRef.skipDatabaseLog(true);
+
+        delete_from docuRef
+            where docuRef.RefCompanyId == dataareaId;
+
+        // Delete all docuValue rows which are not referenced anymore
+        docuValue.skipDeleteActions(true);
+        docuValue.skipDeleteMethod(true);
+        docuValue.skipDatabaseLog(true);
+        delete_from docuValue
+            notexists join docuRef where docuRef.ValueRecId == docuValue.RecId;
+
+        // Delete SysLastValue relating to the deleted company
+
+        delete_from sysLastValue
+            where sysLastValue.Company == dataareaId;
+
+        // SYP Modifications - SP2 - Begin
+        // correcting error HQ-230-50-8JHc
+
+        // delete company information from VirtualDataAreaList
+        delete_from virtualDataAreaList
+            where virtualDataAreaList.Id == dataareaId;
+
+        // delete company information from SysRecordLevelSecurity
+        delete_from sysRecordLevelSecurity
+            where sysRecordLevelSecurity.CompanyId == dataareaId;
+
+        // SYP Modifications - SP2 - End
+
+        //Delete user profile associations related to the deleted company
+        delete_from sysUserProfiles
+            where sysUserProfiles.Company == dataareaId;
+
+        if (fDeleteCompanyInfo)
+        {
+            //Delete Company information form CompanyInfo
+            //Set based operation for SC/sc tables uses row by row and skip method only works on set based
+            //So calling doDelete() instead
+            new SkipAOSValidationPermission().assert();
+            companyInfo.skipAosValidation(true);
+
+            while select forupdate companyInfo
+                where companyInfo.DataArea == dataareaId
+            {
+                companyInfo.doDelete();
+            }
+            CodeAccessPermission::revertAssert();
+        }
+        delete_from eventCompanyRule
+            where eventCompanyRule.CompanyId == dataareaId;
+
+        ttscommit;
+    }
+
+    /// <summary>
+    ///    Serves as a callback that is called by the kernel when a record in a table is deleted, provided
+    ///    that the kernel has been set up to monitor records in that table.
+    /// </summary>
+    /// <param name="_recordDeleted">
+    ///    The deleted record.
+    /// </param>
+    /// <remarks>
+    ///    A developer can set up the kernel to call back on deletes for a given table by inserting a record
+    ///    into the <c>DatabaseLog</c> kernel table with all fields set to relevant values, which includes the
+    ///    <c>logType</c> field set to the <c>EventDelete</c>.This is very similar to how the <c>logDelete</c>
+    ///    is called and set up.The call of this method will be in the transaction in which the record is
+    ///    deleted.
+    /// </remarks>
+    public void eventDelete(Common _recordDeleted)
+    {
+        super(_recordDeleted);
+
+        this.createEventCUD(_recordDeleted,EventLogType::Delete, conNull(), _recordDeleted);
+            // When a record is deleted we see it as the 'original' record.
+    }
+
+    /// <summary>
+    ///    Serves as a callback that is called by the kernel when a record in a table is inserted, provided
+    ///    that the kernel has been set up to monitor records in that table.
+    /// </summary>
+    /// <param name="_recordInserted">
+    ///    The inserted record.
+    /// </param>
+    /// <remarks>
+    ///    A developer can set up the kernel to call back on inserts for a given table by inserting a record
+    ///    into the DatabaseLog kernel table with all fields set to relevant values, which includes the field
+    ///    logType set to EventInsert.This is very similar to how <see cref="M:Application.logInsert" /> is
+    ///    called and set up.The call of this method will be in the transaction in which the record is
+    ///    inserted.
+    /// </remarks>
+    public void eventInsert(Common _recordInserted)
+    {
+        super(_recordInserted);
+
+        this.createEventCUD(_recordInserted,EventLogType::Insert);
+    }
+
+    /// <summary>
+    ///    Serves as a callback that is called by the kernel when a primary key is renamed, if the kernel has
+    ///    been set up to monitor records in that table.
+    /// </summary>
+    /// <param name="_recordOrig">
+    ///    The original record, before the rename.
+    /// </param>
+    /// <param name="_recordUpdated">
+    ///    The updated record (after the rename).
+    /// </param>
+    /// <param name="_changedFields">
+    ///    A container of all changed fields.
+    /// </param>
+    /// <remarks>
+    ///    A developer can set up the kernel to call back on primary key renames for a given table by
+    ///    inserting a record into the DatabaseLog kernel table with all fields set to relevant values, which
+    ///    includes setting the logType field to EventRenameKey.This resembles how <c>logRenameKey</c> is
+    ///    called and set up.The call of this method will be in the transaction in which the primary key is
+    ///    renamed.
+    /// </remarks>
+    public void eventRenameKey(Common _recordOrig, Common _recordUpdated, container _changedFields)
+    {
+        super(_recordOrig, _recordUpdated, _changedFields);
+
+        this.createEventCUD(_recordUpdated,EventLogType::RenameKey,_changedFields,_recordOrig);
+    }
+
+    /// <summary>
+    ///    Serves as a callback that is called by the kernel when a record in a table is updated, provided
+    ///    that the kernel has been set up to monitor records in that table.
+    /// </summary>
+    /// <param name="_recordOrig">
+    ///    The original record, before the update.
+    /// </param>
+    /// <param name="_recordUpdated">
+    ///    The updated record.
+    /// </param>
+    /// <param name="_changedFields">
+    ///    A container of all changed fields.
+    /// </param>
+    /// <remarks>
+    ///    A developer can set up the kernel to call back on updates for a given table by inserting a record
+    ///    into the DatabaseLog kernel table with all fields set to relevant values, which includes the field
+    ///    logType set to EventUpdate. It is possible to set up that the kernel should call back whenever a
+    ///    record is updated or when a specific field is updated.This is very similar to how <c>logUpdate</c>
+    ///    is called and set up.The call of this method will be in the transaction in which the record is
+    ///    updated.
+    /// </remarks>
+    public void eventUpdate(Common _recordOrig, Common _recordUpdated, container _changedFields)
+    {
+        super(_recordOrig, _recordUpdated, _changedFields);
+
+        this.createEventCUD(_recordUpdated,EventLogType::Update,_changedFields,_recordOrig);
+    }
+
+    List getApplTables()
+    {
+        #define.DEL_BATCH                   (13)
+        #define.DEL_BATCHGROUP              (14)
+        #define.DEL_SYSUPGRADETIMEZONE      (2815)
+        #define.DEL_SYSUPGRADEBASETIMEZONE  (1796)
+        #define.DEL_COMPANYDOMAINLIST       (65509)
+
+        List applTables = new List(Types::Integer);
+
+        void addTable(TableId _tableId)
+        {
+            applTables.addEnd(_tableId);
+        }
+
+        //NOTE:
+        //If you are adding pre-existing ( < 4.01 ) tables
+        //to be synchronized at startup
+        //and if the tables have CREATEDDATETIME/MODIFIEDDATETIME fields
+        //you need to add the table to
+        //ReleaseUpdateDb41_Basic::updateTimeZoneSystemTablesToBeUpgraded
+        //If you do not add your table in this method
+        //then the system date time fields will not be upgraded
+        addTable(tableNum(SysSetupLog)); //must be called first since dbSynchronize calls findEx on sysSetupLog...
+        addTable(tableNum(SysSetupCompanyLog));
+        addTable(tableNum(SysRecordTemplateTable));
+        addTable(tableNum(SysRecordTemplateSystemTable));
+        addTable(tableNum(SysTraceTable));
+        addTable(tableNum(SysTraceTableSQL));
+        addTable(tableNum(SysTraceTableSQLExecPlan));
+        addTable(tableNum(SysTraceTableSQLTabRef));
+        addTable(tableNum(SysUserLog));
+        addTable(tableNum(SysUserLogRoleSettings));
+        addTable(tableNum(SysUserInfo));
+        addTable(tableNum(SysUtilElementsLog));
+        addTable(tableNum(SysInetCSS));
+        addTable(tableNum(SysInetThemeTable));
+        addTable(tableNum(SysImageTable));
+        addTable(tableNum(SysPersonalization));
+        addTable(tableNum(LanguageTable));
+
+        // sync SysSignatureSetup table
+        addTable(tableNum(SysSignatureSetup));
+
+        addTable(tableNum(SysDataBaseLog));
+        addTable(tableNum(SysExceptionTable));
+
+        //Sync Batch needed tables
+        addTable(#DEL_BATCH);
+        addTable(#DEL_BATCHGROUP);
+        addTable(tableNum(BatchJob));
+        addTable(tableNum(BatchConstraints));
+        addTable(tableNum(Batch));
+        addTable(tableNum(BatchGroup));
+        addTable(tableNum(SysServerConfig));
+        addTable(tableNum(SysClusterConfig));
+        addTable(tableNum(BatchServerConfig));
+        addTable(tableNum(BatchJobAlerts));
+        addTable(tableNum(BatchServerGroup));
+        addTable(tableNum(BatchJobHistory));
+        addTable(tableNum(BatchHistory));
+        addTable(tableNum(BatchConstraintsHistory));
+        addTable(tableNum(BatchGlobal));
+        //End of batch needed tables
+
+        // X++ IL
+        addTable(tableNum(SysCompileILTable));
+
+        // EP Server State tables
+        addTable(tableNum(EPWebSiteParameters));
+        addTable(tableNum(EPGlobalParameters));
+
+        addTable(tableNum(SysBCProxyUserAccount));
+
+        // SRS Server table needed for setup
+        addTable(tableNum(SRSServers));
+
+        // BIAnalysisServer table needed during setup
+        addTable(tableNum(BIAnalysisServer));
+
+        //Project Server Integration Table needed during setup
+        addTable(tableNum(SyncParameters));
+
+        // Services tables needed for hosting service groups on first AOS start.
+        addTable(tableNum(AifWebsites));    // Needed for "web services on IIS" setup component.
+        addTable(tableNum(AifAction));
+        addTable(tableNum(AifAdapter));
+        addTable(tableNum(AifChannel));
+        addTable(tableNum(AifDocumentField));
+        addTable(tableNum(AifDocumentSchemaTable));
+        addTable(tableNum(AifGlobalSettings));
+        addTable(tableNum(AifInboundPort));
+        addTable(tableNum(AifPort));
+        addTable(tableNum(AifPortActionPolicy));
+        addTable(tableNum(AifPortDocument));
+        addTable(tableNum(AifRuntimeCache));
+        addTable(tableNum(AifSchemaStore));
+        addTable(tableNum(AifService));
+        addTable(tableNum(AifWcfConfiguration));
+        addTable(tableNum(AifAppShareFile));
+        // End of service needed tables
+
+
+        // sync currency table since it is cached and can't risk a pre-cache of the data before the sync happens
+        addTable(tableNum(Currency));
+
+        // sync SQM needed tables
+        addTable(tableNum(SysSQMSettings));
+
+        // sync progress table
+        addTable(tableNum(SysProgress));
+
+        // Best Practice parameters
+        addTable(tableNum(SysBPParameters));
+
+        // sync license compare needed tables
+        addTable(tableNum(SysRemoveFields));
+        addTable(tableNum(SysRemoveTables));
+        addTable(tableNum(SysRemoveConfig));
+        addTable(tableNum(SysRemoveLicense));
+
+        addTable(tableNum(SysLicenseCodeSort));
+        addTable(tableNum(DocuParameters));
+        addTable(tableNum(SysSecurityFormTable));
+        addTable(tableNum(SysSecurityFormControlTable));
+        addTable(tableNum(SysEvent));
+        addTable(tableNum(KMConnectionType));
+        addTable(tableNum(SalesParmUpdate));
+        addTable(tableNum(SalesParmSubTable));
+        addTable(tableNum(PurchParmUpdate));
+        addTable(tableNum(PurchParmSubTable));
+        addTable(tableNum(SysVersionControlParameters));
+        addTable(tableNum(ReleaseUpdateScripts));
+        addTable(tableNum(ReleaseUpdateScriptDependency));
+        addTable(tableNum(ReleaseUpdateJobStatus));
+        addTable(tableNum(ReleaseUpdateScriptsUsedTables));
+        addTable(tableNum(ReleaseUpdateBulkTableInfo));
+        addTable(tableNum(ReleaseUpdateSysDeleted));
+        addTable(tableNum(DocuOpenFile));
+        addTable(tableNum(TimezoneInfo));
+        addTable(#DEL_SYSUPGRADETIMEZONE);
+        addTable(#DEL_SYSUPGRADEBASETIMEZONE);
+
+        addTable(tableNum(WorkflowWorkItemDelegationParameters));
+        addTable(tableNum(WorkflowWorkItemCommentTable));
+
+        //These tables are used for code upgrade
+        addTable(tableNum(SysUpgradeTreeNodeConflictInfo));
+        addTable(tableNum(SysUpgradeParameters));
+        addTable(tableNum(SysUpgradeOverriddenEstimates));
+
+        // source to target tables
+
+        addTable(tableNum(ReleaseUpdateBulkCopyParameters));
+        addTable(tableNum(ReleaseUpdateBulkFlags));
+
+        addTable(tableNum(ReleaseUpdateBulkCopyTable));
+        addTable(tableNum(ReleaseUpdateBulkCopyField));
+        addTable(tableNum(DEL_SysSetupLog));
+        if (isConfigurationkeyEnabled(configurationKeyNum(Retail)))
+        {
+            addTable(tableNum(DEL_RBOSetupLog));
+        }
+
+        addTable(tableNum(ReleaseUpdateTransformTable));
+        addTable(tableNum(DEL_ReleaseUpdateTransformTable));
+        addTable(tableNum(ReleaseUpdateTransformSourceField));
+        addTable(tableNum(ReleaseUpdateTransformTargetField));
+        addTable(tableNum(ReleaseUpdateBulkCopyTableExceptions));
+        addTable(tableNum(ReleaseUpdateDiscoveryStatus));
+
+        addTable(tableNum(DEL_ReleaseUpdateDictionaries));
+
+        //Bug 104614 & 109049
+        addTable(tableNum(ReleaseUpdateTableRelationType));
+        addTable(tableNum(ReleaseUpdateBulkCopyFieldOptions));
+        //End Bug
+
+        addTable(tableNum(DEL_SqlDictionary));
+        addTable(tableNum(DEL_SystemSequences));
+        addTable(tableNum(DEL_SysLastValue));
+
+        addTable(tableNum(ReleaseUpdateBulkCopyLog));
+
+        addTable(tableNum(ReleaseUpdateSpecialTableMapping));
+        addTable(tableNum(ReleaseUpdateSpecialFieldMapping));
+
+        addTable(tableNum(ReleaseUpdateBulkRefRecIdPatch));
+        addTable(tableNum(ReleaseUpdateExtendedDataTypes));
+        addTable(tableNum(ReleaseUpdateDataAreaOffsets));
+        addTable(tableNum(ReleaseUpdateConfiguration));
+
+        addTable(tableNum(DataArea));
+        addTable(tableNum(VirtualDataAreaList));
+        addTable(#DEL_COMPANYDOMAINLIST);
+        addTable(tableNum(ReleaseUpdateConfigKey));
+
+        addTable(tableNum(NumberSequenceDatatype));
+        addTable(tableNum(NumberSequenceDatatypeParameterType));
+
+        addTable(tableNum(SysXppAssembly));
+
+        addTable(tableNum(SecurityRoleAllTasksView));
+        // Security view used by Search setup
+        addTable(tableNum(SecurityFieldsDeniedAccesssSomeRoleView));
+
+        addTable(tableNum(ReleaseUpdateLog));
+        addTable(tableNum(ReleaseUpdateDynamicDependency));
+        addTable(tableNum(ReleaseUpdateScriptsHistory));
+        addTable(tableNum(ReleaseUpdateMinorScripts));
+        addTable(tableNum(ReleaseUpdateValidation));
+
+        // Add Company related tables.
+        addTable(tableNum(DirPartyTable));
+        addTable(tableNum(DirOrganizationBase));
+        addTable(tableNum(OMInternalOrganization));
+        addTable(tableNum(CompanyInfo));
+
+        addTable(tableNum(DEL_DataArea));
+        addTable(tableNum(DEL_ReleaseUpdatePartitions));
+        addTable(tableNum(DEL_ReleaseUpdatePartitionsMapping));
+
+        // Tables needed for Analysis Services project generation at build time
+        if (isConfigurationkeyEnabled(configurationKeyNum(ReportingServices)))
+        {
+            addTable(tableNum(BIAnalysisServicesDatabase));
+            addTable(tableNum(BIConfiguration));
+            addTable(tableNum(BIDateDimension));
+            addTable(tableNum(BIDateDimensionTranslations));
+            addTable(tableNum(BIDateDimensionValue));
+            addTable(tableNum(BIDateGregorian));
+            addTable(tableNum(BIDateHierarchy));
+            addTable(tableNum(BIPerspectives));
+            addTable(tableNum(SRSAnalysisEnums));
+            addTable(tableNum(SRSModelEntityCache));
+            addTable(tableNum(SRSModelFieldCache));
+            addTable(tableNum(SRSModelForeignKeyCache));
+            addTable(tableNum(SRSModelIndexCache));
+            addTable(tableNum(SRSModelPerspectiveCache));
+            addTable(tableNum(SRSModelPerspectiveEntityCache));
+            addTable(tableNum(SRSModelPerspectiveFieldCache));
+            addTable(tableNum(SRSModelPerspectiveForeignKeyCache));
+            addTable(tableNum(SRSModelPerspectiveRoleCache));
+            addTable(tableNum(SRSModelRoleCache));
+            addTable(tableNum(SRSModelRoleGroupsCache));
+        }
+
+        addTable(tableNum(SysSetupPartitionLog));
+        addTable(tableNum(DirPartyLocation));
+        addTable(tableNum(SysClientPerf));
+        addTable(tableNum(SysPersonalization));
+        addTable(tableNum(NumberSequenceTable));
+        addTable(tableNum(NumberSequenceList));
+        addTable(tableNum(LogisticsLocation));
+        addTable(tableNum(LogisticsPostalAddress));
+        addTable(tableNum(LogisticsAddressCountryRegion));
+        addTable(tableNum(DirPersonUser));
+        addTable(tableNum(DocuRef));
+
+        // Company images tables
+        addTable(tableNum(CompanyImage));
+        addTable(tableNum(ECPPresentation));
+        addTable(tableNum(EcoResProductImage));
+
+        addTable(tableName2id(tableStr(SysAxComponentVersionHistory)));
+
+        // Exchange Server or Outlook user setup.
+        addTable(tableName2id(tableStr(OutlookUserSetup)));
+
+        return applTables;
+    }
+
+    sysReleasedVersion getFromVersion()
+    {
+        #SysCheckList
+        sysReleasedVersion fromVersion;
+        int fromMajor, fromMinor, fromBuild, fromDotBuild;
+        int toMajor, toMinor, toBuild, toDotBuild;
+
+        [ toMajor, toMinor, toBuild, toDotBuild ] = ReleaseUpdateTmpVersionInfo::sysBuildNo2container(ApplicationVersion::applBuildNo());
+
+        // Find the biggest sysReleasedVersion this application has been upgraded or setup to
+
+        select firstonly releaseUpdateTmpVersionInfo
+            order by Major desc, Minor desc, Build desc, DotBuild  desc // find the biggest one first
+            where (releaseUpdateTmpVersionInfo.Name == classStr(SysCheckList_Upgrade) || releaseUpdateTmpVersionInfo.Name == classStr(SysCheckList_Setup))
+            &&    releaseUpdateTmpVersionInfo.Description == #CheckListFinished;
+
+        if (releaseUpdateTmpVersionInfo)
+        {
+            [ fromMajor, fromMinor, fromBuild, fromDotBuild ] = [ releaseUpdateTmpVersionInfo.Major, releaseUpdateTmpVersionInfo.Minor, releaseUpdateTmpVersionInfo.Build, releaseUpdateTmpVersionInfo.DotBuild ];
+
+            // Check for 'down-grading'
+            if (ReleaseUpdateTmpVersionInfo::compareMMBD(fromMajor, fromMinor, fromBuild,fromDotBuild, toMajor, toMinor, toBuild, toDotBuild) >0 )
+            {
+                warning(strFmt("@SYS100689",
+                    fromMajor, fromMinor, fromBuild,fromDotBuild,
+                    toMajor, toMinor, toBuild, toDotBuild));
+            }
+        }
+
+        fromVersion = this.majorMinorEtc2sysReleasedVersion(fromMajor, fromMinor, fromBuild, fromDotBuild, false /* = don't round up */ );
+
+        return fromVersion;
+    }
+
+    public str getSameNameDifferentIdFields()
+    {
+        // This method is called when the kernel has detected that a field a sameName/differentIds problem
+
+        UtilIdElements utilIdElementsHigh; // e.g. USr
+        UtilIdElements utilIdElementsLow;  // e.g. SYS, SYP, ...
+        str errorMessage;
+        str errorMessages;
+        UtilEntryLevel layer = Global::currentAOLayer();
+
+        if (layer == UtilEntryLevel::sys)
+        {
+            return '';
+        }
+
+        // for each field in e.g. USr
+        while select ParentId, Name, Id, UtilLevel from utilIdElementsHigh
+            where   utilIdElementsHigh.UtilLevel  == layer &&
+                    utilIdElementsHigh.RecordType == UtilElementType::TableField
+        {
+            // find a field in another lower layer with the same name but different Id
+            while select Id, UtilLevel from utilIdElementsLow
+                where   utilIdElementsLow.UtilLevel < layer &&
+                        utilIdElementsLow.RecordType == UtilElementType::TableField &&
+                        utilIdElementsLow.ParentId   == utilIdElementsHigh.ParentId && // same table
+                        utilIdElementsLow.Name       == utilIdElementsHigh.Name     && // same field name
+                        utilIdElementsLow.Id         != utilIdElementsHigh.Id          // different IDs
+
+            {
+                // The message below is not localized because it will be written in the event log
+                errorMessage = strFmt('Field %1.%2 has ID %3 in the %4 layer and ID %5 in the %6 layer. ',
+                    tableId2name(utilIdElementsHigh.ParentId),
+                    utilIdElementsHigh.Name,
+                    utilIdElementsHigh.Id,
+                    utilIdElementsHigh.UtilLevel,
+                    utilIdElementsLow.Id,
+                    utilIdElementsLow.UtilLevel);
+
+                error(errorMessage);
+
+                errorMessages += errorMessage;
+            }
+        }
+
+        return errorMessages;
+    }
+
+    sysReleasedVersion getToVersion()
+    {
+        sysReleasedVersion toVersion;
+        int myMajor, myMinor, myBuild, myDotBuild;
+
+
+        // e.g. if 4.01 (4.0 refresh) is 4.0.2500.11, 4.1 build is 4.1.1501.8
+        // then,
+        //      from 4.0.2500.10, derive  sysReleasedVersion::v401 (unreleased builds of 4.01)
+        //      from 4.0.2500.11, derive  sysReleasedVersion::v401 (RTM of major SYS release 4.01)
+        //      from 4.0.2500.12, derive  sysReleasedVersion::v41  (hotfix for 4.01)
+        //      from 4.0.2560.5, derive  sysReleasedVersion::v41 (service pack for 4.01)
+        //      from 4.1.1200.0, derive  sysReleasedVersion::v41 (unreleased builds of 4.1)
+        //      from 4.1.1501.8, derive  sysReleasedVersion::v41 (RTM of major SYS release 4.1)
+        //
+        // Note: roundUP==TRUe
+        // To handle data upgrade scripts hotfix and service pack situations.  Hotfixes and service packs are rolled
+        // forward to the next SYS release, so the upgrade scripts are plugged in to the upgrade script
+        // classes ReleaseUpdateDBXX_YYY. Therefore mapping the actual application build number to the next SysReleasedVersion
+        // post the actual application build number.
+        //
+        //          |                                       |
+        //          |                     x                 |
+        //         Version 4.01          4.0 hotfix         Version 4.1
+        //
+
+        [ myMajor, myMinor, myBuild, myDotBuild ] = ReleaseUpdateTmpVersionInfo::sysBuildNo2container(ApplicationVersion::applBuildNo());
+
+        toVersion = this.majorMinorEtc2sysReleasedVersion(myMajor, myMinor, myBuild, myDotBuild, true /* do round up */);
+
+        return toVersion;
+    }
+
+    /// <summary>
+    ///    Retrieves an instance of the <c>WMSLocationConstraintCheckerGlobal</c> class.
+    /// </summary>
+    /// <returns>
+    ///    An instance of the <c>WMSLocationConstraintCheckerGlobal</c> class.
+    /// </returns>
+    /// <remarks>
+    ///    If the <c>WMSLocationConstraintCheckerGlobal</c> class has not been initialized a new instance will
+    ///    be created.
+    /// </remarks>
+    public WMSLocationConstraintCheckerGlobal getWMSLocationConstraintCheckerGlobal()
+    {
+        // Only one instance per session
+        if (!wmsLocationConstraintCheckerGlobal)
+        {
+            wmsLocationConstraintCheckerGlobal = WMSLocationConstraintCheckerGlobal::construct();
+        }
+
+        return wmsLocationConstraintCheckerGlobal;
+    }
+
+    SysGlobalCache globalCache()
+    {
+        if (!globalCache)
+        {
+            globalCache = SysGlobalCache::construct();
+        }
+
+        return globalCache;
+    }
+
+    void initBaseData()
+    {
+        // Use this method to initialize data that should be present in the database at startup
+        SysInetCSS::initBaseData();
+        SysInetThemeTable::initBaseData();
+    }
+
+    /// <summary>
+    /// Initialize the operation execution property from the database
+    /// </summary>
+    /// <remarks>
+    /// The property is only initialized once from the database.
+    /// </remarks>
+    private void initializeBusinessOperationExecProperty()
+    {
+        // These macros are also defined in the SysUserSetup form
+        #LOCALMACRO.FLAG_ExecBusinessOpsWithInterpreter (1 << 10) #ENDMACRO
+        #LOCALMACRO.PARM_ExecBusinessOpsWithInterpreter ((UserInfo.DebugInfo & #FLAG_ExecBusinessOpsWithInterpreter) >> 10) #ENDMACRO
+
+        UserInfo userInfo;
+        if (!executeOperationsWithCLRInitialized)
+        {
+            select firstOnly1 GeneralInfo from userInfo where userInfo.Id == curUserId();
+            if (userInfo)
+            {
+                // If the bit is not set it means execute with CLR
+                executeBusinessOperationsWithCLR = !#PARM_ExecBusinessOpsWithInterpreter;
+            }
+            else
+            {
+                executeBusinessOperationsWithCLR = true;
+            }
+            executeOperationsWithCLRInitialized = true;
+        }
+    }
+
+    /// <summary>
+    ///   Insert the xref into database.
+    /// </summary>
+    void insertxReferences()
+    {
+        if (this.canUpdatexRef())
+        {
+            xRefCreate::insertxReferences(true);
+        }
+    }
+
+    /// <summary>
+    ///    Returns an instance of the <c>inventCostUpdateGlobal</c> class.
+    /// </summary>
+    /// <returns>
+    ///    Returns an instance of the <c>inventCostUpdateGlobal</c> class.
+    /// </returns>
+    /// <remarks>
+    ///    If the <c>inventCOstUpdateGlobal</c> class has not been initiated, a new instance will be created
+    ///    by calling the <c>inventCostUpdateGlobal::construct</c> method.
+    /// </remarks>
+
+    public InventCostUpdateGlobal inventCostUpdateGlobal()
+    {
+        // Only one instance per session
+        // different dataareaIds will be handeled inside the inventCostUpdateGlobal class
+        if (!inventCostUpdateGlobal)
+        {
+            inventCostUpdateGlobal = InventCostUpdateGlobal::construct();
+        }
+
+        return inventCostUpdateGlobal;
+    }
+
+    InventUpdateOnhandGlobal inventUpdateOnhandGlobal()
+    {
+        if (!inventUpdateOnhandGlobal)
+        {
+            inventUpdateOnhandGlobal = InventUpdateOnhandGlobal::construct();
+        }
+        return inventUpdateOnhandGlobal;
+    }
+
+    boolean isRunningMode()
+    {
+        if (SysCheckList_Setup::isSetupMode(this.isConfigMode()))
+        {
+            // Setup_checklist is running, so we are not in running mode
+            return false;
+        }
+
+        if (SysCheckList_Upgrade::isUpgradeMode() && SysCheckList_Upgrade::isUpgrade())
+        {
+            // Upgrade_checklist is running, so we are not in running mode
+            return false;
+        }
+
+        if (SysCheckList_SetupPartition::isSetupMode(this.isConfigMode()))
+        {
+            // SetupPartition_checklist is running, so we are not in running mode
+            return false;
+        }
+
+
+        return true;
+    }
+
+    CreatedTransactionId  lastTransactionIdCreated(CreatedTransactionId  _lastTransactionId = 0)
+    {
+        if (prmisDefault(_lastTransactionId))
+        {
+            return this.globalCache().get(funcName(), curext(), 0);
+        }
+
+        this.globalCache().set(funcName(), curext(), _lastTransactionId);
+        return _lastTransactionId;
+    }
+
+    /// <summary>
+    ///   Returns the last xref.
+    /// </summary>
+    /// <param name="_lastxRef">
+    ///    class instance contaning xref information.
+    /// </param>
+    /// <returns>
+    ///   The <c>xref</c> class instance.
+    /// </returns>
+    xRef lastxRef(xRef _lastxRef = lastxRef)
+    {
+        lastxRef = _lastxRef;
+        return lastxRef;
+    }
+
+    /// <summary>
+    /// Gets the <c>LedgerPostingProcessor</c> object.
+    /// </summary>
+    /// <returns>
+    /// The <c>LedgerPostingProcessor</c> object.
+    /// </returns>
+    public LedgerPostingProcessor ledgerPostingProcessor()
+    {
+        if (ledgerPostingProcessor == null)
+        {
+            ledgerPostingProcessor = LedgerPostingProcessor::construct();
+        }
+
+        return ledgerPostingProcessor;
+    }
+
+
+    void logDelete(Common recordDeleted)
+    {
+        SysDataBaseLog sysDataBaseLog;
+        boolean        traceEnabled;
+
+        super(recordDeleted);
+
+        traceEnabled = appl.company().logAlways(DatabaseLogType::Delete);
+
+        if (traceEnabled == NoYes::Yes)
+        {
+            // Trace the deleted record for future cleanup
+            SysTestRecordCleanUp::traceRowDelete(recordDeleted);
+        }
+        else
+        {
+            // Assert the permission to insert into SysDatabaseLog table
+            new SysDatabaseLogPermission().assert();
+
+            if (!new DictTable(recordDeleted.TableId).dataPrCompany())
+            {
+                changecompany('dat')
+                {
+                    sysDataBaseLog.LogType  = DatabaseLogType::Delete;
+                    sysDataBaseLog.Table    = recordDeleted.TableId;
+                    sysDataBaseLog.LogRecId = recordDeleted.RecId;
+                    sysDataBaseLog.LogMap::setData(recordDeleted);
+                    sysDataBaseLog.setDescription(recordDeleted);
+                    sysDataBaseLog.insert();
+                }
+            }
+            else
+            {
+                sysDataBaseLog.LogType  = DatabaseLogType::Delete;
+                sysDataBaseLog.Table    = recordDeleted.TableId;
+                sysDataBaseLog.LogRecId = recordDeleted.RecId;
+                sysDataBaseLog.LogMap::setData(recordDeleted);
+                sysDataBaseLog.setDescription(recordDeleted);
+                sysDataBaseLog.insert();
+            }
+        }
+    }
+
+    void logInsert(Common recordInserted)
+    {
+        SysDataBaseLog          sysDataBaseLog;
+        boolean                 traceEnabled;
+
+        super(recordInserted);
+
+        // Check if I have been called from the Unit test framework
+        traceEnabled = appl.company().logAlways(DatabaseLogType::Insert);
+
+        if (traceEnabled == NoYes::Yes)
+        {
+            // Tracing has been switched on during a unit test
+            // Trace the created record
+            SysTestRecordCleanUp::traceRow(recordInserted);
+        }
+        else
+        {
+            // Assert the permission to insert into SysDatabaseLog table
+            new SysDatabaseLogPermission().assert();
+
+            if (!new DictTable(recordInserted.TableId).dataPrCompany())
+            {
+                changecompany('dat')
+                {
+                    sysDataBaseLog.LogType  = DatabaseLogType::Insert;
+                    sysDataBaseLog.Table    = recordInserted.TableId;
+                    sysDataBaseLog.LogRecId = recordInserted.RecId;
+                    sysDataBaseLog.LogMap::setData(recordInserted);
+                    sysDataBaseLog.setDescription(recordInserted);
+                    sysDataBaseLog.insert();
+                }
+            }
+            else
+            {
+                sysDataBaseLog.LogType  = DatabaseLogType::Insert;
+                sysDataBaseLog.Table    = recordInserted.TableId;
+                sysDataBaseLog.LogRecId = recordInserted.RecId;
+                sysDataBaseLog.LogMap::setData(recordInserted);
+                sysDataBaseLog.setDescription(recordInserted);
+                sysDataBaseLog.insert();
+            }
+        }
+    }
+
+    void logRenameKey(Common recordOrig, Common recordUpdated, container changedFields)
+    {
+        SysDataBaseLog sysDataBaseLog;
+
+        super(recordOrig, recordUpdated, changedFields);
+
+        // Assert the permission to insert into SysDatabaseLog table
+        new SysDatabaseLogPermission().assert();
+
+        if (!new DictTable(recordUpdated.TableId).dataPrCompany())
+        {
+            changecompany('dat')
+            {
+                sysDataBaseLog.LogType  = DatabaseLogType::RenameKey;
+                sysDataBaseLog.Table    = recordUpdated.TableId;
+                sysDataBaseLog.LogRecId = recordUpdated.RecId;
+                sysDataBaseLog.LogMap::setData(recordUpdated, recordOrig, changedFields);
+                sysDataBaseLog.setDescription(recordUpdated);
+                sysDataBaseLog.insert();
+            }
+        }
+        else
+        {
+            sysDataBaseLog.LogType  = DatabaseLogType::RenameKey;
+            sysDataBaseLog.Table    = recordUpdated.TableId;
+            sysDataBaseLog.LogRecId = recordUpdated.RecId;
+            sysDataBaseLog.LogMap::setData(recordUpdated, recordOrig, changedFields);
+            sysDataBaseLog.setDescription(recordUpdated);
+            sysDataBaseLog.insert();
+        }
+    }
+
+    void logUpdate(Common recordOrig, Common recordUpdated, container changedFields)
+    {
+        SysDataBaseLog sysDataBaseLog;
+        boolean        traceEnabled;
+
+        super(recordOrig, recordUpdated, changedFields);
+
+        traceEnabled = appl.company().logAlways(DatabaseLogType::Update);
+
+        if (traceEnabled == NoYes::Yes)
+        {
+            // Trace the deleted record for future cleanup
+            SysTestRecordCleanUp::traceRowUpdate(recordOrig);
+        }
+        else
+        {
+            // Assert the permission to insert into SysDatabaseLog table
+            new SysDatabaseLogPermission().assert();
+
+            if (!new DictTable(recordUpdated.TableId).dataPrCompany())
+            {
+                changecompany('dat')
+                {
+                    sysDataBaseLog.LogType  = DatabaseLogType::Update;
+                    sysDataBaseLog.Table    = recordUpdated.TableId;
+                    sysDataBaseLog.LogRecId = recordUpdated.RecId;
+                    sysDataBaseLog.LogMap::setData(recordUpdated, recordOrig, changedFields);
+                    sysDataBaseLog.setDescription(recordUpdated);
+                    sysDataBaseLog.insert();
+                }
+            }
+            else
+            {
+                sysDataBaseLog.LogType  = DatabaseLogType::Update;
+                sysDataBaseLog.Table    = recordUpdated.TableId;
+                sysDataBaseLog.LogRecId = recordUpdated.RecId;
+                sysDataBaseLog.LogMap::setData(recordUpdated, recordOrig, changedFields);
+                sysDataBaseLog.setDescription(recordUpdated);
+                sysDataBaseLog.insert();
+            }
+        }
+    }
+
+    sysReleasedVersion majorMinorEtc2sysReleasedVersion(int myMajor, int myMinor, int myBuild, int myDotBuild, boolean roundUp)
+    {
+        // is instance method because it uses releaseUpdateVersionInfo, member variable on Application
+        str myDescription;
+        DictEnum dictEnum = new DictEnum(enumNum(sysReleasedVersion));
+        sysReleasedVersion sysReleasedVersion;
+        int res;
+
+
+        if (roundUp)
+        {
+            // if 4.0 RTM has 4.0.1659.12, then
+            //    4.0.1659.11 -> v40
+            //    4.0.1659.12 -> v40
+            //    4.0.1659.13 -> v401
+
+            while select * from releaseUpdateTmpVersionInfo
+                order by Major, Minor, Build, DotBuild
+                where releaseUpdateTmpVersionInfo.Name == enumStr(sysReleasedVersion)
+            {
+                res = ReleaseUpdateTmpVersionInfo::compareMMBD(releaseUpdateTmpVersionInfo.Major, releaseUpdateTmpVersionInfo.Minor, releaseUpdateTmpVersionInfo.Build, releaseUpdateTmpVersionInfo.DotBuild, myMajor, myMinor, myBuild, myDotBuild);
+
+                if (res >= 0)
+                {
+                    myDescription = releaseUpdateTmpVersionInfo.Description;
+                    break;
+                }
+            }
+
+        }
+        else
+        {
+            // if 4.0 RTM has 4.0.1659.12, then
+            //    4.0.1659.11 -> v39
+            //    4.0.1659.12 -> v40
+            //    4.0.1659.13 -> v40
+
+            while select * from releaseUpdateTmpVersionInfo
+                order by Major desc, Minor desc, Build desc, DotBuild desc// start with biggest one
+                where releaseUpdateTmpVersionInfo.Name == enumStr(sysReleasedVersion)
+            {
+                res = ReleaseUpdateTmpVersionInfo::compareMMBD(releaseUpdateTmpVersionInfo.Major, releaseUpdateTmpVersionInfo.Minor, releaseUpdateTmpVersionInfo.Build, releaseUpdateTmpVersionInfo.DotBuild, myMajor, myMinor, myBuild, myDotBuild);
+
+                if (res <= 0)
+                {
+                    myDescription = releaseUpdateTmpVersionInfo.Description;
+                    break;
+                }
+            }
+        }
+
+        if (myDescription)
+        {
+            sysReleasedVersion = dictEnum.name2Value(myDescription);
+        }
+
+        return sysReleasedVersion;
+    }
+
+    void new()
+    {
+        Session session = new Session();
+        DictTable dictTableComponentVersionHistory;
+
+        super();
+
+        //Just the main server session should synchronize
+        if (session.clientKind() == ClientType::Server && session.sessionId() == 1)
+        {
+            this.syncApplTables();  //needed to sync neccessary application tables
+
+            // Synchronize the X++ IL assembly
+            SysCompileIL::synchronizeAssembly();
+
+            // Use reflection to avoid errors when this code is executed before it's compiled
+            dictTableComponentVersionHistory = new DictTable(tableName2id(tableStr(SysAxComponentVersionHistory)));
+            if (dictTableComponentVersionHistory != null)
+            {
+                new ExecutePermission().assert();
+                dictTableComponentVersionHistory.callStatic(tableStaticMethodStr(SysAxComponentVersionHistory, recordAosVersion));
+                CodeAccessPermission::revertAssert();
+            }
+        }
+
+        transactionlogUpdateTTSControl = TransactionlogUpdateTTSControl::construct();
+
+        executeBusinessOperationsWithCLR = true;
+        executeOperationsWithCLRInitialized = false;
+    }
+
+    NumberSeqGlobal numberSeqGlobal()
+    {
+        if (!numberSeqGlobal)
+        {
+            numberSeqGlobal = NumberSeqGlobal::construct();
+        }
+        return numberSeqGlobal;
+    }
+
+    delegate void onTtsNotifyAbort()
+    {
+
+    }
+
+
+    delegate void onTtsNotifyCommit()
+    {
+    }
+
+    delegate void onTtsNotifyPostBegin()
+    {
+    }
+
+    delegate void onTtsNotifyPreCommit()
+    {
+
+    }
+
+
+    public boolean parmExecuteBusinessOperationsWithCLR(boolean _executeBusinessOperationsWithCLR = executeBusinessOperationsWithCLR)
+    {
+        if (prmisDefault(_executeBusinessOperationsWithCLR))
+        {
+            // Property is initialized once from the database
+            this.initializeBusinessOperationExecProperty();
+        }
+        else
+        {
+            executeBusinessOperationsWithCLR = _executeBusinessOperationsWithCLR;
+        }
+
+        return executeBusinessOperationsWithCLR;
+    }
+
+    public boolean parmTransactionalScopeCacheExists(boolean _transactionalScopeCacheExists = transactionalScopeCacheExists)
+    {
+        transactionalScopeCacheExists = _transactionalScopeCacheExists;
+        return transactionalScopeCacheExists;
+    }
+
+    /// <summary>
+    /// Gets the current partition key
+    /// </summary>
+    /// <returns>
+    /// partition key from getcurrentpartition
+    /// </returns>
+
+    public str partitionKey()
+    {
+
+        return getcurrentpartition();
+    }
+
+    #admin
+    void reIndexNative()
+    {
+        UserInfo userInfo;
+        xCompany xCompany;
+
+        if (isNative())
+        {
+            select userInfo where
+                userInfo.Id == #adminUser;
+
+            if (!userInfo)
+            {
+                xCompany = this.company();
+                xCompany.reindex();
+            }
+        }
+    }
+
+    /// <summary>
+    ///    Retrieves the instance of the global scheduler logger.
+    /// </summary>
+    /// <returns>
+    ///    An instance of the <c>WrkCtrSchedulerLogger</c> class.
+    /// </returns>
+    public WrkCtrSchedulerLogger resourceSchedulerLogger()
+    {
+        if (!resourceSchedulerLogger)
+        {
+            resourceSchedulerLogger = WrkCtrSchedulerLogger::construct();
+        }
+
+        return resourceSchedulerLogger;
+    }
+
+    void servicesStartup()
+    {
+        #Aif
+        Session session = new Session();
+
+        AifAppShareManager::synchronize();
+
+        //Just the main server session should auto-deploy.  Otherwise every deploy will execute this.
+        if (session.clientKind() == ClientType::Server && session.sessionId() == 1)
+        {
+            AifServiceGenerationManager::generateAutoDeployedServiceGroups();
+        }
+    }
+
+    void setCharMax()
+    {
+        #OCCRetryCount
+        SysSortOrder sysSortOrder;
+        Integer asciiValueRef, i;
+
+        RecordInsertList    sysSortOrderList = new RecordInsertList(tableNum(SysSortOrder), true);
+
+        try
+        {
+            ttsbegin;
+            select firstonly forupdate sysSortOrder
+                order by Char desc;
+            ttscommit;
+
+            if (sysSortOrder)
+            {
+                charMax = sysSortOrder.Char;
+            }
+            else
+            {
+                ttsbegin;
+                for ( i = 0; i <= 65535; i++ )
+                {
+                    sysSortOrder.Char = num2char(i);
+                    if (sysSortOrder.Char)
+                    {
+                        sysSortOrder.AsciiValue = i;
+                        sysSortOrderList.add(sysSortOrder);
+                    }
+                }
+
+                if (sysSortOrderList.usageCount() > 0)
+                {
+                    sysSortOrderList.insertDatabase();
+                }
+
+                select firstonly sysSortOrder
+                    order by Char desc;
+
+                charMax       = sysSortOrder.Char;
+                asciiValueRef = sysSortOrder.AsciiValue;
+
+                delete_from sysSortOrder
+                    where sysSortOrder.AsciiValue != asciiValueRef;
+
+                ttscommit;
+            }
+        }
+        catch (Exception::Error)
+        {
+            if (infologLine() > 0)
+                infolog.clear(infologLine()-1);
+            retry;
+        }
+        catch (Exception::Deadlock)
+        {
+            if (infologLine() > 0)
+                infolog.clear(infologLine()-1);
+            retry;
+        }
+        catch (Exception::UpdateConflict)
+        {
+            if (appl.ttsLevel() == 0)
+            {
+                if (xSession::currentRetryCount() >= #RetryNum)
+                {
+                    throw Exception::UpdateConflictNotRecovered;
+                }
+                else
+                {
+                    if (infologLine() > 0)
+                        infolog.clear(infologLine()-1);
+                    retry;
+                }
+            }
+            else
+            {
+                throw Exception::UpdateConflict;
+            }
+        }
+    }
+
+    boolean setDefaultCompany(SelectableDataArea _selectableDataArea, boolean dialog = true)
+    {
+        SelectableDataArea thisCompany = curext();
+        UserInfo userInfo;
+        boolean ret;
+        Currency currency;
+        SysGlobalCache cache;
+
+        if (setDefaultCompanyCalled && thisCompany == _selectableDataArea)
+        {
+            return true;
+        }
+
+        ret = super(_selectableDataArea);
+        if(!ret)
+        {
+            return false;
+        }
+
+        cache = appl.globalCache();
+
+        if (infolog && infolog.docu())
+        {
+            infolog.docu().updateFromParameters();
+            infolog.docu().emptyTablesEnableMap();
+        }
+
+        if (infolog)
+        {
+            infolog.nationalCurrencyPrefix('');
+            infolog.nationalCurrencyPostfix('');
+            infolog.nationalCurrencyFactor(1);
+
+            currency = Currency::find(Ledger::accountingCurrency());
+            if (currency)
+            {
+                infolog.isoCurrencyCode(Ledger::accountingCurrency());
+            }
+            else
+            {
+                infolog.isoCurrencyCode('');
+            }
+        }
+
+        #define.WarnFlag(0x08)
+
+        if (dialog && new Session().clientKind() != ClientType::COMObject)
+        {
+            if (thisCompany != _selectableDataArea)
+            {
+                if (!cache.get(classStr(Info), identifierStr(Autologoff), false))
+                {
+                    select userInfo
+                        where userInfo.Id == curUserId();
+
+                    if (userInfo && userInfo.GeneralInfo & #warnFlag)
+                    {
+                        warning(strFmt("@SYS53441", _selectableDataArea));
+                    }
+                }
+            }
+        }
+
+        if (!isConfigurationkeyEnabled(configurationKeyNum(LogisticsBasic)))
+        {
+            InventDim::findOrCreateBlank();
+        }
+
+        setDefaultCompanyCalled = true;
+
+        return ret;
+    }
+
+    /// <summary>
+    /// Gets the <c>SourceDocumentProcessContext</c> object.
+    /// </summary>
+    /// <returns>
+    /// The <c>SourceDocumentProcessContext</c> object.
+    /// </returns>
+    public SourceDocumentProcessContext sourceDocumentProcessContext()
+    {
+        if (sourceDocumentProcessContext == null)
+        {
+            sourceDocumentProcessContext = SourceDocumentProcessContext::construct();
+        }
+
+        return sourceDocumentProcessContext;
+    }
+
+    /*
+    This method shouldn't be overlayered, use the startupPost() method instead !
+    */
+    void startup(str startupCommand, str buildNumber)      // ax32.exe -startupcmd=xxx
+    {
+        this.reIndexNative();
+        SysUserLog::logUserLogin(buildNumber);
+
+        if (startupCommand)
+        {
+            sysStartupCmd = SysStartupCmd::construct(startupCommand);
+            if (sysStartupCmd)
+            {
+                sysStartupCmd.applInit();
+            }
+        }
+
+        // Fill out table releaseUpdateVersionInfo with data so fromVersion and toVersion can be computed
+        // Must be called before isRunningMode()
+        ReleaseUpdateTmpVersionInfo::fillOutMajorMinorBuildDotBuild(releaseUpdateTmpVersionInfo);
+
+        if (this.isRunningMode())
+        {
+            if (!SysApplicationSetup::checkDatamodel(SysApplicationSetupMode::initBaseData))
+            {
+                SysApplicationSetup::saveApplicationVersion(SysApplicationSetupMode::initBaseData);
+                this.initBaseData();
+            }
+            this.setCharMax();
+        }
+        else
+        {
+            SysSecurity::reload(false);
+            xAccessRightsList::reloadToolbar();
+        }
+        LanguageTable::checkLanguageTable();
+
+        LanguageTable::checkStartUpLanguage();
+
+        super(startupCommand, buildNumber);
+
+        this.startupPost();
+
+        if (startupCommand && sysStartupCmd)
+        {
+            sysStartupCmd.applRun();
+        }
+        //Is system is not in table per hierarchy mode and this is not major or minor upgrade then give warning
+        if(!xApplication::IsTablePerHierarchyMode())
+        {
+            if(this.isRunningMode() && !(isSystemAdministrator() && (SysModelStore::isInstallMode() || SysCheckList_Update::isUpgradeMode())))
+            {
+                 warning("@SYS4001048");
+            }
+        }
+    }
+
+    // No SYS code must exist in this method
+    // If you need the startup command, look in the class SysStartupCmd
+    void startupPost()
+    {
+        // <GTH>
+        #isoCountryRegionCodes
+
+        if (hasGUI()
+            && isRunningMode()
+            && !SysModelStore::isInstallMode()
+            && SysCountryRegionCode::isLegalEntityInCountryRegion([#ISOTH])
+            && isConfigurationkeyEnabled(configurationKeyNum(TaxThailandGovCertification)))
+        {
+            TaxThaiGovCertificationHelper::promptSysAboutForm(false);
+        }
+        // </GTH>
+
+        this.startupRetailEssentials();
+    }
+
+    /// <summary>
+    ///  This method is itended to check the configuration key (RetailNonSMB).
+    ///  if it is not enabled then nothing to do (means Retail Essential mode is enabled ) otherwise
+    ///  it will check the registry key "IsRetailEssentialsModeEnabled"
+    ///  if it is set to 1  then it will enable the SMB mode
+    ///  by disabling the RetailNonSMB configuration key
+    /// </summary>
+    void startupRetailEssentials()
+    {
+        #WinAPI
+        str                 regPath;
+        int                 regKey;
+        container           regValRetailEssentialsEnabled;
+
+        // Attempt to configure Retail Essentials
+        if (!this.isRunningMode() && isConfigurationkeyEnabled(configurationKeyNum(RetailNonSMB)))
+        {
+            // get registry path for Retail Essentials key
+            regPath = #AXTRACE_KEYROOT + #RELEASE_VERSION_BASE_REGKEY + '\\Setup\\Components\\Retail';
+
+            // Get regsitry key handle
+            regKey = WinAPI::regOpenKey(#HKEY_LOCAL_MACHINE, regPath, #KEY_READ);
+
+            if (regKey)
+            {
+                // Get registry value
+                regValRetailEssentialsEnabled = WinAPI::regGetValue(regKey, 'IsRetailEssentialsModeEnabled');
+
+                // If Key contains value 'true', Enable SMB Mode
+                if (conLen(regValRetailEssentialsEnabled) && (conPeek(regValRetailEssentialsEnabled, 1) == '1'))
+                {
+                    // Disable Retail configuration keys
+                    RetailSMB::UpdateConfigurationKeys(false);
+
+                    // Set user documentation set to OnLine for Retail Essentials
+                    RetailSMB::UpdateHelpDocumentSet();
+                }
+            }
+
+            // Close registry key handle
+            WinAPI::regCloseKey(regKey);
+        }
+    }
+
+    void syncApplTables(boolean _force = false)
+    {
+        List            applTables = this.getApplTables();
+        ListEnumerator  enumerator = applTables.getEnumerator();
+        ConfigurationKeySet keySet      = new ConfigurationKeySet();
+
+        void syncTable(TableId tableId)
+        {
+            this.dbSynchronize(tableId, false, true, false);
+        }
+
+        while (enumerator.moveNext())
+        {
+            syncTable(enumerator.current());
+        }
+    }
+
+    void sysCodeProfilerBegin(str _description)
+    {
+        sysCodeProfiler =  SysCodeProfiler::construct(true, _description);
+
+        if (!sysCodeProfiler)
+        {
+            return;
+        }
+
+        sysCodeProfiler.parmdoCalcSum(false);
+        sysCodeProfiler.beginProfile();
+    }
+
+    void sysCodeProfilerEnd()
+    {
+        sysCodeProfiler.endProfile(false);
+    }
+
+    void sysCodeProfilerFlush()
+    {
+        sysCodeProfiler.flushAndCalc();
+    }
+
+    /// <summary>
+    ///     Instantiates the <c>TradeRecIdSequence</c> class following the singleton pattern.
+    /// </summary>
+    /// <returns>
+    ///     An instance of the <c>TradeRecIdSequence</c> class
+    /// </returns>
+    public SysRecIdSequence sysRecIdSequence()
+    {
+        if(!sysRecIdSequence)
+        {
+            sysRecIdSequence = SysRecIdSequence::construct();
+        }
+
+        return sysRecIdSequence;
+    }
+
+    container sysReleasedVersion2majorMinorEtc(sysReleasedVersion _sysReleasedVersion)
+    {
+        // is instance method because it uses releaseUpdateVersionInfo, member variable on Application
+        DictEnum dictEnum = new DictEnum(enumNum(sysReleasedVersion));
+
+        select firstonly releaseUpdateTmpVersionInfo
+            order by Major, Minor, Build, DotBuild
+            where   releaseUpdateTmpVersionInfo.Name == enumStr(sysReleasedVersion) &&
+                    releaseUpdateTmpVersionInfo.Description == dictEnum.value2Name(_sysReleasedVersion);
+
+        if (releaseUpdateTmpVersionInfo)
+        {
+            return [releaseUpdateTmpVersionInfo.Major, releaseUpdateTmpVersionInfo.Minor, releaseUpdateTmpVersionInfo.Build, releaseUpdateTmpVersionInfo.DotBuild];
+        }
+
+        return conNull();
+    }
+
+    public void sysTrace(SysTraceType _traceType, container _traceInfo)
+    {
+        int containerLayoutVersion;
+        SysTraceTable sysTraceTable;
+        container tableNames;
+        container tableIds;
+        container traceInfoCopy;
+        anytype tableNameId;
+        int i;
+        #SysTrace
+
+        if (!SysTrace::sysTraceEnabled())
+        {
+            return;
+        }
+
+        if (_traceType == SysTraceType::CSTrace)
+        {
+            sysTraceTable.TraceType = _traceType;
+            sysTraceTable.TraceTime = conPeek(_traceInfo,2);
+            tableIds = conPeek(_traceInfo,#SYS_TRACE_SQL_TABLES);
+            if (tableIds && conLen(tableIds)>0)
+            {
+                for (i=1; i<=conLen(tableIds); i++)
+                {
+                    tableNameId = conPeek(tableIds, i);
+                    if (typeOf(tableNameId) == Types::String)
+                    {
+                        tableNames += tableNameId;
+                    }
+                    else
+                    {
+                        tableNames += tableId2name(tableNameId);
+                    }
+                }
+                traceInfoCopy=conDel(_traceInfo,#SYS_TRACE_SQL_TABLES,2);
+                traceInfoCopy=conIns(traceInfoCopy,#SYS_TRACE_SQL_TABLES,tableNames);
+                traceInfoCopy=conIns(traceInfoCopy,#SYS_TRACE_SQL_EXECUTION_TIME,conPeek(_traceInfo,#SYS_TRACE_SQL_EXECUTION_TIME));
+                sysTraceTable.TraceContainer = traceInfoCopy;
+            }
+            else
+            {
+                sysTraceTable.TraceContainer = _traceInfo;
+            }
+            sysTraceTable.insert();
+            return;
+        }
+
+        containerLayoutVersion = conPeek(_traceInfo,#SYS_TRACE_SQL_LAYOUT_VERSION);
+
+        if ( conLen(_traceInfo) < #SYS_TRACE_SQL_LAYOUT_VERSION || containerLayoutVersion > #TRACE_CONTAINER_LAYOUT_VERSION )
+        {
+            info(strFmt("@SYS65329" + ' ' + "@SYS65330", containerLayoutVersion, #TRACE_CONTAINER_LAYOUT_VERSION));
+            return;
+        }
+
+        super(_traceType, _traceInfo);
+
+        switch (_traceType)
+        {
+            case SysTraceType::DBTrace:  // to come
+                break;
+            case SysTraceType::SqlTrace:
+                SysTraceSql::newSysTraceSql(_traceInfo).output();
+                break;
+        }
+    }
+
+    TransactionlogUpdateTTSControl transactionlogUpdateTTSControl()
+    {
+        return transactionlogUpdateTTSControl;
+    }
+
+    void ttsNotifyAbort()
+    {
+        this.onTtsNotifyAbort();
+
+        if (budgetControlProcessor)
+        {
+            budgetControlProcessor.ttsNotifyAbort();
+        }
+
+        if (ledgerPostingProcessor != null)
+        {
+            ledgerPostingProcessor.ttsNotifyAbort();
+        }
+
+        this.inventUpdateOnhandGlobal().ttsNotifyAbort();
+
+        // This runs numbersequence cleanup and it needs to complete regardless of user privilidges.
+        // This method always runs on the server, so we run unchecked only from there.
+        unchecked(Uncheck::TableSecurityPermission)
+        {
+            this.numberSeqGlobal().ttsNotifyAbort();
+        }
+
+        transactionlogUpdateTTSControl.ttsNotifyAbort();
+
+        // Trigger for invent cost transactions
+        this.inventCostUpdateGlobal().ttsNotifyAbort();
+
+        //only delegate calls if needed to limit overhead as much as possible
+        if (this.canDoWMSLocationConstraintChecks())
+        {
+            this.getWMSLocationConstraintCheckerGlobal().ttsNotifyAbort();
+        }
+
+        // Flush transaction specific cache
+        if (transactionalScopeCacheExists)
+        {
+            this.clearTransactionalScopeCache();
+        }
+
+        // Removes suspension of recId allocation invoked by calling appl.SysRecIdSequence().suspendRecIds() .
+        if (sysRecIdSequence)
+        {
+            this.sysRecIdSequence().removeAllRecIdSuspensions();
+            sysRecIdSequence = null;
+        }
+
+        if(sourceDocumentProcessContext)
+        {
+            sourceDocumentProcessContext = null;
+        }
+
+    }
+
+    void ttsNotifyBegin()
+    {
+        // Removes suspension of recId allocation invoked by calling appl.SysRecIdSequence().suspendRecIds() .
+        if (sysRecIdSequence)
+        {
+            this.sysRecIdSequence().removeAllRecIdSuspensions();
+            sysRecIdSequence = null;
+        }
+
+        // This runs numbersequence cleanup and it needs to complete regardless of user privilidges.
+        // This method always runs on the server, so we run unchecked only from there.
+        unchecked(Uncheck::TableSecurityPermission)
+        {
+            this.numberSeqGlobal().ttsNotifyBegin();
+        }
+    }
+
+    void ttsNotifyCommit()
+    {
+        this.onTtsNotifyCommit();
+
+        if (budgetControlProcessor)
+        {
+            budgetControlProcessor.ttsNotifyCommit();
+        }
+
+        if (ledgerPostingProcessor != null)
+        {
+            ledgerPostingProcessor.ttsNotifyCommit();
+        }
+
+        // This runs numbersequence cleanup and it needs to complete regardless of user privilidges.
+        // This method always runs on the server, so we run unchecked only from there.
+        unchecked(Uncheck::TableSecurityPermission)
+        {
+            this.numberSeqGlobal().ttsNotifyCommit();
+        }
+
+        transactionlogUpdateTTSControl.ttsNotifyCommit();
+
+        // Flush transaction specific cache
+        if (transactionalScopeCacheExists)
+        {
+            this.clearTransactionalScopeCache();
+        }
+    }
+
+    public void ttsNotifyPostBegin()
+    {
+        super();
+
+        this.onTtsNotifyPostBegin();
+        if (budgetControlProcessor)
+        {
+            budgetControlProcessor.ttsNotifyPostBegin();
+        }
+
+        if (ledgerPostingProcessor != null)
+        {
+            ledgerPostingProcessor.ttsNotifyPostBegin();
+        }
+
+        this.inventUpdateOnhandGlobal().ttsNotifyPostBegin();
+
+        // Trigger for invent cost transactions
+        this.inventCostUpdateGlobal().ttsNotifyPostBegin();
+
+        //only delegate calls if needed to limit overhead as much as possible
+        if (this.canDoWMSLocationConstraintChecks())
+        {
+            this.getWMSLocationConstraintCheckerGlobal().ttsNotifyPostBegin();
+        }
+    }
+
+    public void ttsNotifyPreCommit()
+    {
+        super();
+
+        this.onTtsNotifyPreCommit();
+
+        if (budgetControlProcessor)
+        {
+            budgetControlProcessor.ttsNotifyPreCommit();
+        }
+
+        if (ledgerPostingProcessor != null)
+        {
+            ledgerPostingProcessor.ttsNotifyPreCommit();
+        }
+
+        // Trigger for invent cost transactions
+        this.inventCostUpdateGlobal().ttsNotifyPreCommit();
+
+        this.inventUpdateOnhandGlobal().ttsNotifyPreCommit();
+
+        //only delegate calls if needed to limit overhead as much as possible
+        if (this.canDoWMSLocationConstraintChecks())
+        {
+            this.getWMSLocationConstraintCheckerGlobal().ttsNotifyPreCommit();
+        }
+
+        // Checks that all suspension of recId allocation invoked by calling appl.SysRecIdSequence().suspendRecIds() have been removed.
+        if (sysRecIdSequence)
+        {
+            if (!this.sysRecIdSequence().areAllRecIdSuspensionsRemoved())
+            {
+                throw error("@SYS344764");
+            }
+            sysRecidSequence = null;
+        }
+    }
+
+    void updateSourceVersionInfo()
+    {
+        ReleaseUpdateTmpVersionInfo::updateMajorMinorBuildDotBuild(releaseUpdateTmpVersionInfo);
+    }
+
+    /// <summary>
+    /// Disables and enables update of the cross reference.
+    /// </summary>
+    /// <param name="disable">
+    /// Disables the cross reference if true. Otherwise it is enabled.
+    /// </param>
+    void updatexRefSet(boolean disable)
+    {
+        updatexRefDisable = disable;
+    }
+
+    /// <summary>
+    ///    Updates the cross reference information for the following node types: \Web\Web Files\List
+    ///    Definitions, \Web\Web Files\Static Files, \Web\Web Files\Page Definitions, \Web\Web Files\Web
+    ///    Controls, \SSRS Reports\Reports\ReportDesign, \Visual Studio Projects\ProjectX, \Visual Studio
+    ///    Projects\ProjectX\Project Output\Assembly File,
+    /// </summary>
+    /// <param name="_treeNode">
+    ///    The tree node for which to update the cross references.
+    /// </param>
+    /// <remarks>
+    ///    This method is invoked by the framework whenever any of the described node types is compiled or
+    ///    updated for cross reference.
+    /// </remarks>
+    void updateXrefTreeNode(TreeNode _treeNode)
+    {
+        #TreeNodeSysNodeType
+
+        if (_treeNode)
+        {
+            try
+            {
+                switch (_treeNode.TreeNodeType().id())
+                {
+                    case #NT_WEBPAGEDEF: // for \Web\Web Files\Page Definitions
+                    case #NT_WEBSTATICFILE: // for \Web\Web Files\Static Files
+                    case #NT_WEBCONTROL: // for \Web\Web Files\Web Controls
+                    case #NT_WEBLISTDEF: // for \Web\Web Files\List Definitions
+                        xrefWeb::updateXref(_treeNode);
+                        break;
+                    case #NT_SSRSREPORTDESIGN: // for \SSRS Reports\Reports\ReportDesign
+                        xrefSSRSReport::updateReportDesignXref(_treeNode);
+                        break;
+                    case #NT_SSRSREPORT: // for \SSRS Reports\Reports\Report
+                        xrefSSRSReport::updateReportConceptNodeXref(_treeNode);
+                        break;
+                    case #NT_REFERENCE:
+                        xRefAssemblyReferences::updateXref(_treeNode);   // for \References\
+                        break;
+                    case #NT_VSPROJECT: // for \Visual Studio Projects\ProjectX
+                        xrefVisualStudioProject::updateXref(_treeNode);
+                        break;
+                    case #NT_VSPROJECTFILE: // for \Visual Studio Projects\ProjectX\Project Output\Assembly File
+                        xrefVisualStudioProject::updateAssemblyXref(_treeNode);
+                        break;
+                }
+            }
+            catch
+            {
+                error(strfmt("@SYS320348",_treeNode.AOTname()));
+            }
+        }
+    }
+
+    /// <summary>
+    ///   This method is called by AX kernel to inform the Aot path and xref information corresponding to it.
+    /// </summary>
+    /// <param name="_path">
+    ///    The tree node for which to update the cross references.
+    /// </param>
+    /// <param name="_xRef">
+    ///    class instance contaning xref information.
+    /// </param>
+    void xref(str _path, xRef _xRef)
+    {
+        Map xRefCompileMap;
+        Map xRefProperyMap;
+        str className;
+
+
+        lastxRef = _xRef;
+
+        if (this.canUpdatexRef())
+        {
+            xRefCreate::xRefUpdate(_path);
+        }
+        else
+        {
+            // if xref information is from compiler add it to xRefCompilerMap else into xRefProperyMap
+            if(XRefMode::COMPILE == _xRef.mode())
+            {
+                xRefCompileMap = appl.globalCache().get(classstr(xRefUpdateTmpReferences), '', null);
+                if(xRefCompileMap != null)
+                {
+                    xRefCompileMap.insert(_path, _xRef);
+                }
+            }
+            else
+            {
+                if(XRefMode::PROPERTY == _xRef.mode())
+                {
+                    className = classstr(xRefUpdateTmpReferences);
+                    className = strins(className,#PropertyString,strlen(classname)+1);
+                    xRefProperyMap = appl.globalCache().get(className, '', null);
+                    if(xRefProperyMap != null)
+                    {
+                        xRefProperyMap.insert(_path, _xRef);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///    Retrieves the currency code of the ledger if the application is in running mode.
+    /// </summary>
+    /// <returns>
+    ///    The ledger currency code if the application is in running mode; otherwise, an empty string.
+    /// </returns>
+    public static str getCurrencyCode()
+    {
+        Application app = new Application();
+
+        if (app.isRunningMode() && infolog && !SysModelStore::isInstallMode() && !SysCheckList_Update::isUpgradeMode())
+        {
+            return Ledger::accountingCurrency(CompanyInfo::find(false,0,true).RecId);
+        }
+        else
+        {
+            return '';
+        }
+    }
+}

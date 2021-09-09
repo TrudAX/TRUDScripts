@@ -1,0 +1,75 @@
+static void trud_devHints(Args _args)
+{
+    //1.
+    //for proportional split class TSPProportionalDivide
+
+    //2.
+    //run base table parms job - GNS SR025328_ClientMatrix_trud  , GSEUpdatePosCompetenciesJobDialog, GSEUpdatePosCompetenciesJob
+
+    //3.
+    // copy data to invoice from PO \Classes\VendDocumentTableType_Invoice\defaultAdditionalFields
+
+    //4.
+    //DEVGroupByHelper for grouping in reports, SR031055_FuturesPosReport_trud
+
+    //5.
+    //SR030902_SummarisedCustRep_trud  SSRS with UIBuilder, REB R2 CU7 application
+
+    //6. Create ledger journal, also process some data on packing slip and reverse on invoice
+    //SR030593_PurchProcCat_trud   class \Classes\GRAProjectAccurals\createLJT, GRANGE AX 2012 CU2
+    //for the ledger journal creation \Classes\DEVPostClosedLoads\createLevyVoucher(check also job trud_copyLedgerJour for proper Voucher creation)
+
+    //7.
+    // Marking \Classes\DEVLoad\markReversalPurchLine
+
+    //8.
+    //Settlement and new line creation for PO invoice \Classes\DEVPrepaymentTransfer\createNegPurchPrePaymentInvoice
+
+    //9.
+    //Perform some action based on Ledger Journal trans lines  \Classes\LedgerJournalTransUpdateCust\updateNow
+    //Perform check that also will be using during validate \Classes\LedgerJournalTransUpdateCust\checkVoucher
+
+    //10.import files from dir psv
+    //SharedProject_ImportFromFileDir_trud.xpo
+
+    //11 lookup to LedgerJournalId (LedgerJournalTable)
+    //\Forms\DEVLoadLevies\Data Sources\DEVLoadLevies\Fields\LedgerJournalId\Methods\jumpRef
+
+    //12.Ledger posting debug on PO invoiceing
+    //\Data Dictionary\Tables\AccountingDistributionTmp\Fields\LedgerDimension
+
+    //13. PO end posing
+    //\Classes\PurchInvoiceJournalPost\postJournalPost
+    //main transaction in \Classes\FormletterService\run
+
+    //14. correct way of checking buttons
+    //\Data Dictionary\Tables\DEVContractLoads\Methods\isConfirmEnabled
+
+    //15. SSRS report dev
+    // & vbcrlf & - for new line
+    //for e-mails \Classes\DEV\findLogElAddressByDirTypeAndDesc
+    //new print management report and e-mail placeholders - SR037524_PrintManagementEmailTemplate(MS Dynamics AX 2012 R3 CU11 DSQ VAR)
+
+    //16. dialog for asking update related data - DEVPreUpdateDialogTransport
+
+
+    //17. allow custom methods in RunBase dialog
+    //dlgContractId.control().registerOverrideMethod(methodStr(FormStringControl, lookup), methodStr(DEVOnCostCreateByCharge, contract_Lookup), this);
+    //public void  contract_Lookup(FormStringControl  _formControl)
+
+    //18. dates checks
+    //validate intersections periods
+    //(  ( ! DeliveryChargerates.EndDate || (DeliveryChargerates.EndDate  >= this.StartDate) )          &&
+    //    ( (DeliveryChargerates.StartDate <= this.EndDate) ||  ! this.EndDate) )
+    //apply 'any in the interval' range
+    //strFmt('((%1 <= %4) && ((%2 == %5) || (%2 >= %3)))', fieldStr(t, StartDate), fieldStr(t, EndDate),
+    // date2StrXpp(F.FromDate), date2StrXpp(F.ToDate ? F.ToDate : dateMax()), date2StrXpp(dateNull())
+
+    //19. Filter in the form based on tmp table as filter values
+    //DEVDeliveryChargeRates
+
+    //20.runas user to test security -(first run as admin to store the pass)
+    //C:\Windows\System32\runas.exe /savecred /user:SCALABLE\sdstest  "E:\Program Files (x86)\Microsoft Dynamics AX\60\Client\Bin\Ax32.exe  \"E:\Temp\trud\AX_LOG_2012_R2_CU7_ISV.axc\""
+    //disable admin right - job - securityutil::sysadminmode(false);
+
+}

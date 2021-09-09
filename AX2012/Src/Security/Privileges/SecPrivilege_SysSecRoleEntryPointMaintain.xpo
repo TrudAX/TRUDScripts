@@ -1,0 +1,58 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+SPV
+
+; Microsoft Dynamics AX PRIVILEGE : SysSecRoleEntryPointMaintain unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  PRIVILEGE #SysSecRoleEntryPointMaintain
+    PROPERTIES
+      Name                #SysSecRoleEntryPointMaintain
+      Label               #@SDT249
+      Origin              #{1E2B57A9-A7C0-4623-AD72-18C0980D8DF0}
+    ENDPROPERTIES
+    
+    ENTRYPOINTS #Entry Points
+      ENTRYPOINT #SysSecRoleEntryPoint
+        PROPERTIES
+          Name                #SysSecRoleEntryPoint
+          ObjectType          #MenuItemDisplay
+          ObjectName          #SysSecRoleEntryPoint
+          AccessLevel         #Delete
+        ENDPROPERTIES
+        
+      ENDENTRYPOINT
+      
+    ENTRYPOINT #SysSecRoleEntryPointDeveloper
+      PROPERTIES
+        Name                #SysSecRoleEntryPointDeveloper
+        ObjectType          #MenuItemDisplay
+        ObjectName          #SysSecRoleEntryPointDeveloper
+        AccessLevel         #Read
+      ENDPROPERTIES
+      
+    ENDENTRYPOINT
+    
+ENDENTRYPOINTS
+
+PERMISSIONSET #Permissions
+  PROPERTIES
+  ENDPROPERTIES
+  
+  TABLES #Tables
+  ENDTABLES
+  
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+FORMS #Forms
+ENDFORMS
+
+ENDPERMISSIONSET
+
+ENDPRIVILEGE
+
+
+END

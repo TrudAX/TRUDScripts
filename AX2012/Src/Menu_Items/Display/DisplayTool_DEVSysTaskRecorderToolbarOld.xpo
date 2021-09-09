@@ -1,0 +1,24 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FTM
+
+; Microsoft Dynamics AX MENUITEM : DEVSysTaskRecorderToolbarOld unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEVSysTaskRecorderToolbarOld
+    Type: 1
+    PROPERTIES
+      Name                #DEVSysTaskRecorderToolbarOld
+      Label               #Task recorder(old)
+      Object              #SysTaskRecorderToolbar
+      ViewUserLicense     #Functional
+      MaintainUserLicense #Functional
+      Origin              #{727E3EF6-2AE5-4F7B-8C60-5EFE65BEA9DB}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+END

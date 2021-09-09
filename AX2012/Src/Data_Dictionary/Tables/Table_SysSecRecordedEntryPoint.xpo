@@ -1,0 +1,116 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : SysSecRecordedEntryPoint unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #SysSecRecordedEntryPoint
+    EnforceFKRelation 1
+    PROPERTIES
+      Name                #SysSecRecordedEntryPoint
+      Label               #@SDT35
+      TitleField1         #User
+      TitleField2         #SecurableObject
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      PrimaryIndex        #SurrogateKey
+      ClusterIndex        #SurrogateKey
+      DeveloperDocumentation  #@SDT36
+      Origin              #{319E9680-83E7-40CF-B8CF-21486EF24B6A}
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #SecurableObject
+        INT64
+        PROPERTIES
+          Name                #SecurableObject
+          Visible             #No
+          Table               #SysSecRecordedEntryPoint
+          Origin              #{0C16634B-6DE8-41ED-BBC0-4E64F79B83F7}
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+      FIELD #SessionId
+        INT
+        PROPERTIES
+          Name                #SessionId
+          Visible             #No
+          Table               #SysSecRecordedEntryPoint
+          Origin              #{D64B822E-D047-4E79-8AC1-6678655BF2E6}
+          ExtendedDataType    #SessionId
+        ENDPROPERTIES
+        
+      FIELD #User
+        STRING
+        PROPERTIES
+          Name                #User
+          Visible             #No
+          Table               #SysSecRecordedEntryPoint
+          IgnoreEDTRelation   #Yes
+          Origin              #{63F1D7E5-BAB6-4CC2-9F1C-745940AB6309}
+          ExtendedDataType    #SysUserId
+          StringSize          #8
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #SecurableObject
+          #User
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #SecurableObjectIdx
+      PROPERTIES
+        Name                #SecurableObjectIdx
+        Origin              #{DB5EAD83-C58C-4D45-93B0-6936110C9FB5}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #SecurableObject
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+      REFERENCE #SecurableObject
+        PROPERTIES
+          Name                #SecurableObject
+          Table               #SecurableObject
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroOne
+          RelationshipType    #Association
+          UseDefaultRoleNames #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE PKFK
+          PROPERTIES
+            Field               #SecurableObject
+            RelatedField        #RecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

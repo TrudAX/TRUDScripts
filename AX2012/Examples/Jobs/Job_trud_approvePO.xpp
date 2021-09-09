@@ -1,0 +1,22 @@
+static void trud_approvePO(Args _args)
+{
+    PurchTable      purchTable;
+
+    ;
+    ttsBegin;
+
+    purchTable = purchTable::find("PO019372", true);
+
+    purchTable.DocumentState = VersioningDocumentState::InReview;
+    purchTable.update();
+
+    VersioningPurchaseOrder::newPurchaseOrder(purchTable).approveChangeRequest();
+
+    //purchTable.ChangeRequestRequired = false;
+    //purchTable.DocumentState = VersioningDocumentState::Approved;
+    //purchTable.update();
+
+
+    ttsCommit;
+
+}

@@ -1,0 +1,350 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #DEVSysTraceExecPlan
+  PROPERTIES
+    Name                #DEVSysTraceExecPlan
+    Origin              #{EBE22A02-2479-40E4-A0EE-4B7209BD55C8}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #class FormRun extends ObjectRun
+      #{
+      #    FormTreeItem        formTreeItem;
+      #    SysFormSplitter_Y   formSplitter;
+      #    Imagelist           ilist;
+      #    Imagelist           slist;
+      #
+      #    SysTraceTableSQL    traceRecord;
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #void init()
+      #{
+      #    SysSqlShowPlan           showPlan = new SysSqlShowPlan();
+      #    SQLFormatting            sqlFormatting = SQLFormatting::construct();
+      #    SysTraceTableSQLExecPlan sysTraceTableSQLExecPlan;
+      #    ;
+      #
+      #    super();
+      #
+      #    info.text("Misc. info about the statement");
+      #
+      #    if (this.args().dataset() == tablenum(SysTraceTableSQL))
+      #    {
+      #        traceRecord = this.args().record();
+      #        sQuery.text( SQLFormatting.formatSQL(traceRecord.Statement));
+      #
+      #        showPlan.setStatement(traceRecord.Statement);
+      #        select sysTraceTableSQLExecPlan where sysTraceTableSQLExecPlan.TraceRecId == traceRecord.RecId;
+      #        showPlan.setPlan(sysTracetableSQLExecPlan.ExecutionPlan);
+      #    }
+      #
+      #    this.initDesign();
+      #
+      #    showPlan.unpackPlan(planTree);
+      #    formSplitter = new SysFormSplitter_Y(splitter,statement,this);
+      #}
+    ENDSOURCE
+    SOURCE #initDesign
+      #void initDesign()
+      #{
+      #    ilist = new Imagelist( Imagelist::smallIconWidth() , Imagelist::smallIconHeight() );
+      #    sList = new Imagelist( Imagelist::smallIconWidth() , Imagelist::smallIconHeight() );
+      #
+      #    #define.Table(814)
+      #    #define.Exclamation(928)
+      #    #define.TableWithX(920)
+      #
+      #    slist.add( new Image() ); // index 0 not used in statelist
+      #    slist.add( new Image(#Table));
+      #    slist.add( new Image(#Exclamation));
+      #    slist.add( new Image(#TableWithX));
+      #
+      #    iList.add( new Image(#Table));
+      #    iList.add( new Image(#Exclamation));
+      #    ilist.add( new Image(#TableWithX));
+      #
+      #    planTree.setImagelist( iList );
+      #    planTree.setStateImagelist( sList );
+      #
+      #    planTree.prefColumnSize(450,220);
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SYS74551
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1789569705
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ExecPlan
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741823
+          Caption             #@SYS73676
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Splitter
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #5
+          AlignControl        #Yes
+          ElementPosition     #715827882
+          FrameType           #Raised 3D
+          BackgroundColor     #Window background
+          HideIfEmpty         #No
+          AlignChild          #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDown
+            #public int mouseDown(int _x, int _y, int _button, boolean _ctrl, boolean _shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(_x, _y, _button, _ctrl, _shift);
+            #
+            #    return formSplitter.mouseDown( _x,_y,_button,_ctrl,_shift );
+            #}
+          ENDSOURCE
+          SOURCE #mouseMove
+            #public int mouseMove(int _x, int _y, int _button, boolean _ctrl, boolean _shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(_x, _y, _button, _ctrl, _shift);
+            #
+            #    return formSplitter.mouseMove( _x,_y,_button,_ctrl,_shift );
+            #}
+          ENDSOURCE
+          SOURCE #mouseUp
+            #public int mouseUp(int _x, int _y, int _button, boolean _ctrl, boolean _shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(_x, _y, _button, _ctrl, _shift);
+            #    return formSplitter.mouseUp( _x,_y,_button,_ctrl,_shift );
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Statement
+          AutoDeclaration     #Yes
+          Width               #Column width
+          ElementPosition     #357913941
+          Caption             #@SYS73679
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #bNewPlan
+          AutoDeclaration     #Yes
+          HelpText            #Click this to have the DB server calculate the plan for the current query.
+          ElementPosition     #1431655764
+          HierarchyParent     #ButtonGroup
+          Text                #Calculate new plan
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    SysSqlShowPlan  showPlan = new SysSqlShowPlan();
+            #    super();
+            #    showPlan.setStatement(sQuery.text());
+            #    showPlan.packPlan(true);
+            #    showPlan.unpackPlan(planTree);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Info
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          Skip                #Yes
+          ElementPosition     #1431655764
+          ShowLabel           #No
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #sQuery
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          VerticalSpacing     #0
+          HelpText            #The SQL statement for which the execution plan is to be calculated.
+          ElementPosition     #1431655764
+          HierarchyParent     #Statement
+          MultiLine           #Yes
+          ShowLabel           #No
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TREE
+        PROPERTIES
+          Name                #PlanTree
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #ExecPlan
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #selectionChanged
+            #void selectionChanged(FormTreeItem oldItem, FormTreeItem newItem, FormTreeSelect how)
+            #{
+            #    SysSqlShowPlanItem  showPlanItem;
+            #    ;
+            #    showPlanItem = newItem.data();
+            #    info.text(showPlanItem.getMisc());
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

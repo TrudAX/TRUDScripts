@@ -1,0 +1,427 @@
+class DEVCRMConnectorHelper
+{
+    //Microsoft.Xrm.Sdk.IOrganizationService       orgService;
+
+    /*
+Microsoft.Xrm.Sdk.Entity findEntityByKey(str _entityName, str _keyField, str _value)
+{
+    Microsoft.Xrm.Sdk.Entity                        entityRes;
+    Microsoft.Xrm.Sdk.Query.QueryExpression         query;
+    Microsoft.Xrm.Sdk.Query.FilterExpression        filterExpression;
+    Microsoft.Xrm.Sdk.EntityCollection              entityCollection;
+    System.Collections.ICollection                  iCollection;
+    int                                             recordCnt;
+    System.Collections.ArrayList                    arList;
+    System.Array c1;
+    ;
+    arList = new System.Collections.ArrayList(1);
+    arList.Add(_value);
+
+    query = new Microsoft.Xrm.Sdk.Query.QueryExpression(_entityName);
+    filterExpression = query.get_Criteria();
+    filterExpression.AddCondition(_keyField, Microsoft.Xrm.Sdk.Query.ConditionOperator::Equal, arList.ToArray());//_value);
+
+    entityCollection = orgService.RetrieveMultiple(query);
+    iCollection = entityCollection.get_Entities();
+    recordCnt = iCollection.get_Count();
+    if (recordCnt > 0)
+    {
+        entityRes = entityCollection.get_Item(0);
+    }
+
+    return entityRes;
+}
+
+void setEntityColumnValues( Microsoft.Xrm.Sdk.Entity    _entity,
+                            Common                      _cursor,
+                            container       _entityFieldsId,
+                            Map             _refFieldsMapping)
+{
+
+    Microsoft.Xrm.Sdk.Entity            refEntity;
+    Microsoft.Xrm.Sdk.OptionSetValue  optionSetValue;
+
+    InteropPermission   permission;
+    int                 i;
+    int                 columnCnt;
+
+    DictTable           dictTable = new DictTable(_cursor.tableId);
+    DictField           dictField;
+
+    int                 tmpInt;
+    real                tmpReal;
+    date                tmpDate;
+    str                 tmpS;
+    container           c;
+
+
+    FieldId             fieldId;
+    str                 fieldName;
+
+    columnCnt = conLen(_entityFieldsId);
+
+    for (i = 1; i <= columnCnt; i++)
+    {
+        fieldId   = conPeek(_entityFieldsId, i);
+        fieldName = fieldId2name(_cursor.TableId, fieldId);
+        dictField = new DictField(dictTable.id(), fieldId);
+
+        if (_refFieldsMapping.exists(fieldId))
+        {
+            if (_cursor.(fieldId))
+            {
+                c = _refFieldsMapping.lookup(fieldId);
+                refEntity = this.findEntityByKey(conPeek(c, 1), conPeek(c, 2), _cursor.(fieldId));
+                if (! refEntity)
+                {
+                    throw error(strFmt("Value %1 doesn't exist in %2 table", _cursor.(fieldId), conPeek(c, 1)));
+                }
+                _entity.set_Item(fieldName, refEntity.ToEntityReference());
+            }
+        }
+        else
+        {
+            switch (dictField.baseType())
+            {
+                case Types::String:
+                    tmpS = _cursor.(fieldId);
+                    _entity.set_Item(fieldName, tmpS);
+                    break;
+                case Types::Real:
+                    tmpReal = _cursor.(fieldId);
+                    _entity.set_Item(fieldName, tmpReal);
+                    break;
+                case Types::Integer:
+                    tmpInt = _cursor.(fieldId);
+                    _entity.set_Item(fieldName, tmpInt);
+
+                    break;
+                case Types::Enum:
+                    tmpInt = _cursor.(fieldId);
+                    optionSetValue = new Microsoft.Xrm.Sdk.OptionSetValue(tmpInt);
+                    _entity.set_Item(fieldName, optionSetValue);
+                    break;
+                case Types::Date:
+                    tmpDate = _cursor.(fieldId);
+                    _entity.set_Item(fieldName, tmpDate);
+                    break;
+                default:
+                    throw error(strfmt("Field \"%1\". Type \"%2\" is not supported", fieldName, dictField.baseType()));
+
+            }
+        }
+    }
+
+}
+    */
+
+    void connect()
+    {
+        /*
+        str     connectionString = @"AuthType=Office365;Username=CRMAX1@denisCRM.onmicrosoft.com; Password=Fafa63345;Url=https://deniscrm.crm6.dynamics.com";
+        Microsoft.Xrm.Tooling.Connector.CrmServiceClient        conn;
+        InteropPermission permission;
+        ;
+        permission = new InteropPermission(InteropKind::ClrInterop);
+        permission.assert();
+        try
+        {
+
+            conn = new Microsoft.Xrm.Tooling.Connector.CrmServiceClient(connectionString);
+
+            if (conn.get_OrganizationWebProxyClient() != null)
+            {
+                orgService = conn.get_OrganizationWebProxyClient() ;
+            }
+            else
+            {
+                orgService = conn.get_OrganizationServiceProxy();
+            }
+
+            if (! orgService)
+            {
+                throw error(strFmt("Failed to connect"));
+            }
+        }
+        catch (Exception::CLRError)
+        {
+            this.processCLRException();
+            throw  error ("Error reading from CRM");
+
+        }
+        */
+
+    }
+
+    guid createOneEntity(Common         _cursor,
+                        str             _entityName,
+                        container       _entityFieldsId,
+                        Map             _refFieldsMapping
+                        )
+    {
+
+
+        guid                res;
+        /*
+        Microsoft.Xrm.Sdk.Entity                    entity;
+        InteropPermission   permission;
+        ;
+
+        permission = new InteropPermission(InteropKind::ClrInterop);
+        permission.assert();
+        try
+        {
+            entity = new Microsoft.Xrm.Sdk.Entity(_entityName);
+
+            this.setEntityColumnValues(entity, _cursor, _entityFieldsId, _refFieldsMapping);
+
+            res = orgService.Create(entity);
+
+        }
+        catch (Exception::CLRError)
+        {
+            this.processCLRException();
+            throw  error ("Error entity creation for CRM");
+
+        }
+        */
+        return res;
+    }
+
+    int loadEntity2Cursor(  Common      _cursor,
+                            str         _entityName,
+                            container   _entityFieldsId,
+                            container   _rangesCon = conNull())
+    {
+        int                 records;
+        /*
+        int                 columnCnt;
+        int                 i;
+        str                 fieldName;
+        DictTable           dictTable = new DictTable(_cursor.tableId);
+        DictField           dictField;
+        FieldId             fieldId;
+        int                 recordCnt;
+
+
+        int               tmpInt;
+        real              tmpReal;
+        date              tmpDate;
+        str               tmpS;
+        Guid              tmpGuid;
+        System.DBNull   db;
+        System.Object   obj;
+
+        System.Type         type;
+        Microsoft.Xrm.Sdk.EntityReference    entityReference;
+        Microsoft.Xrm.Sdk.OptionSetValue     optionSetValue;
+        str             refType = 'Microsoft.Xrm.Sdk.EntityReference';
+        str             curType;
+        System.String   strSys;
+
+        InteropPermission permission;
+
+        str fetch2;
+        Microsoft.Xrm.Sdk.Query.FetchExpression     fetchExpression;
+        Microsoft.Xrm.Sdk.EntityCollection          entityCollection;
+        System.Collections.ICollection              iCollection;
+
+        Microsoft.Xrm.Sdk.Entity                    entity;
+        Microsoft.Xrm.Sdk.Query.QueryExpression     query;
+
+        Microsoft.Xrm.Sdk.Query.ColumnSet           columnSet;
+        Microsoft.Xrm.Sdk.Query.FilterExpression    filterExpression;
+        System.Collections.ArrayList                arList;
+
+        void closeObj()
+        {
+            //
+        }
+        ;
+        permission = new InteropPermission(InteropKind::ClrInterop);
+        permission.assert();
+        try
+        {
+            records  = 1;
+            columnCnt = conLen(_entityFieldsId);
+
+            query = new Microsoft.Xrm.Sdk.Query.QueryExpression(_entityName);
+            columnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet();
+            for(i = 1; i <= columnCnt; i++)
+            {
+                columnSet.AddColumn(fieldId2name(_cursor.TableId, conPeek(_entityFieldsId, i)));
+            }
+            query.set_ColumnSet(columnSet);
+
+            if (conLen(_rangesCon))
+            {
+                filterExpression = query.get_Criteria();
+                for(i = 1; i <= conLen(_rangesCon); i++)
+                {
+
+                    arList = new System.Collections.ArrayList(1);
+                }
+            }
+
+            entityCollection = orgService.RetrieveMultiple(query);
+
+            iCollection = entityCollection.get_Entities();
+
+
+            recordCnt = iCollection.get_Count();
+
+
+            for(records = 0; records < recordCnt; records++)
+            {
+                entity = entityCollection.get_Item(records);
+
+                _cursor.clear();
+                _cursor.initValue();
+
+                for (i = 1; i <= columnCnt; i++)
+                {
+                    fieldId   = conPeek(_entityFieldsId, i);
+                    fieldName = fieldId2name(_cursor.TableId, fieldId);
+
+
+                    if (fieldId)
+                    {
+                        if (! entity.Contains(fieldName) )
+                        {
+                            continue;
+                        }
+                        obj = entity.get_Item(fieldName);
+                        if (System.Convert::IsDBNull(obj) )
+                        {
+                            continue;
+                        }
+                        type = obj.GetType();
+                        curType = type.ToString();
+                        if (curType == 'Microsoft.Xrm.Sdk.EntityReference')
+                        {
+                            entityReference = obj;
+
+                            obj =  entityReference.get_Name();
+                        }
+                        if (curType == 'Microsoft.Xrm.Sdk.OptionSetValue')
+                        {
+                            optionSetValue = obj;
+
+                            obj =  optionSetValue.get_Value();
+                        }
+
+                        dictField = new DictField(dictTable.id(), fieldId);
+                        switch (dictField.baseType())
+                        {
+                            case Types::String:
+                                tmpS = System.Convert::ToString(obj);
+                                _cursor.(fieldId) = tmpS;
+                                break;
+                            case Types::Real:
+                                tmpReal = System.Convert::ToDouble(obj);
+                                _cursor.(fieldId) = tmpReal;
+                                break;
+                            case Types::Integer:
+                                tmpInt =  System.Convert::ToInt32(obj);
+                                _cursor.(fieldId) = tmpInt;
+
+                                break;
+                            case Types::Enum:
+                                tmpInt =  System.Convert::ToInt32(obj);
+                                _cursor.(fieldId) = tmpInt;
+
+                                break;
+                            case Types::Date:
+                                tmpDate = System.Convert::ToDateTime(obj);
+                                _cursor.(fieldId) = tmpDate;
+                                break;
+                            case Types::Guid:
+                                _cursor.(fieldId) = tmpGuid;
+                                break;
+                            default:
+                                throw error(strfmt("Field \"%1\". Type \"%2\" is not supported", fieldName, dictField.baseType()));
+
+                        }
+                    }
+                }
+                _cursor.insert();
+
+            }
+            closeObj();
+        }
+        catch (Exception::CLRError)
+        {
+            this.processCLRException();
+            closeObj();
+            throw  error ("Error reading from CRM");
+
+        }
+        catch(Exception::Error)
+        {
+            closeObj();
+            throw  error ("Error reading from CRM");
+        }
+        */
+        return records;
+    }
+
+    void processCLRException()
+    {
+        str         strError;
+        CLRObject   exc;
+        CLRObject   innerExc;
+        CLRObject   clrExcMessage;
+
+
+        exc = CLRInterop::getLastException();
+        if( exc )
+        {
+            clrExcMessage = exc.get_Message();
+            innerExc = exc.get_InnerException();
+
+            while(innerExc != null)
+            {
+                    clrExcMessage = innerExc.get_Message();
+                    innerExc = innerExc.get_InnerException();
+            }
+
+            strError = CLRInterop::getAnyTypeForObject( clrExcMessage );
+            error(strError);
+        }
+        //throw error("Unhandled CLR error");
+    }
+
+    void updateEntity(Common          _cursor,
+                      str             _entityName,
+                      guid            _keyField,
+                      container       _entityFieldsId,
+                      Map             _refFieldsMapping
+                        )
+    {
+    /*
+        Microsoft.Xrm.Sdk.Entity                    entity;
+
+        InteropPermission                           permission;
+        Microsoft.Xrm.Sdk.Query.ColumnSet           columnSet;
+
+
+        permission = new InteropPermission(InteropKind::ClrInterop);
+        permission.assert();
+        try
+        {
+            columnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet();
+            entity = orgService.Retrieve(_entityName, _keyField, columnSet);
+
+            this.setEntityColumnValues(entity, _cursor, _entityFieldsId, _refFieldsMapping);
+
+            orgService.Update(entity);
+        }
+        catch (Exception::CLRError)
+        {
+            this.processCLRException();
+            throw  error ("Error entity update from CRM");
+
+        }
+    */
+    }
+}

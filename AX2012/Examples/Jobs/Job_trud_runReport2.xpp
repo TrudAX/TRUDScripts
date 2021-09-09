@@ -1,0 +1,20 @@
+static void trud_runReport2(Args _args)
+{
+    /*
+    DEVFuturesContractPosReportDP        dataProvider = new DEVFuturesContractPosReportDP();
+    DEVFuturesContractPosContract             contract = new DEVFuturesContractPosContract();
+    Query    query = new Query(Querystr(DEVFuturesContractPosQuery));
+    ;
+
+    / *
+    contract.parmCurrencyCode('USD');
+    contract.parmMonthsBehind(1);
+    contract.parmMonthsAhead(3);
+    contract.parmUnitId('T');
+    * /
+    dataProvider.parmQuery(query);
+    dataProvider.parmDataContract(contract);
+
+    dataProvider.processReport();
+    */
+}

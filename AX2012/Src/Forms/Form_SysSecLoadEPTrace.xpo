@@ -1,0 +1,437 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysSecLoadEPTrace
+  PROPERTIES
+    Name                #SysSecLoadEPTrace
+    Origin              #{A2F928A6-4D69-48BF-A7E3-6C4F33A83F1D}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    SysSecEntryPointTmp epTraceData;
+      #    super();
+      #
+      #    if(element.args() == null)
+      #    {
+      #        return;
+      #    }
+      #
+      #    element.design().caption(strFmt("@SDT234", element.args().parm()));
+      #    InfoText.text(strFmt("@SDT235"));
+      #
+      #    epTraceData = element.args().record();
+      #
+      #    if(epTraceData.RecId != 0)
+      #    {
+      #        SysSecEntryPointTmp.setTmpData(epTraceData);
+      #        SysSecEntryPointTmp_ds.executeQuery();
+      #    }
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysSecEntryPointTmp
+          Table               #SysSecEntryPointTmp
+          AllowEdit           #No
+          AllowCreate         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SDT236
+      SetCompany          #No
+      AllowDocking        #Yes
+      TopMargin           #0
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          DataSource          #SysSecEntryPointTmp
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Group
+          Left                #Auto (right)
+          ElementPosition     #1610612733
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #MarkSelection
+          AutoDeclaration     #Yes
+          HelpText            #@SDT237
+          ElementPosition     #1610612734
+          HierarchyParent     #Group
+          Text                #@SDT238
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    SysSecEntryPointTmp developmentTmp;
+            #    List objectKeys = new List(Types::String);
+            #
+            #    super();
+            #
+            #    for (developmentTmp = getFirstSelection(SysSecEntryPointTmp_ds);
+            #            developmentTmp;
+            #            developmentTmp = SysSecEntryPointTmp_ds.getNext())
+            #    {
+            #        objectKeys.addEnd(SysSecEntryPointManager::GetKeyForSysSecEntryPointTmp(developmentTmp));
+            #    }
+            #
+            #    if(element.args() && element.args().caller() &&
+            #        formHasMethod(element.args().caller(), identifierStr(MarkObjectsAsRecorded)))
+            #    {
+            #        element.args().caller().MarkObjectsAsRecorded(objectKeys);
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #UpdatePermissions
+          HelpText            #@SDT239
+          ElementPosition     #1073741822
+          HierarchyParent     #Group
+          Text                #@SDT240
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    SysSecEntryPointTmp tmpData2 = SysSecEntryPointTmp;
+            #    SysSecEntryPointTmp tmpData;
+            #    Map selectedRows = new Map(Types::Int64, Types::Record);
+            #    SysSecEntryPointTmp curRecord = SysSecEntryPointTmp.data();
+            #    MapIterator mapIterator;
+            #
+            #    for (tmpData = getFirstSelection(SysSecEntryPointTmp_ds);
+            #            tmpData;
+            #            tmpData = SysSecEntryPointTmp_ds.getNext())
+            #    {
+            #        selectedRows.insert(tmpData.RecId, tmpData);
+            #    }
+            #
+            #    ttsBegin;
+            #    while select forUpdate tmpData2
+            #    {
+            #        if(element.args() && element.args().caller() &&
+            #            formHasMethod(element.args().caller(), identifierStr(GetAccessRightForObjectKey)))
+            #        {
+            #            tmpData2.AccessRight = element.args().caller().GetAccessRightForObjectKey(SysSecEntryPointManager::GetKeyForSysSecEntryPointTmp(tmpData2));
+            #            tmpData2.update();
+            #        }
+            #    }
+            #    ttsCommit;
+            #
+            #    SysSecEntryPointTmp.setTmpData(tmpData2);
+            #    SysSecEntryPointTmp_ds.executeQuery();
+            #    SysSecEntryPointTmp_ds.findRecord(curRecord);
+            #    SysSecEntryPointTmp_ds.setCurrent();
+            #
+            #    mapIterator = new mapIterator(selectedRows);
+            #    while(mapIterator.more())
+            #    {
+            #        tmpData = mapIterator.value();
+            #        SysSecEntryPointTmp_DS.markRecord(tmpData, 1);
+            #        mapIterator.next();
+            #    }
+            #
+            #    super();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_EPTraceIsPostBack
+          ElementPosition     #1100585365
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          DataSource          #SysSecEntryPointTmp
+          DataField           #EPTraceIsPostBack
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_AccessRight
+          ElementPosition     #1717986912
+          HierarchyParent     #Grid
+          Label               #@SDT241
+          DataSource          #SysSecEntryPointTmp
+          DataField           #AccessRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_ObjectType
+          ElementPosition     #1181116002
+          HierarchyParent     #Grid
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectType
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_SystemUserRight
+          ElementPosition     #1932735279
+          HierarchyParent     #Grid
+          Label               #@SDT25
+          DataSource          #SysSecEntryPointTmp
+          DataField           #SystemUserRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INTEDIT
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_EPTraceSessionId
+          ElementPosition     #644245092
+          HierarchyParent     #Grid
+          DataSource          #SysSecEntryPointTmp
+          DataField           #EPTraceSessionId
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #InfoText
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Skip                #Yes
+          AlignControl        #No
+          ElementPosition     #536870911
+          DisplayHeight       #3
+          Border              #None
+          MultiLine           #Yes
+          FontSize            #10
+          ShowLabel           #No
+          IMEMode             #Disabled
+          ViewEditMode        #View
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_EPTraceModuleName
+          ElementPosition     #858993456
+          HierarchyParent     #Grid
+          DataSource          #SysSecEntryPointTmp
+          DataField           #EPTraceModuleName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_EPTracePageName
+          ElementPosition     #1020054729
+          HierarchyParent     #Grid
+          DataSource          #SysSecEntryPointTmp
+          DataField           #EPTracePageName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_EPTraceUserName
+          ElementPosition     #429496728
+          HierarchyParent     #Grid
+          DataSource          #SysSecEntryPointTmp
+          DataField           #EPTraceUserName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SysSecEntryPointTmp_ObjectAOTName
+          ElementPosition     #1449551457
+          HierarchyParent     #Grid
+          Label               #@SDT167
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectAOTName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

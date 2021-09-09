@@ -1,0 +1,103 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : DEVMultiBatchTaskTable unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEVMultiBatchTaskTable
+    EnforceFKRelation 1
+    PROPERTIES
+      Name                #DEVMultiBatchTaskTable
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      PrimaryIndex        #SurrogateKey
+      ClusterIndex        #SurrogateKey
+      ModifiedDateTime    #Yes
+      ModifiedBy          #Yes
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+      Origin              #{2736D3A4-13B7-435B-8ACE-1DD293C25D2D}
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #GroupNum
+        INT
+        PROPERTIES
+          Name                #GroupNum
+          Table               #DEVMultiBatchTaskTable
+          Origin              #{C0F76E47-6A29-4CE7-A7C8-0EC78EFB42EC}
+          ExtendedDataType    #PositiveNumber
+        ENDPROPERTIES
+        
+      FIELD #GroupTaskId
+        STRING
+        PROPERTIES
+          Name                #GroupTaskId
+          Table               #DEVMultiBatchTaskTable
+          Origin              #{974967A1-FAB8-4A11-901B-1FB983B28D4C}
+          ExtendedDataType    #NotesLine
+          StringSize          #254
+        ENDPROPERTIES
+        
+      FIELD #IsProcessed
+        ENUM
+        PROPERTIES
+          Name                #IsProcessed
+          Table               #DEVMultiBatchTaskTable
+          Origin              #{6296984C-9F9C-4199-A17D-1F1755D9643D}
+          ExtendedDataType    #NoYesId
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #RefRecId
+        INT64
+        PROPERTIES
+          Name                #RefRecId
+          Table               #DEVMultiBatchTaskTable
+          Origin              #{030631CB-46BB-40FB-BFED-E49D086303A6}
+          ExtendedDataType    #RefRecId
+        ENDPROPERTIES
+        
+      FIELD #TaskId
+        STRING
+        PROPERTIES
+          Name                #TaskId
+          Table               #DEVMultiBatchTaskTable
+          Origin              #{01856E1E-2E69-48D0-9E11-0E7518DC1A78}
+          ExtendedDataType    #NotesLine
+          StringSize          #254
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+    ENDGROUPS
+    
+    INDICES
+      #TaskIdIdx
+      PROPERTIES
+        Name                #TaskIdIdx
+        Origin              #{944D89DE-2EEB-4D44-BFBB-897C5C74F9C6}
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #TaskId
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

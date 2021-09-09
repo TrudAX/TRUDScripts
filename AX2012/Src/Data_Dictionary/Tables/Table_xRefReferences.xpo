@@ -1,0 +1,411 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBT
+
+; Microsoft Dynamics AX Table : xRefReferences unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #xRefReferences
+    EnforceFKRelation 0
+    PROPERTIES
+      Name                #xRefReferences
+      Label               #@SYS24666
+      TitleField1         #Reference
+      TitleField2         #xRefPathRecId
+      Systemtable         #Yes
+      ConfigurationKey    #SysDevelopmentMorphX
+      SecurityKey         #SysDevelopmentTables
+      AOSAuthorization    #CreateReadUpdateDelete
+      CacheLookup         #Found
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      SaveDataPerPartition #No
+      TableGroup          #Main
+      PrimaryIndex        #Key
+      ClusterIndex        #Key
+      CreatedDateTime     #Yes
+      DEL_createdTime     #Yes
+      CreatedBy           #Yes
+      DeveloperDocumentation  #@SYS122912
+      EntityRelationshipType  #Relationship
+      Origin              #{2C0E0204-0000-1000-7E63-7EB429030777}
+      LegacyId            #516
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #accessLevel
+        ENUM
+        PROPERTIES
+          Name                #accessLevel
+          Label               #@SYS68159
+          HelpText            #@SYS54227
+          Table               #xRefReferences
+          Origin              #{5A626309-8F11-4CDD-BB69-CFB025C8CFCF}
+          ExtendedDataType    #xRefAccessLevelType
+          EnumType            #AccessLevel
+        ENDPROPERTIES
+        
+      FIELD #Column
+        INT
+        PROPERTIES
+          Name                #Column
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #xRefReferences
+          Origin              #{345C8CFE-4819-47D3-8F52-887CA32FC94C}
+          LegacyId            #4
+          ExtendedDataType    #SourceColumnNum
+        ENDPROPERTIES
+        
+      FIELD #line
+        INT
+        PROPERTIES
+          Name                #line
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #xRefReferences
+          Origin              #{C5B14780-A716-4FBC-9316-9D2DB62ED6D3}
+          LegacyId            #5
+          ExtendedDataType    #SourceLineNum
+        ENDPROPERTIES
+        
+      FIELD #Reference
+        ENUM
+        PROPERTIES
+          Name                #Reference
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #xRefReferences
+          Origin              #{7BA628E7-CD54-4C42-A3FD-C1A0CB3FB5F3}
+          LegacyId            #1
+          ExtendedDataType    #xRefReferenceType
+          EnumType            #XRefReference
+        ENDPROPERTIES
+        
+      FIELD #referencePathRecId
+        INT64
+        PROPERTIES
+          Name                #referencePathRecId
+          AllowEditOnCreate   #No
+          Table               #xRefReferences
+          Origin              #{F47BAF8A-6F67-4696-9EF4-DBF2AE160BBE}
+          LegacyId            #6
+          ExtendedDataType    #xRefPathRecId
+        ENDPROPERTIES
+        
+      FIELD #xRefNameRecId
+        INT64
+        PROPERTIES
+          Name                #xRefNameRecId
+          AllowEditOnCreate   #No
+          Table               #xRefReferences
+          Origin              #{222CA043-DB2F-40FB-BB4A-F34BABAD1BD5}
+          LegacyId            #3
+          ExtendedDataType    #xRefNameRecId
+        ENDPROPERTIES
+        
+      FIELD #xRefPathRecId
+        INT64
+        PROPERTIES
+          Name                #xRefPathRecId
+          Mandatory           #Yes
+          AllowEditOnCreate   #No
+          Table               #xRefReferences
+          Origin              #{3E2AB244-ED4B-4454-AD2D-EF266C7725C4}
+          LegacyId            #2
+          ExtendedDataType    #xRefPathRecId
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Reference
+          #line
+          #Column
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #AllFields
+        PROPERTIES
+          Name                #AllFields
+          Label               #@SYS6047
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Reference
+          #xRefPathRecId
+          #xRefNameRecId
+          #Column
+          #line
+          #referencePathRecId
+          #accessLevel
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #Overview
+        PROPERTIES
+          Name                #Overview
+          Label               #@SYS9039
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Reference
+          #path
+          #line
+          #Column
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #PathIdx
+      PROPERTIES
+        Name                #PathIdx
+        Origin              #{2B070001-0204-1000-5061-746849647800}
+        LegacyId            #1
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #xRefPathRecId
+        #line
+        #Column
+      ENDINDEXFIELDS
+      
+      #NamePathIds
+      PROPERTIES
+        Name                #NamePathIds
+        Origin              #{2B0B0002-0204-1000-0114-E00562617468}
+        LegacyId            #2
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #xRefNameRecId
+        #xRefPathRecId
+        #line
+        #Column
+      ENDINDEXFIELDS
+      
+      #referencePathRecId
+      PROPERTIES
+        Name                #referencePathRecId
+        Origin              #{2B120003-0204-1000-CCF5-3A8E3100AC4E}
+        LegacyId            #3
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #referencePathRecId
+        #xRefPathRecId
+        #line
+        #Column
+      ENDINDEXFIELDS
+      
+      #Key
+      PROPERTIES
+        Name                #Key
+        AllowDuplicates     #No
+        Origin              #{2B030004-0204-1000-4B65-790000000000}
+        LegacyId            #4
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #xRefPathRecId
+        #xRefNameRecId
+        #Reference
+        #line
+        #Column
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    FULLTEXTINDICES
+    ENDFULLTEXTINDICES
+    REFERENCES
+      REFERENCE #referencePathRecId
+        PROPERTIES
+          Name                #referencePathRecId
+          Table               #xRefPaths
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Aggregation
+          RelatedTableRole    #xRefPaths
+          Role                #xRefPaths_xRefReferences
+          EDTRelation         #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE PKFK
+          PROPERTIES
+            Field               #referencePathRecId
+            RelatedField        #RecId
+            SourceEDT           #xRefPathRecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #xRefNames
+        PROPERTIES
+          Name                #xRefNames
+          Table               #xRefNames
+          RelatedTableCardinality   #ZeroOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Aggregation
+          RelatedTableRole    #xRefNames
+          Role                #xRefNames_xRefReferences
+          EDTRelation         #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE PKFK
+          PROPERTIES
+            Field               #xRefNameRecId
+            RelatedField        #RecId
+            SourceEDT           #xRefNameRecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+      REFERENCE #xRefPathsRecId
+        PROPERTIES
+          Name                #xRefPathsRecId
+          Table               #xRefPaths
+          RelatedTableCardinality   #ExactlyOne
+          Cardinality         #ZeroMore
+          RelationshipType    #Aggregation
+          RelatedTableRole    #xRefPaths_1
+          Role                #xRefPaths_1_xRefReferences
+          EDTRelation         #Yes
+        ENDPROPERTIES
+        
+        FIELDREFERENCES
+          REFERENCETYPE PKFK
+          PROPERTIES
+            Field               #xRefPathRecId
+            RelatedField        #RecId
+            SourceEDT           #xRefPathRecId
+          ENDPROPERTIES
+          
+        ENDFIELDREFERENCES
+      ENDREFERENCE
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      SOURCE #kind
+        #// BP deviation documented
+        #display xRefKindType kind()
+        #{
+        #    return xRefNames::findRecId(this.xRefNameRecId).Kind;
+        #}
+      ENDSOURCE
+      SOURCE #name
+        #// BP deviation documented
+        #display xRefName name()
+        #{
+        #    return xRefNames::findRecId(this.xRefNameRecId).Name;
+        #}
+      ENDSOURCE
+      SOURCE #path
+        #// BP deviation documented
+        #display xRefPath path()
+        #{
+        #    return xRefPaths::findRecId(this.xRefPathRecId).Path;
+        #}
+      ENDSOURCE
+      SOURCE #referencePath
+        #// BP deviation documented
+        #display xRefPath referencePath()
+        #{
+        #    return xRefPaths::findRecId(this.ReferencePathRecId).Path;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #SDSgetSourceLine
+        #//BP Deviation documented
+        #[SysClientCacheDataMethodAttribute]
+        #display SourceLine SDSgetSourceLine()
+        #{
+        #    SourceLine  res;
+        #
+        #    TreeNode    node;
+        #
+        #    ;
+        #
+        #    if (this.line)
+        #    {
+        #        node = TreeNode::findNode(this.path());
+        #        if (node)
+        #        {
+        #            res = strLine(node.AOTgetSource(), this.line - 1);
+        #            res = strLRTrim(res);
+        #        }
+        #    }
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #SDSinCurrentLayer
+        #//BP Deviation documented
+        #[SysClientCacheDataMethodAttribute]
+        #display NoYesId SDSinCurrentLayer()
+        #{
+        #    NoYes       ret;
+        #
+        #    TreeNode    node;
+        #
+        #    ;
+        #
+        #    //if (this.line)
+        #    //{
+        #    node = TreeNode::findNode(this.path());
+        #    if (node && node.treeNodeType().isLayerAware())
+        #    {
+        #        ret = SysTreeNode::isNodeInLayer(node, currentAOLayer());
+        #    }
+        #    //}
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #typeName
+        #// BP deviation documented
+        #display xRefName typeName()
+        #{
+        #    return xRefNames::findRecId(this.xRefNameRecId).TypeName;
+        #}
+      ENDSOURCE
+      SOURCE #find
+        #static xRefReferences find(xRefPathRecId    _xRefNameRecId,
+        #                           xRefPathRecId    _xRefPathRecId,
+        #                           XRefReference    _xRefReference      = XRefReference::Call,
+        #                           SourceLineNum    _sourceLineNum      = 0,
+        #                           SourceColumnNum  _sourceColumnNum    = 0,
+        #                           boolean          _forUpdate          = false)
+        #{
+        #    xRefReferences xRefReferences;
+        #
+        #    if (_xRefNameRecId &&
+        #        _xRefPathRecId)
+        #    {
+        #        xRefReferences.selectForUpdate(_forUpdate);
+        #
+        #        select firstonly xRefReferences
+        #            index Key
+        #            where xRefReferences.xRefNameRecId == _xRefNameRecId
+        #               && xRefReferences.xRefPathRecId == _xRefPathRecId
+        #               && xRefReferences.Reference     == _xRefReference
+        #               && xRefReferences.Line          == _sourceLineNum
+        #               && xRefReferences.Column        == _sourceColumnNum;
+        #    }
+        #
+        #    return xRefReferences;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+END

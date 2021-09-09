@@ -1,0 +1,5 @@
+static void trud_setDevDocumentation(Args _args)
+{
+    ;
+    DEVLabelsCreateInfo::setDevDocumentation();
+}

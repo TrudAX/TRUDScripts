@@ -1,0 +1,2502 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+final class Info extends xInfo
+{
+    #SysTaskRecorderMacro
+
+    ObjectIdent         docuView;
+    ObjectIdent         lastActivatedForm;
+
+    str                 errorDescription;
+    int                 imageResource;
+    recId               tmpActionId[];
+    int                 treeId[];
+    int                 offsetSeq;
+    SysInfolog          tmpInfoTable;
+
+    boolean             updateCalled;
+    boolean             unused;
+    int                 treeItems;
+    TmpInfolog          tmpInfolog;
+    int                 firstPrefix;
+    int                 sequenceCounter;
+
+    boolean             doxRefCreate;
+    boolean             hasPrefix;
+
+    ObjectIdent         updateViewObj;          // Update of info. log
+
+    str 255             urlLookup;
+    int                 errorsPerBatch;
+    boolean             emptyTmpInfologCalled;
+
+    boolean             docuHandlingActive;
+    boolean             docuToolbarButtonActive;
+    Docu                docu;
+
+    xRef                    lastxRef;
+    ObjectIdent             updatexRefObj;          // Update of xRef. Can be temporarely canceled
+    Exception               maxException;
+    ImageListAppl_Infolog   imagelist;
+    ObjectIdent             infoActionObject;          // Update of info. log
+    int                     numEqualPrefixes;
+
+    ProfileManager          profileMgr;
+
+    // Multipurpose cache used e.g. for imagelists and Forms security setup
+    SysGlobalCache          globalCache;
+    #define.watchdogInterval(15*60*1000)
+    Map                     setTimeOutMap;
+
+    // Map that contains a separate SysGlobalCache for each workspace window
+    Map                     workspaceCacheMap;
+
+    SysOperationProgressForm operationProgress;
+    SysInfologLevel     loglevel;
+
+    // Generating PDF fonts is very time consuming, so we keep a cache global here, Axapta 4.0#41749.
+    SysPDFFontCache         pdfFontCache;
+
+    boolean                 alreadySetCanViewAlertInbox;
+    boolean                 canViewAlertInboxValue;
+
+    #Define.CurrentVersion(1)
+
+    #define.PropertyString("Property")
+    #define.ObsoleteUpdateXrefTreeNodeAPI("Use the Application::updateXrefTreeNode method instead, which can run on either the client or server.")
+
+    void activate(FormRun   formRun)
+    {
+        if (formRun.name() != formstr(DocuView) &&
+            formRun.name() != formstr(sysFormSearch)                // SP4
+           )
+        {
+            this.setLastActivatedForm(formRun);
+        }
+
+        if (SysTaskRecorderEventManager::parmRecording())
+        {
+            SysTaskRecorderGlobal::setGlobalProperty(#globalPropWarnOnFormActivate,true);
+        }
+    }
+
+    Exception add(
+        Exception _exception,
+        str _txt,
+        str _helpUrl = '',
+        Object _sysInfoAction = null,
+        boolean buildprefix = true)
+    {
+        int numOfLines,i;
+        int actionClassId;
+        container packedAction;
+        xSession session;
+        ;
+        if (_exception != Exception::Info) //trud
+        {
+            exceptionTextFallThrough();
+        }
+        switch (logLevel)
+        {
+            case SysInfologLevel::None:
+                return _exception;
+            case SysInfologLevel::Warning:
+                if (_exception == Exception::Info)
+                    return _exception;
+                break;
+            case SysInfologLevel::Error:
+                if (_exception == Exception::Info || _exception == Exception::Warning)
+                    return _exception;
+        }
+        if (infologLine() > errorsPerBatch)
+        {
+            i = infologLine();
+            while (!numEqualPrefixes && numOfLines <= errorsPerBatch && SysInfologMessageStruct::comparePrefix(conpeek(conpeek(this.copy(i,i),2),2)))
+            {
+                i--;
+                numOfLines++;
+            }
+            if (numEqualPrefixes)
+            {
+                i = infologLine();
+                if (SysInfologMessageStruct::comparePrefix(conpeek(conpeek(this.copy(i,i),2),2)))
+                {
+                    numEqualPrefixes++;
+                }
+                else
+                {
+                    numEqualPrefixes = 0;
+                }
+            }
+            else
+            {
+                numEqualPrefixes = numOfLines;
+            }
+
+            if (numEqualPrefixes > errorsPerBatch &&
+               (_exception == Exception::Info || _exception == Exception::Warning || _exception == Exception::Error))
+            {
+                return _exception;
+            }
+        }
+
+        try
+        {
+            if (!_sysInfoAction && !_helpUrl && isSystemAdministrator() && isConfigurationkeyEnabled(configurationkeynum(SysDevelopmentMorphX)) /*hasSecuritykeyAccess(securitykeynum(SysDevelopment), AccessType::View)*/)
+            {
+                session = new xSession();
+                if(session.clientKind() == ClientType::Client)
+                {
+                    _sysInfoAction = SysInfoAction_Editor::newStack();
+                }
+            }
+        }
+        catch
+        {
+            return super(_exception, (buildprefix?getprefix():'')+_txt);
+        }
+
+        if (_sysInfoAction && !_sysInfoAction.enabled()) //test access rights
+        {
+            _sysInfoAction = null;
+        }
+
+        if (_helpUrl || _sysInfoAction)
+        {
+            if (_sysInfoAction)
+            {
+                packedAction  = _sysInfoAction.pack();
+                actionClassId = classidget(_sysInfoAction);
+            }
+            else
+            {
+                packedAction  = connull();
+                actionClassId = 0;
+            }
+
+            this.addSysInfoAction(_helpUrl, actionClassId, packedAction);
+        }
+
+        return super(_exception, (buildprefix?getprefix():'')+_txt);
+    }
+
+    void addSysInfoAction(
+        str _helpUrl,
+        int actionClassId,
+        container action)
+    {
+        tmpInfoTable.HelpUrl       = _helpUrl;
+        tmpInfoTable.Action        = action;
+        tmpInfoTable.ActionClassId = actionClassId;
+
+        tmpInfoTable.insert();
+        tmpActionId[ infologLine() +1] = tmpInfoTable.RecId;
+    }
+
+    int addTimeOut(Object object, str methodName, int time, boolean idle = true)
+    {
+        int hdl;
+        Struct      valueStruct = new Struct('object caller;str method');
+        ObjectIdent ident       = new ObjectIdent(object);
+
+        if (!setTimeOutMap)
+            setTimeOutMap       = new Map(Types::Integer, Types::Class);
+
+        valueStruct.value('caller', ident);
+        valueStruct.value('method', methodName);
+
+        hdl = this.setTimeOut(identifierstr(callTimeOut), time, idle);
+        setTimeOutMap.insert(hdl, valueStruct);
+        return hdl;
+    }
+
+    void autologOff()
+    {
+        SysGlobalCache cache = appl.globalCache();
+        ;
+        cache.set(classstr(Info), identifierstr(Autologoff), true);
+        this.shutDown(true);
+
+        // The shutdown may not be successful.  For instance, if the
+        // user had pending changes the client may be prevented from
+        // shutting down.  Restart the timer so it will fire again.
+        this.startAutoLogoffTimer();
+    }
+
+    private FormRun breakpointForm(FormRun _form = null)
+    {
+        #define.BreakpointForm('BreakpointForm')
+        str mapOwner = #BreakpointForm;
+        FormRun tempForm;
+
+        if (!prmisdefault(_form))
+        {
+            this.workspaceCache().set(mapOwner, 0, _form);
+        }
+
+        if (this.workspaceCache().isSet(mapOwner, 0))
+        {
+           tempForm = this.workspaceCache().get(mapOwner, 0);
+        }
+        else
+        {
+           tempForm = null;
+        }
+
+        return tempForm;
+    }
+
+    private boolean breakpointFormClosed(boolean _closed = false)
+    {
+        #define.BreakpointFormClosed('BreakpointFormClosed')
+        str mapOwner = #BreakpointFormClosed;
+        boolean closed;
+
+        if (!prmisdefault(_closed))
+        {
+            this.workspaceCache().set(mapOwner, 0, _closed);
+        }
+
+        if (this.workspaceCache().isSet(mapOwner, 0))
+        {
+           closed = this.workspaceCache().get(mapOwner, 0);
+        }
+        else
+        {
+            closed = false;
+        }
+
+        return closed;
+    }
+
+    public void breakpointNotify(BreakpointNotify _notification)
+    {
+        Object o;
+        Args   args;
+        FormRun formRun;
+
+        switch(_notification)
+        {
+            case BreakpointNotify::BreakpointForm:
+                if (!this.breakpointForm() || this.breakpointFormClosed())
+                {
+                    this.breakpointFormClosed(false);
+
+                    args = new Args();
+                    args.name(formstr(SysBreakpoints));
+                    formRun = this.breakpointForm(classfactory.formRunClass(args));
+                    formRun.init();
+                    formRun.run();
+                }
+                else
+                {
+                    this.breakpointForm().close();
+                }
+                break;
+
+            case BreakpointNotify::BreakpointChange:
+                if (this.breakpointForm() && !this.breakpointFormClosed())
+                {
+                    o = this.breakpointForm();
+                    o.updateListDelayed();
+                }
+                break;
+        }
+    }
+
+    private FormRun browser(FormRun _browser = null)
+    {
+        #define.Browser('InfoLogBrowser')
+        str mapOwner = #Browser;
+        FormRun browserForm;
+
+        if (!prmisdefault(_browser))
+        {
+            this.workspaceCache().set(mapOwner, 0, _browser);
+        }
+
+        if (this.workspaceCache().isSet(mapOwner, 0))
+        {
+           browserForm = this.workspaceCache().get(mapOwner, 0);
+        }
+        else
+        {
+           browserForm = null;
+        }
+
+        return browserForm;
+    }
+
+    private FormButtonControl browserActionButton()
+    {
+        return this.browser().design().controlName('action');
+    }
+
+    private FormGroupControl browserBottomGroup()
+    {
+        return this.browser().design().controlName('bottomgroup');
+    }
+
+    private FormButtonControl browserCloseButton()
+    {
+        return this.browser().design().controlName('close');
+    }
+
+    private FormStaticTextControl browserCurrentError()
+    {
+        return this.browser().design().controlName('currenterror');
+    }
+
+    private FormWindowControl browserCurrentPicture()
+    {
+        return this.browser().design().controlName('currentpicture');
+    }
+
+    private FormButtonControl browserDeleteAll()
+    {
+        return this.browser().design().controlName('deleteall');
+    }
+
+    private FormTreeControl browserErrorTree()
+    {
+        return this.browser().design().controlName('errortree');
+    }
+
+    private FormButtonControl browserHelpButton()
+    {
+        return this.browser().design().controlName('help');
+    }
+
+    private ImageListAppl_Infolog browserImageList()
+    {
+        Object object;
+    ;
+        object = this.browser();
+        return object.imagelist();
+    }
+
+    private FormStringControl browserInfoText()
+    {
+        return this.browser().design().controlName('InfoText');
+    }
+
+    private boolean browserResizedOnce(boolean _resizedOnce = false)
+    {
+        #define.BrowserResizedOnce('InfoLogBrowserResizedOnce')
+        str mapOwner = #BrowserResizedOnce;
+        boolean sizedOnce;
+
+        if (!prmisdefault(_resizedOnce))
+        {
+            this.workspaceCache().set(mapOwner, 0, _resizedOnce);
+        }
+
+        if (this.workspaceCache().isSet(mapOwner, 0))
+        {
+           sizedOnce = this.workspaceCache().get(mapOwner, 0);
+        }
+        else
+        {
+            sizedOnce = false;
+        }
+
+        return sizedOnce;
+    }
+
+    private FormGroupControl browserTopGroup()
+    {
+        return this.browser().design().controlName('topgroup');
+    }
+
+    private FormGroupControl browserTreeGroup()
+    {
+        return this.browser().design().controlName('treegroup');
+    }
+
+    private void callTimeOut()
+    {
+        Struct      valueStruct;
+        ObjectIdent ident;
+        Object      obj;
+        str         method;
+        DictClass   dictClass;
+        int         hdl = this.getTimeOutTimerHandle();
+
+        if (setTimeOutMap.exists(hdl))
+        {
+            valueStruct = setTimeOutMap.lookup(hdl);
+            ident       = valueStruct.value('caller');
+            method      = valueStruct.value('method');
+
+            obj = ident.object();
+            if (obj)
+            {
+                setTimeOutMap.remove(hdl);
+                dictClass = new DictClass(classidget(obj));
+
+                // callTimeOut is called from addTimeOut which in turn is called only from client classes.
+
+                // BP deviation documented
+                dictClass.callObject(method,obj);
+            }
+        }
+    }
+
+    public boolean canShowCreateRuleMenuItem(FormRun _caller)
+    {
+        return EventRule::canShowCreateRuleMenuItem(_caller);
+    }
+
+    public boolean canShutdown(boolean _silent)
+    {
+        boolean ret;
+    ;
+        DocuFileWatchDog::openFiles(_silent);
+
+        ret = super(_silent);
+
+        return ret;
+    }
+
+    boolean canUpdateView()
+    {
+        // COM Object/Server
+        if (!hasGUI())
+            return false;
+
+        // Most common situation
+        if (! updateViewObj)
+            return true;
+
+        // Object is dead, so okay to view
+        if (! updateViewObj.object())
+            return true;
+
+        // It's alive so no update
+        return false;
+    }
+
+    boolean canUpdatexRef()
+    {   ;
+        // Most common situation
+        if (!updatexRefObj)
+            return true;
+
+        // Object is dead, so okay to update
+        if (!updatexRefObj.object())
+            return true;
+
+        // It's alive, so no update
+        return false;
+    }
+
+    public boolean canViewAlertInbox()
+    {
+        boolean ret;
+        ;
+
+        if(alreadySetCanViewAlertInbox)
+        {
+            return canViewAlertInboxValue;
+        }
+
+        ret = SysDictMenu::isMenuFunctionVisible(
+            new MenuFunction(menuitemdisplaystr(EventAlertInbox), MenuItemType::Display));
+
+        canViewAlertInboxValue = ret;
+        alreadySetCanViewAlertInbox = true;
+
+        return ret;
+    }
+
+    void checkForTimeZoneMismatch()
+    {
+        #ResAppl
+        #define.cancelButton      ('CancelButton')
+        #define.DialogClassName   ('Dialog')
+        #define.IconControl       ('Icon')
+        #define.MessageTextControl('MessageText')
+        #define.CheckBoxControl   ('CheckBox')
+        #define.MessageGroup      ('MessageGroup')
+        #define.OptionGroup       ('OptionGroup')
+
+        Dialog dlg;
+        UserInfo userInfo;
+
+        FormBuildGroupControl fbMainGroup;
+        FormBuildGroupControl fbMessageGroup;
+        FormBuildGroupControl fbOptionGroup;
+
+        FormBuildWindowControl        fbIcon;
+        FormBuildStaticTextControl    fbMessage;
+        FormBuildCheckBoxControl      fbCheckbox;
+        FormBuildCommandButtonControl fbButton;
+
+        FormCheckBoxControl           checkbox;
+        ;
+
+        if (clientKind() == ClientType::Client)
+        {
+            userInfo = xUserInfo::find(true, curuserid());
+            if (userInfo && userInfo.NotifyTimeZoneMismatch)
+            {
+                if (xSession::isUserPreferredTzSameAsLocalMachine() == false)
+                {
+                    // Time zone mismatch
+                    dlg = new Dialog("@SYS113344");
+                    dlg.formBuildDesign().setCompany(false);
+
+                    fbMainGroup = dlg.mainFormGroup();
+
+                    fbMessageGroup = fbMainGroup.addControl(FormControlType::Group, #MessageGroup);
+                    fbMessageGroup.frameType(FormFrameType::None);
+                    fbMessageGroup.columns(2);
+
+                    fbOptionGroup = fbMainGroup.addControl(FormControlType::Group, #OptionGroup);
+                    fbOptionGroup.frameType(FormFrameType::None);
+                    fbOptionGroup.leftMode(FormLeft::AutoRight);
+
+                    fbIcon = fbMessageGroup.addControl(FormControlType::Image, #IconControl);
+                    fbIcon.imageResource(#ImageInfoLarge);
+                    fbIcon.backStyle(FormBackStyle::Transparent);
+                    fbIcon.backgroundColor(WindowsPalette::ButtonFace3D);
+                    fbIcon.left(0);
+
+                    // The local machine time zone does not match your preferred time zone settings.
+                    fbMessage = fbMessageGroup.addControl(FormControlType::StaticText, #MessageTextControl);
+                    fbMessage.text("@SYS113345");
+                    fbMessage.topMode(0);
+                    fbMessage.topValue(10);
+
+
+                    // Do not notify me again
+                    fbCheckbox = fbOptionGroup.addControl(FormControlType::CheckBox, #CheckBoxControl);
+                    fbCheckbox.leftMode(FormLeft::RightEdge);
+                    fbCheckbox.label("@SYS113346");
+
+                    fbButton = dlg.dialogForm().buildDesign().control(#cancelButton);
+                    fbButton.visible(false);
+
+                    dlg.run();
+                    dlg.wait();
+
+                    if (dlg.closedOk())
+                    {
+                        checkbox = dlg.formRun().design().controlName(#CheckBoxControl);
+                        if (checkbox.value())
+                        {
+                            userInfo.NotifyTimeZoneMismatch = false;
+                            ttsbegin;
+                            userInfo.update();
+                            ttscommit;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void checkStartupCompany()
+    {
+        ;
+        Info::checkStartupCompany_Server(curext(), curuserid());
+    }
+
+    /*
+        This is overridden to ensure that the number of lines left are considered at each usage.
+        Do not call this with 0 (zero) unless you are sure no one else has put valuable information
+        into the infolog system.
+
+        Use this pattern to clear the infolog cache:
+
+        int line = infolog.line();
+        try
+        {
+            //
+        }
+        catch
+        {
+            infolog.clear(line);
+        }
+    */
+    public void clear(int _linesLeft = 0)
+    {
+        int i;
+
+        if (_linesLeft)
+        {
+            for (i=_linesLeft+1; i<= infologLine() ; i++)
+            {
+                tmpActionId[i] = 0;
+            }
+        }
+        else
+        {
+            // Delete all
+            tmpActionId[0] = 0;
+        }
+        super(_linesLeft);
+    }
+
+    void clearBreakpointForm()
+    {
+        this.breakpointFormClosed(true);
+    }
+
+    #resource
+    void clearBrowser()
+    {
+        treeItems = 0;
+        tmpInfoTable = null;
+        tmpInfoTable.recordLevelSecurity(true);
+        //BP deviation documented
+        tmpInfoTable.setTmp();
+        tmpActionId[0] = 0; //clear array
+
+        if (this.browser())
+        {
+            this.browserInfoText().text('');
+            this.browserErrorTree().deleteAll();
+            this.browserCurrentError().text('');
+            this.browserCurrentPicture().imageResource(#RES_INFOLOG_L_INFO);
+            maxException = Exception::Info;
+        }
+        this.emptyTmpInfolog();
+    }
+
+    void close(FormRun formRun)
+    {
+        if (lastActivatedForm && lastActivatedForm.object() == formRun)
+            lastActivatedForm   = null;
+
+        if (! docuView)
+            return;
+
+        if (formRun.name() != formstr(DocuView))
+            return;
+
+        docuView            = null;
+        lastActivatedForm   = null;
+    }
+
+    public void closeInfolog(int _delayedInMS = 0)
+    {
+    ;
+        if (_delayedInMS)
+        {
+            this.setTimeOut(methodstr(Info, closeInfologDelayed), _delayedInMS, true);
+        }
+        else
+        {
+            this.closeInfologDelayed();
+        }
+    }
+
+    private void closeInfologDelayed()
+    {
+    ;
+        //
+        // CanClose() will set visible to false on the infolog browser form
+        //
+        if (this.browser() != null && this.browser().canClose())
+        {
+            this.browser().close();
+        }
+    }
+
+    /// <summary>
+    ///    Indicates whether the Electronic Signature should be collected for the specified <c>databaseLog</c>
+    ///    type and record.
+    /// </summary>
+    /// <param name="_logType">
+    ///    The parameter is the log type for the database log type.
+    /// </param>
+    /// <param name="_record">
+    ///    The parameter is the record of the calling method.
+    /// </param>
+    /// <returns>
+    ///    true is signature needs to be collected; otherwise, false.
+    /// </returns>
+    boolean collectESignature(DatabaseLogType _logType, Common _record)
+    {
+        boolean ret = true;
+        ;
+
+        //info("ESignature required for table " + tableid2name(_record.TableId) + " for " + enum2str(_logType) + " operation");
+        if (!SIGBaseDocument::checkAndCache(_logType,_record))
+        {
+            ret = checkFailed("@SYS138056");
+        }
+
+        return ret;
+    }
+
+    /*
+    No SYS code must exist in this method
+    */
+    void connectorSessionStart()
+    {
+    }
+
+    /*
+    No SYS code must exist in this method
+    */
+    void connectorSessionStop()
+    {
+    }
+
+    public container copy(int _from, int _to)
+    {
+        int i;
+        InfologData systemData;
+        InfologData returnData;
+
+        systemData = super(_from, _to);
+        if (conlen(systemData))
+        {
+            returnData = [[#CurrentVersion]];
+
+            for (i=1; i<=conlen(systemData); i+=2)
+            {
+                if (tmpActionId[_from+(i div 2)])
+                {
+                    select firstonly tmpInfoTable
+                        where tmpInfoTable.RecId == tmpActionId[_from+(i div 2)];
+
+                    returnData += [[conpeek(systemData, i), conpeek(systemData, i+1), tmpInfoTable.HelpUrl, tmpInfoTable.ActionClassId, tmpInfoTable.Action]];
+                }
+                else
+                {
+                    returnData += [[conpeek(systemData, i), conpeek(systemData, i+1)]];
+                }
+            }
+        }
+        return returnData;
+    }
+
+    public container cut(int _from = 1, int _to = infologLine())
+    {
+        int i;
+        int lines = this.num();
+        InfologData systemData;
+        InfologData returnData;
+
+        systemData = super(_from, _to);
+        returnData = [[#CurrentVersion]];
+        for (i=1; i<=conlen(systemData); i+=2)
+        {
+            if (tmpActionId[_from+(i div 2)])
+            {
+                select firstonly tmpInfoTable
+                    where tmpInfoTable.RecId == tmpActionId[_from+(i div 2)];
+
+                returnData += [[conpeek(systemData, i), conpeek(systemData, i+1), tmpInfoTable.HelpUrl, tmpInfoTable.ActionClassId, tmpInfoTable.Action]];
+            }
+            else
+            {
+                returnData += [[conpeek(systemData, i), conpeek(systemData, i+1)]];
+            }
+        }
+
+        for (i=0; i<=lines-_to+1; i++)
+            tmpActionId[_from+i] = tmpActionId[_to+i+1];
+
+        return returnData;
+    }
+
+    Docu    docu()
+    {
+        return docu;
+    }
+
+    boolean docuHandlingActive(boolean _docuHandlingActive = docuHandlingActive)
+    {
+        ;
+        docuHandlingActive = _docuHandlingActive;
+
+        return docuHandlingActive;
+
+    }
+
+    void docuInit()
+    {
+    ;
+        docu = new Docu();
+    }
+
+    boolean doxRefCreate(boolean _doxRefCreate = doxRefCreate)
+    {
+        doxRefCreate = _doxRefCreate;
+        return doxRefCreate;
+    }
+
+    void emptyTmpInfolog(boolean resetErrorsPerBatch = true)
+    {
+        ;
+        tmpInfoLog            = null;
+        sequenceCounter       = 0;
+        offsetSeq             = 1;
+        if (resetErrorsPerBatch)
+            errorsPerBatch        = maxint()-1;
+        numEqualPrefixes     = 0;
+        emptyTmpInfologCalled = false;
+    }
+
+    int errorsPerBatch(int number = errorsPerBatch)
+    {
+        if (number)
+            errorsPerBatch = number;
+        else
+            errorsPerBatch = maxint();
+
+        return errorsPerBatch;
+    }
+
+    void eventAlertInit()
+    {
+        SysGlobalCache cache                    = infolog.globalCache();
+        EventAlertPoller alertPoller            = EventAlertPoller::newAlertPoller(false);
+        EventDrillDownPoller drillDownPoller    = EventDrillDownPoller::construct();
+    ;
+        cache.set(classstr(EventAlertPoller), literalstr(ReferenceId), alertPoller, false);
+        cache.set(classstr(EventDrillDownPoller), literalstr(ReferenceId), drillDownPoller, false);
+    }
+
+    void executeUserOptions()
+    {
+        this.startAutoLogoffTimer();
+
+        this.setTimeOut(methodstr(Info,watchDog), #watchdogInterval, false);
+    }
+
+
+    container export()
+    {
+        return infolog.copy(1, infolog.num());
+    }
+
+    /*
+        corrects xInfo.findNode so it can find the root node by it's path: '\'
+    */
+    TreeNode findNode(str _path)
+    {
+        str path = _path == '\\' ? '' : _path;
+        return super(path);
+    }
+
+    void formNotify(FormRun formRun,FormNotify event,FormNotifyEventArgs eventArgs=null)
+    {
+        switch (event)
+        {
+            case FormNotify::Activate:
+                this.activate(formRun);
+                if (docu)
+                    docu.reSearch(formRun);
+                break;
+            case FormNotify::DeActivate:
+                break;
+            case FormNotify::Open:
+                this.open(formRun);
+                if (docu)
+                    docu.set(formRun);
+                break;
+            case FormNotify::Close:
+                this.close(formRun);
+                if (docu)
+                    docu.clear(formRun);
+                break;
+            case FormNotify::RecordChange:
+                if (docu)
+                    docu.reSearch(formRun);
+
+                if (formRun.isWorkflowEnabled())
+                {
+                    // only refresh controls if current ds equals workflow data source
+                    if ((eventArgs != null) && (eventArgs.formDataSource()))
+                    {
+                        if (eventArgs.formDataSource().name() == formRun.workflowDataSource().name())
+                        {
+                            formRun.updateWorkflowControls();
+                        }
+                    }
+                }
+
+                break;
+            case FormNotify::NoteClicked:
+                if (docu)
+                    docu.note(formRun);
+                break;
+            case FormNotify::RecordsWritten:
+                if (formRun.isWorkflowEnabled())
+                {
+                    formRun.updateWorkflowControls();
+                }
+                break;
+        }
+    }
+
+
+    container getInfoActionData(int line)
+    {
+        recId recId = tmpActionId[line];
+
+        if (recId)
+        {
+            select tmpInfoTable
+                where tmpInfoTable.RecId == recId;
+            return [tmpInfoTable.ActionClassId, tmpInfoTable.Action];
+        }
+        return connull();
+    }
+
+    public TreeNode getNode(UtilElementType _utilType,
+                            str _name,
+                            utilElementId _parentId=0,
+                            int _utilFileType=UtilFileType::Application,
+                            UtilEntryLevel _utillevel=0,
+                            boolean _forcelevel=0,
+                            int _mode=0,
+                            boolean _oldUtil=0)
+    {
+        UtilElements utilElem;
+        TreeNode treeNode;
+
+        if (_utilFileType == UtilFileType::Application)
+        {
+            if (_utilType == UtilElementType::ViewQuery ||
+                _utilType == UtilElementType::SecurityKey ||
+                _utilType == UtilElementType::ConfigurationKey ||
+                _utilType == UtilElementType::Perspective)
+            {
+                // The kernel's findNode() cannot return these types
+
+                utilElem.RecordType = _utilType;
+                utilElem.Name       = _name;
+                utilElem.ParentId   = _parentId;
+
+                treeNode = TreeNode::findNode(xUtilElements::getNodePathRough(utilElem));
+
+                if (! treeNode)
+                    return null;
+
+                if (treeNode.AOTLayer() == _utillevel &&
+                    treeNode.AOTIsOld() == _oldUtil)
+                {
+                    return treeNode;  // The right one
+                }
+
+                return SysTreeNode::nodeInLayer(treeNode, _utillevel, _forcelevel, _oldUtil);
+            }
+        }
+
+        return super(_utilType, _name, _parentId, _utilFileType, _utillevel, _forcelevel, _mode, _oldUtil);
+    }
+
+    SysPDFFontCache getPDFFontCache()
+    {;
+        // Generating PDF fonts is very time consuming, so we keep a cache global here, Axapta 4.0#41749.
+        // To reduce the likely hood of confusing print job settings this cache is cleared when the app goes idle, see onEventGoingIdle.
+        // So, the cache is really only used in rapid printing scenarios, such as batch printing.
+        if (!pdfFontCache)
+            pdfFontCache = new SysPDFFontCache();
+
+        return pdfFontCache;
+    }
+
+    SysGlobalCache globalCache()
+    {
+        if (!globalCache)
+            globalCache = SysGlobalCache::construct();
+
+        return globalCache;
+    }
+
+
+
+    boolean import(container c, boolean clearExisting = false)
+    {
+        int version, oldInfologLen;
+        int i, start, end, len;
+        container currentEntry;
+        int entryLen;
+        int entryType;
+        str entryText;
+        ;
+
+        len = conlen(c);
+
+        // Must have at least one element
+        if(len == 0)
+            return false;
+
+        // first element is a container with one integer element (version)
+        if(typeof(conpeek(c, 1)) != Types::Container ||
+            conlen(conpeek(c, 1)) != 1 ||
+            typeof(conpeek(conpeek(c, 1), 1)) != Types::Integer)
+            return false;
+
+        // Get the version
+        version = conpeek(conpeek(c, 1), 1);
+
+        // version has to match otherwise import fails
+        if(version != #CurrentVersion)
+            return false;
+
+        // Save the current number of entries
+        oldInfologLen = infolog.num();
+
+        // append to the info log
+        for(i = 2; i <= len; i++)
+        {
+            // each entry is a container
+            if(typeof(conpeek(c, i)) != Types::Container)
+                break;
+
+            // Get the current entry
+            currentEntry = conpeek(c, i);
+
+            // Get the current entry length
+            entryLen = conlen(currentEntry);
+
+            // entries can be formatted in 2 ways
+            // 1. [exceptionType, Text]
+            // 2. [exceptionType, Text, helpUrl, actionClassId, action]
+            if(entryLen != 2 && entryLen != 5)
+                break;
+
+            // Validate types
+            if(typeof(conpeek(currentEntry, 1)) != Types::Integer ||
+                typeof(conpeek(currentEntry, 2)) != Types::String)
+                break;
+
+            // Extract the first 2 values in the entry
+            entryType = conpeek(currentEntry, 1);
+            entryText = conpeek(currentEntry, 2);
+
+            if(entryLen == 5)
+            {
+                // Validate types
+                if(typeof(conpeek(currentEntry, 3)) != Types::String ||
+                    typeof(conpeek(currentEntry, 4)) != Types::Integer ||
+                    typeof(conpeek(currentEntry, 5)) != Types::Container)
+                    break;
+
+                // Extract the remaining 3
+                this.addSysInfoAction(conpeek(currentEntry, 3), conpeek(currentEntry, 4), conpeek(currentEntry, 5));
+            }
+
+            // Add the entry to the current infolog
+            //BP Deviation documented - Must use infolog.add because the Global class does not expose helper methods for each type of exception.
+            infolog.add(entryType, entryText);
+        }
+
+        // Revert in the case of failure
+        if(i < len)
+        {
+            start = oldInfologLen + 1;
+            end = oldInfologLen + i - 2;
+
+            if(start >= infolog.num())
+                infolog.cut(start, end);
+
+            return false;
+        }
+
+        // Clear the old info log items
+        if(clearExisting && oldInfologLen > 0)
+        {
+            infolog.cut(1, oldInfologLen);
+        }
+
+        return true;
+    }
+
+    /*
+    This object will be passed to the unpack method on a SysInfoAction class.
+    Make sure the object is a client object, otherwise it will not be passed on.
+    */
+    Object infoActionObject(Object obj = null)
+    {
+        if (!prmisdefault(obj))
+        {
+            if (obj)
+            {
+                infoActionObject = new ObjectIdent(obj);
+            }
+            else
+            {
+                infoActionObject = null;
+            }
+        }
+        if (infoActionObject && infoActionObject.object())
+            return infoActionObject.object();
+
+        return null;
+    }
+
+    InfologData infologData()
+    {
+        recId tmpActionIdBackup[];
+        int i;
+        int lines = this.num();
+        InfologData infologData = this.copy(1,lines);
+
+        for (i=1; i<=lines; i++)
+            tmpActionIdBackup[i] = tmpActionId[i];
+
+        this.clear(0);
+
+        for (i=1; i<=lines; i++)
+            tmpActionId[i] = tmpActionIdBackup[i];
+
+        return infologData;
+    }
+
+    SysInfologLevel infologLevel()
+    {
+        return loglevel;
+    }
+
+    boolean initBrowser()
+    {
+        FormRun browserWindow;
+        Args browserArgs = new Args();
+        xSession mySession = new xSession();
+        ClientType clientType = xGlobal::clientKind();
+
+        // COM Object/Server
+        if ((clientType == ClientType::COMObject) || (clientType == ClientType::Server) || Session::isServer())
+            return false;
+
+        // bugfix DE-552-764-S99j
+        if (mySession.clientKind() == ClientType::WorkerThread)
+            return false;
+
+        if (!this.browser())
+        {
+            // No browser found to create one and store it in the
+            // current workspace
+
+            // A browser must be resized once for the tree to appear
+            this.browserResizedOnce(false);
+
+            browserArgs.name(formstr(SysInfologBrowser));
+            //BP deviation documented - ClassFactory.formRunClass method cannot be used since ClassFactory is not initialized at this point.
+            browserWindow = new FormRun(browserArgs);
+
+            this.browser(browserWindow);
+            this.browser().run();
+            this.initializeInfolog(this.browser().hWnd());
+            return true;
+        }
+
+        if( SysTaskRecorderEventManager::parmRecording() )
+        {
+            if( !(this.browser() is SysTaskRecorderSetupFormRun) )
+            {
+                this.browserResizedOnce(false);
+                browserArgs.name(formstr(SysInfologBrowser));
+                browserWindow = SysTaskRecorderSetupFormRun::newArgs(browserArgs);
+                this.browser(browserWindow);
+                this.browser().run();
+                this.initializeInfolog(this.browser().hWnd());
+
+                SysTaskRecorderRunningFormsManager::addFormToList(browserWindow);
+
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+    void insertxReferences()
+    {
+        ;
+
+        if (this.canUpdatexRef())
+        {
+            xRefCreate::insertxReferences(true);
+        }
+    }
+
+    boolean isDocuSet()
+    {
+        if (docuView && docuView.object())
+            return true;
+
+        return false;
+    }
+
+    xRef lastxRef(xRef _lastxRef = lastxRef)
+    {
+        lastxRef = _lastxRef;
+        return lastxRef;
+    }
+
+    /// <summary>
+    /// Gets the number of lines in the Infolog buffer.
+    /// </summary>
+    /// <returns>
+    /// The number of lines in the Infolog buffer.
+    /// </returns>
+    [SysObsoleteAttribute("@SYS138838", false)]
+    public int line()
+    {
+        return super();
+    }
+
+    void new()
+    {
+        UserInfo userInfo;
+
+        super();
+
+        // Initialize the TmpInfolog.
+        this.emptyTmpInfolog();
+
+        if(new Session().clientKind() == ClientType::Client)
+        {
+            AifServiceGenerationManager::registerServicesOnClient();
+        }
+
+        select firstonly InfologLevel from userInfo
+            where userInfo.Id == curuserid();
+
+        loglevel = userInfo.InfologLevel;
+
+        profileMgr = ProfileManager::construct();
+
+        alreadySetCanViewAlertInbox = false;
+        canViewAlertInboxValue = false;
+    }
+
+    void newHeadLine(SysInfologMessageStruct logline)
+    {
+        #Resource
+        #ResAppl
+
+        str 11          time = time2str(timenow(), 0, 0);
+        FormTreeItem    formTreeItem;
+        SysInfolog      tmpInfoTable2;
+
+        tmpInfoTable2.recordLevelSecurity(true);
+        tmpInfoLog.recordLevelSecurity(true);
+
+        if (logline.prefixDepth())
+        {
+            firstPrefix = 2;
+            tmpInfoLog.Name      = logline.preFixTextElement(1);
+        }
+        else
+        {
+            firstPrefix = 1;
+            tmpInfoLog.Name      = "@SYS14327"+' ('+time+')';
+        }
+
+        tmpInfoLog.Parent    = 0;
+        tmpInfoLog.Prefix    = tmpInfoLog.Name;
+        tmpInfoLog.Image     = this.browserImageList().image(#ImageEnvelopeOpen);
+        tmpInfoLog.Seq       = this.sequence();
+        tmpInfoLog.insert();
+        // BP deviation documented
+        tmpInfoTable2.setTmp();
+        tmpInfoTable2.setTmpData(tmpInfoTable);
+        tmpInfoTable2.Text    = tmpInfoLog.Name;
+        tmpInfoTable2.insert();
+
+        // BP deviation documented
+        formTreeItem         = new FormTreeItem(tmpInfoLog.Name, tmpInfoLog.Image);
+        formTreeItem.stateBold(true);
+        formTreeItem.stateExpanded(true);
+
+        treeId[1] = this.browserErrorTree().addItem(0,FormTreeAdd::First, formTreeItem);
+        if (!treeId[1])
+            throw error(strfmt("@SYS76877",tmpInfoLog.Name));
+
+        this.browserErrorTree().selectSetFirstVisible(treeId[1]);
+        formTreeItem = this.browserErrorTree().getItem(treeId[1]);
+        formTreeItem.data(tmpInfoTable2.RecId);
+        this.browserErrorTree().setItem(formTreeItem);
+    }
+
+
+    /*
+    Method to get the number of a specific exception, from a specific line in the infolog. Like the num() method,
+    but with the from parameter.
+    */
+    Integer numFrom(
+        Integer     fromNo,
+        Exception   exception
+        )
+    {
+        Counter     i,noOf;
+
+        for (i=fromNo;i<= infologLine() ;i++)
+        {
+            if (this.level(i) == exception)
+                noOf++;
+        }
+
+        return noOf;
+    }
+
+    //Event fired by kernel when the client goes idle.
+    //It is not fired during CTRL-Break dialog.
+    void onEventGoingIdle()
+    {
+        ;
+
+        this.operationProgressClear();
+        this.endLengthyOperation(true);
+        pdfFontCache = null;
+
+        // Check whether the Task Recorder requires a screenshot
+        if (SysTaskRecorderEventManager::parmRecording())
+        {
+            if  (SysTaskRecorderGlobal::getGlobalProperty(#globalPropTakeScreenshot, false))
+            {
+                SysTaskRecorderGlobal::setGlobalProperty(#globalPropTakeScreenshot, false);
+                SysTaskRecorderTask::takeScreenshot();
+            }
+
+            if (SysTaskRecorderGlobal::getGlobalProperty(#globalPropWarnOnFormActivate, false)
+                && this.parmLastActivatedForm())
+            {
+                SysTaskRecorderGlobal::setGlobalProperty(#globalPropWarnOnFormActivate,false);
+                SysTaskRecorderEventManager::warnIfFormCannotBeRecorded(this.parmLastActivatedForm().object());
+            }
+        }
+    }
+
+    void open(FormRun formRun)
+    {
+
+    }
+
+    SysOperationProgressForm operationProgress(boolean query = false)
+    {
+        if (!query && !operationProgress)
+            operationProgress = SysOperationProgressForm::construct();
+
+        return operationProgress;
+    }
+
+    void operationProgressClear()
+    {
+        SysOperationProgress sysOperationProgress;
+    ;
+        if (operationProgress)
+        {
+            sysOperationProgress = operationProgress.caller();
+            if (!sysOperationProgress)
+            {
+                SysOperationProgress::clearCache();
+            }
+            else
+            {
+                sysOperationProgress.hide();
+            }
+            operationProgress = null;
+        }
+    }
+
+    Docu parmDocu()
+    {
+        return docu;
+    }
+
+    boolean parmDocuHandlingActive(boolean _docuHandlingActive = docuHandlingActive)
+    {
+    ;
+        docuHandlingActive = _docuHandlingActive;
+
+        return docuHandlingActive;
+    }
+
+    boolean parmDocuToolbarButtonActive(boolean _docuToolbarButtonActive = docuToolbarButtonActive)
+    {
+    ;
+        docuToolbarButtonActive = _docuToolbarButtonActive;
+
+        return docuToolbarButtonActive;
+    }
+
+    ObjectIdent parmLastActivatedForm()
+    {
+        return lastActivatedForm;
+    }
+
+    void print(PrintMedium _printMedium,
+               str         _name        = '')
+    {
+        Object  object;
+
+        if (this.browser())
+        {
+            object = this.browser();
+            object.print(true, _printMedium, _name);
+        }
+    }
+
+    ProfileManager profileMgr()
+    {
+        return profileMgr;
+    }
+
+    void removeTimeOut(int timerHdl)
+    {
+        this.cancelTimeOut(timerHdl);
+
+        if (setTimeOutMap)
+        {
+            setTimeOutMap.remove(timerHdl);
+        }
+    }
+
+    void reportSendMail(PrintJobSettings p1)
+    {
+        SysINetMail m = new SysINetMail();
+
+        str fileName = 'axaptareport';
+
+        if (p1.format() == PrintFormat::ASCII || p1.format() == PrintFormat::TEXTUTF8)
+            fileName = fileName + '.txt';
+        else if (p1.format() == PrintFormat::RTF)
+            fileName = fileName + '.rtf';
+        else if (p1.format() == PrintFormat::HTML)
+            fileName = fileName + '.htm';
+        else if (p1.format() == PrintFormat::PDF || p1.format() == PrintFormat::PDF_EMBED_FONTS)
+            fileName = fileName + '.pdf';
+
+        m.sendMailAttach(p1.mailTo(),p1.mailCc(), p1.mailSubject(),'axapta report', true, p1.fileName(), fileName);
+    }
+
+
+    void reportSendMailServer(PrintJobSettings p1)
+    {
+        ;
+        RunbaseReportStd::serverSendMail(p1);
+    }
+
+    int sequence()
+    {
+        sequenceCounter++;
+        return sequenceCounter;
+    }
+
+    void setAction(int lineNum, SysInfoAction _sysInfoAction = null)
+    {
+        ;
+        select forupdate tmpInfoTable where
+            tmpInfoTable.RecId == tmpActionId[lineNum];
+
+        if (_sysInfoAction)
+        {
+            tmpInfoTable.Action        = _sysInfoAction.pack();
+            tmpInfoTable.ActionClassId = classidget(_sysInfoAction);
+        }
+        else
+        {
+            tmpInfoTable.Action        = connull();
+            tmpInfoTable.ActionClassId = 0;
+        }
+
+        if (tmpInfoTable.RecId)
+        {
+            tmpInfoTable.update();
+        }
+        else
+        {
+            tmpInfoTable.insert();
+            tmpActionId[linenum] = tmpInfoTable.RecId;
+        }
+    }
+
+    void setDocuHandling()
+    {
+        SysUserInfo sysUserInfo = SysUserInfo::find();
+
+        this.parmDocuHandlingActive(sysUserInfo.DocuHandlingActive);
+        this.parmDocuToolbarButtonActive(sysUserInfo.DocuToolbarButtonActive);
+
+        docu.initCheckToolbarButtonTicks();
+    }
+
+    void setInfoLogLevel(SysInfologLevel level)
+    {
+        loglevel = level;
+    }
+
+    ObjectIdent setLastActivatedForm(FormRun _lastActivatedForm = null)
+    {
+        if (!prmisdefault(_lastActivatedForm))
+            lastActivatedForm = new ObjectIdent(_lastActivatedForm);
+
+        return lastActivatedForm;
+    }
+
+    SysInfolog singleError()
+    {
+        FormTreeItem item = this.browserErrorTree().getItem(treeId[2]);
+        SysInfolog tmpInfoTable2;
+        tmpInfoTable2.recordLevelSecurity(true);
+        //BP deviation documented
+        tmpInfoTable2.setTmp();
+        tmpInfoTable2.setTmpData(tmpInfoTable);
+
+        if (treeItems == 1)
+        {
+            select firstonly tmpInfoTable2
+                where tmpInfoTable2.RecId == item.data();
+            return tmpInfoTable2;
+        }
+        return null;
+    }
+
+    void startAutoLogoffTimer()
+    {
+        UserInfo userInfo;
+
+        select firstonly AutoLogOff
+            from userInfo
+            where userInfo.Id == curuserid();
+
+        if (userInfo && userInfo.AutoLogOff)
+        {
+            this.setTimeOut(methodstr(Info,autologOff), userInfo.AutoLogOff*1000*60, true);
+        }
+    }
+
+    /*
+    This method shouldn't be overlayered, use the startupPost() method instead !
+    */
+    void startup(str startupCommand)
+    {
+        SysStartupCmd sysStartupCmd;
+
+        this.initBrowser();
+        this.clearBrowser();
+        this.docuInit();
+
+        if (xGlobal::clientKind() == ClientType::COMObject)
+            return;
+
+        if (startupCommand)
+        {
+            sysStartupCmd = SysStartupCmd::construct(startupCommand);
+            if (sysStartupCmd)
+                sysStartupCmd.infoInit();
+        }
+        this.executeUserOptions();
+        this.setDocuHandling();
+
+        super(startupCommand);
+
+        InventDim::startUpCreateBlank();
+
+        this.startupPost();
+        SysFileDeployer::main(new Args());
+
+        if (hasGui())
+        {
+            if (!isRunningMode())
+            {
+                if (!ReleaseUpdateRunning::start())
+                {
+                    SysCheckList::runCheckList();
+                }
+            }
+            else
+            {
+                // Present dialog to client if model store is dirty. Prioritize checklist prior to modified model store dialog.
+                if (isSystemAdministrator() && (SysModelStore::isInstallMode() || SysCheckList_Update::isUpgradeMode()))
+                {
+                    SysModelStoreModified::main(new Args());
+                }
+            }
+        }
+
+        versioncontrol.init();
+
+        if (isRunningMode() && isConfigurationkeyEnabled(configurationkeynum(event)))
+            this.eventAlertInit();
+
+        if (startupCommand && sysStartupCmd)
+        {
+            sysStartupCmd.infoRun();
+        }
+
+        if (isRunningMode())
+        {
+            this.checkStartupCompany();
+
+            if (!startupCommand)
+            {
+                this.checkForTimeZoneMismatch();
+            }
+        }
+
+        if (!appl.isConfigMode() && xGlobal::clientKind() == ClientType::Client)
+        {
+            smmInit::getsmmInitObject();
+        }
+    }
+
+
+    /*
+    No SYS code must exist in this method
+    */
+    void startupPost()
+    {
+    }
+
+    SysInfolog tmpInfoTable()
+    {
+        return tmpInfoTable;
+    }
+
+    /*
+    Will disable the infolog if an object is provided and disabled is true.
+    The log is enabled if object = null, or object = current classid and disable = false
+    */
+    void updateViewSet(Object obj, boolean disable = true)
+    {
+        if (disable && obj)
+        {
+            // If another object is still alive
+            if (updateViewObj && updateViewObj.object())
+                return;
+
+            updateViewObj   = new ObjectIdent(obj);
+        }
+        else
+        {
+            if (obj)
+            {
+                if (updateViewObj && updateViewObj.object() && classidget(obj) == classidget(updateViewObj.object()))
+                    updateViewObj   = null;
+            }
+            else
+                updateViewObj   = null;
+        }
+    }
+
+    /*
+    Will disable update of the xRef if an object is provided and disabled is true.
+    The update is enabled if object = null, or object = current classid and disable = false
+    */
+    void updatexRefSet(Object obj,
+                       boolean disable = true)      // true => xRef DB are disabled. false => enabled
+    {
+        if (disable && obj)
+        {
+            // If another object is still alive
+            if (updatexRefObj && updatexRefObj.object())
+                return;
+
+            updatexRefObj   = new ObjectIdent(obj);
+        }
+        else
+        {
+            if (obj)
+            {
+                if (updatexRefObj &&
+                    updatexRefObj.object() &&
+                    classidget(obj) == classidget(updatexRefObj.object()))
+                {
+                    updatexRefObj = null;
+                }
+            }
+            else
+            {
+                updatexRefObj   = null;
+            }
+        }
+    }
+
+    /// <summary>
+    ///    Updates the cross reference information for the following node types: \Web\Web Files\List
+    ///    Definitions, \Web\Web Files\Static Files, \Web\Web Files\Page Definitions, \Web\Web Files\Web
+    ///    Controls, \SSRS Reports\Reports\ReportDesign, \Visual Studio Projects\ProjectX, \Visual Studio
+    ///    Projects\ProjectX\Project Output\Assembly File,
+    /// </summary>
+    /// <param name="_treeNode">
+    ///    The tree node for which to update the cross references.
+    /// </param>
+    /// <remarks>
+    ///    This method is invoked by the framework whenever any of the described node types is compiled or
+    ///    updated for cross reference.
+    /// </remarks>
+    [SysObsoleteAttribute(#ObsoleteUpdateXrefTreeNodeAPI,false)]
+    void updateXrefTreeNode(TreeNode _treeNode)
+    {
+        #TreeNodeSysNodeType
+
+        if (_treeNode)
+        {
+            try
+            {
+                switch (_treeNode.TreeNodeType().id())
+                {
+                    case #NT_WEBPAGEDEF: // for \Web\Web Files\Page Definitions
+                    case #NT_WEBSTATICFILE: // for \Web\Web Files\Static Files
+                    case #NT_WEBCONTROL: // for \Web\Web Files\Web Controls
+                    case #NT_WEBLISTDEF: // for \Web\Web Files\List Definitions
+                        xrefWeb::updateXref(_treeNode);
+                        break;
+                    case #NT_SSRSREPORTDESIGN: // for \SSRS Reports\Reports\ReportDesign
+                        xrefSSRSReport::updateReportDesignXref(_treeNode);
+                        break;
+                    case #NT_SSRSREPORT: // for \SSRS Reports\Reports\Report
+                        xrefSSRSReport::updateReportConceptNodeXref(_treeNode);
+                        break;
+                    case #NT_REFERENCE:
+                        xRefAssemblyReferences::updateXref(_treeNode);   // for \References\
+                        break;
+                    case #NT_VSPROJECT: // for \Visual Studio Projects\ProjectX
+                        xrefVisualStudioProject::updateXref(_treeNode);
+                        break;
+                    case #NT_VSPROJECTFILE: // for \Visual Studio Projects\ProjectX\Project Output\Assembly File
+                        xrefVisualStudioProject::updateAssemblyXref(_treeNode);
+                        break;
+                }
+            }
+            catch
+            {
+                error(strfmt("@SYS320348",_treeNode.AOTname()));
+            }
+        }
+    }
+
+    void urlLookup(str url = '')
+    {
+        str execFile;
+        str tempFileName;
+        TextBuffer buf;
+        if (url)
+        {
+            urlLookup = url;
+            this.setTimeOut(identifierstr(UrlLookup),5,false);
+        }
+        else
+        {
+            tempFileName = WinAPI::getTempPath() + 'temp.htm';
+            buf = new TextBuffer();
+            buf.setText('<HTML> <\HTML>');
+            //BP deviation documented
+            buf.toFile(tempFileName);
+            execFile = WinAPI::findExecutable(tempFileName);
+            if (execFile)
+                WinAPI::shellExecute(execFile,strFmt('\"%1\"',urlLookup));
+            else
+                WinAPI::shellExecute(strFmt('\"%1\"',urlLookup));
+
+            urlLookup = '';
+        }
+    }
+
+    void view(container _c = connull())
+    {
+        if (! this.canUpdateView())
+            return;
+
+        if (prmisdefault(_c))
+        {
+            if (this.num() && !updateCalled)
+            {
+                updateCalled = true;
+                this.setTimeOut(identifierstr(ViewDelay),1,true);
+            }
+        }
+        else
+        {
+            this.viewBuild(_c);
+        }
+    }
+
+    public void viewAlertInbox(int _selectedTab=1)
+    {
+        MenuFunction menuFunction;
+        Args args;
+
+        ;
+        super(_selectedTab);
+
+        args = new Args();
+
+        args.parm(int2str(_selectedTab));
+
+        menuFunction = new MenuFunction(menuitemdisplaystr(EventAlertInbox),
+                                           MenuItemType::Display);
+        menuFunction.run(args);
+    }
+
+    #define.MaxErrors(10000)
+
+    void viewBuild(
+        InfologData _data               = this.copy(1,this.num()),
+        boolean     _emptyTmpInfolog    = false)
+    {
+        SysInfologMessageStruct logLine;
+
+        int                  i = 1, j;
+        Exception            exception;
+        str 12               time = time2str(timenow(),0,0);
+        int                  resNumber;
+        int                  batchCount;
+
+        FormTreeItem         treeItem;
+        int                  imageNumber;
+
+        int                  parentId;
+        SysInfoLogStr        niceName;
+
+        TmpInfolog           tmpLookup;
+        UserInfo             userInfo;
+
+        int                  oldParentId;
+        SysInfologEnumerator enum = SysInfologEnumerator::newData(_data);
+        #resource
+        #resAppl
+
+    TmpInfolog selectInfolog()
+    {
+        TmpInfolog tmpinfolog2;
+        tmpinfolog2.setTmpData(tmpInfoLog);
+
+        select tmpinfolog2
+            where tmpinfolog2.Seq == 1;
+
+        if (tmpinfolog2)
+            return tmpinfolog2;
+        return null;
+    }
+
+    TmpInfolog selectInfolog2(SysInfologPrefix _prefix, int _parentid)
+    {
+        TmpInfolog tmpinfolog2;
+        tmpinfolog2.setTmpData(tmpInfoLog);
+
+        select tmpinfolog2
+            where tmpinfolog2.Parent == _parentid   &&
+                  tmpinfolog2.Prefix == _prefix;
+
+        if (tmpinfolog2)
+            return tmpinfolog2;
+        return null;
+    }
+
+        if (prmisdefault(_data))
+            this.clear(0);
+
+        if (conlen(_data)==0)
+            return;
+
+        if (enum.length() > #maxerrors)
+        {
+            enum.delete(#maxerrors);
+            enum.add(Exception::Warning, strfmt("@SYS86217", #maxerrors));
+        }
+
+        startLengthyOperation();
+        enum.reset();
+        while (enum.moveNext())
+        {
+            exception = enum.currentException();
+            if (maxException < exception )
+                maxException = exception;
+        }
+
+        switch (maxException)
+        {
+            case Exception::Info:
+                imageResource       = #RES_INFOLOG_L_INFO;
+                errorDescription    = "@SYS26000";
+                break;
+
+            case Exception::Warning:
+                imageResource       = #RES_INFOLOG_L_WARNING;
+                errorDescription    = "@SYS26001";
+                break;
+
+            default :
+                imageResource       = #RES_INFOLOG_L_ERROR;
+                errorDescription    = "@SYS26002";
+                break;
+        }
+
+        select firstonly DebugInfo, TraceInfo from userInfo
+            where userInfo.Id == curuserid();
+
+        // Make sure there is a browser available
+        // for the current application window.
+        if (this.initBrowser())
+        {
+            this.clearBrowser();
+        }
+
+        if (!bitTest(userInfo.DebugInfo, 1 << 8 ) ||       //SQL Trace Off
+           (!bitTest(userInfo.TraceInfo, 1 << 1 ) &&       //FLAG_TraceInfoStateInfo
+            !bitTest(userInfo.TraceInfo, 1 << 5 )))        //FLAG_TraceInfoWarningInfo
+        {
+            infolog.activateWindow(this.browser().hWnd());
+            infolog.setWindowOrder(this.browser().hWnd());
+        }
+        enum.reset();
+        enum.moveNext();
+        logLine  = SysInfologMessageStruct::construct(enum.currentMessage());
+
+        tmpInfoLog = selectInfoLog();
+        tmpInfoLog.recordLevelSecurity(true);
+
+        if (!tmpInfoLog)
+            this.newHeadLine(logLine);
+
+        hasPrefix = false;
+
+        enum.reset();
+        i = 1;
+        while (enum.moveNext())
+        {
+            logLine  = SysInfologMessageStruct::construct(enum.currentMessage());
+            exception = enum.currentException();
+
+            switch (exception)
+            {
+                case Exception::Info:
+                    imageNumber = this.browserImageList().image(#ImageInfo);
+                    resNumber   = #RES_INFOLOG_L_INFO;
+                    break;
+
+                case Exception::Warning:
+                    imageNumber = this.browserImageList().image(#ImageWarning);
+                    resNumber   = #RES_INFOLOG_L_WARNING;
+                    break;
+
+                default :
+                    imageNumber = this.browserImageList().image(#ImageError);
+                    resNumber   = #RES_INFOLOG_L_ERROR;
+                    break;
+            }
+            parentId = 1;   //header has id = 1
+
+            for (j=firstPrefix; j<=logLine.prefixDepth(); j++)
+            {
+                tmpLookup.setTmpData(tmpInfoLog);
+                tmpLookup = selectInfolog2(logLine.preFixTextElement(j), parentid);
+
+                if (tmpLookup)
+                {
+                    parentId = tmpLookup.Seq;
+                }
+                else
+                {
+                    batchCount           = 0;
+                    tmpInfoLog.Name      = logLine.preFixTextElement(j);
+                    tmpInfoLog.Parent    = parentId;
+                    tmpInfolog.Prefix    = tmpInfolog.Name;
+                    tmpInfolog.ConIdx    = 0;
+                    tmpInfoLog.Image     = this.browserImageList().image(#ImageNote);
+                    tmpInfoLog.Seq       = this.sequence();
+                    tmpInfoLog.insert();
+                    parentId             = tmpInfoLog.Seq;
+                }
+            }
+            if (parentId != oldParentId)
+            {
+                batchCount  = 0;
+                oldParentId = parentId;
+            }
+            if (batchCount <= errorsPerBatch)
+            {
+                tmpInfoLog.Parent   = parentId;
+                tmpInfoLog.Seq      = this.sequence();
+
+                if (batchCount == errorsPerBatch)
+                {
+                    tmpInfoLog.Name     = strfmt("@SYS86217", errorsPerBatch);
+                    tmpInfoLog.Image    = this.browserImageList().image(#ImageWarning);
+                    tmpInfolog.ConIdx   = i;
+
+                    if((!imageResource) || (imageResource == #RES_INFOLOG_L_INFO))
+                    {
+                        imageResource       = #RES_INFOLOG_L_WARNING;
+                        errorDescription    = "@SYS26001";
+                    }
+                }
+                else
+                {
+                    if (enum.currentActionClassId() ||
+                        enum.currentHelpUrl())
+                    {
+                        tmpInfoTable.HelpUrl       = enum.currentHelpUrl();
+                        tmpInfoTable.Action        = enum.currentActionClassData();
+                        tmpInfoTable.ActionClassId = enum.currentActionClassId();
+                        tmpInfoTable.insert();
+                        tmpActionId[i] = tmpInfoTable.RecId;
+                    }
+
+                    tmpInfoLog.Name     = logLine.message();
+                    tmpInfoLog.Image    = imageNumber;
+                    tmpInfolog.ConIdx   = i;
+                }
+                tmpInfoLog.doInsert();
+                batchCount++;
+            }
+            i++;
+        }
+
+
+
+        while select forupdate tmpInfoLog
+            order by Seq
+            where tmpInfoLog.Seq > offsetSeq
+        {
+            niceName = strRemoveCr(substr(tmpInfoLog.Name,1,254));
+
+            // BP deviation documented
+            treeItem = new FormTreeItem(niceName, tmpInfoLog.Image);
+            treeItems++;
+            treeItem.data(0);
+            treeItem.stateExpanded(true);
+
+            treeId[tmpInfoLog.Seq] = this.browserErrorTree().addItem(treeId[tmpInfoLog.Parent], 0, treeItem);
+            if (treeId[tmpInfoLog.Seq])
+            {
+                treeItem           = this.browserErrorTree().getItem(treeId[tmpInfoLog.Seq]);
+
+                if (tmpInfoLog.ConIdx)      //not prefix
+                {
+                    select firstonly forupdate Text, Image, ActionClassId, HelpUrl, RecId from tmpInfoTable
+                        where tmpInfoTable.RecId == tmpActionId[tmpInfoLog.ConIdx];
+
+                    tmpInfoTable.Text  = tmpInfolog.Name;
+                    tmpInfoTable.Image = tmpInfolog.Image;
+                    tmpInfoTable.write();
+                    tmpInfoLog.delete();
+                    if (tmpInfoTable.ActionClassId)
+                        treeItem.overlayImage(this.browserImageList().image(#ImageOverlayAction));
+                    else
+                    {
+                        if (tmpInfoTable.HelpUrl)
+                            treeItem.overlayImage(this.browserImageList().image(#ImageOverlayHelp));
+                    }
+                }
+                else
+                {
+                    tmpInfoTable.Action        = connull();
+                    tmpInfoTable.ActionClassId = 0;
+                    tmpInfoTable.Text          = tmpInfolog.Name;
+                    tmpInfoTable.Image         = tmpInfolog.Image;
+                    tmpInfoTable.insert();
+                    offsetSeq = tmpInfolog.Seq;
+                    treeItem.children(true);
+                }
+                treeItem.data(tmpInfoTable.RecId);
+                this.browserErrorTree().setItem(treeItem);
+            }
+        }
+
+        if ((treeItems > 0 || hasPrefix) && (!this.browserDeleteAll().visible()))
+        {
+            this.browser().lock();
+            this.browserDeleteAll().visible(true);
+            this.browser().unLock();
+            this.browser().resetSize();
+            this.browser().arrange();
+        }
+
+        if (this.browserDeleteAll().visible())
+            this.browserDeleteAll().updateWindow();
+
+        this.browserCloseButton().updateWindow();
+
+        if (this.browserErrorTree().visible())
+            this.browserErrorTree().updateWindow();
+
+        if (_emptyTmpInfolog)
+            this.emptyTmpInfolog();
+
+        this.viewRefresh();
+
+        if (this.browserCurrentPicture().imageResource() != imageResource)
+        {
+            this.browserCurrentPicture().imageResource(imageResource);
+            this.browserCurrentPicture().updateWindow();
+        }
+
+        if ((treeItems>0 || hasPrefix) && this.browserCurrentError().text() != errorDescription)
+        {
+            this.browserCurrentError().text(errorDescription);
+            this.browserCurrentError().updateWindow();
+        }
+        this.browserTopGroup().updateWindow();
+
+        if (!this.browser().design().visible())
+        {
+            this.browser().design().visible(true);
+            this.browserErrorTree().updateWindow();
+            this.browserCurrentError().updateWindow();
+            this.browserCurrentPicture().updateWindow();
+            this.browserDeleteAll().updateWindow();
+            this.browserCloseButton().updateWindow();
+            this.browserHelpButton().updateWindow();
+            this.browserActionButton().updateWindow();
+            this.browserTreeGroup().updateWindow();
+            this.browserBottomGroup().updateWindow();
+            this.browser().redraw();
+        }
+        tmpActionId[0] = 0; //clear array
+        endLengthyOperation();
+    }
+
+    public void viewCreateRuleDialog(FormRun _caller)
+    {
+        ;
+        EventRule::viewCreateRuleDialog(_caller);
+    }
+
+    void viewDelay(boolean emptyTmpInfolog = true)
+    {
+        InfologData infologData;
+        ;
+        updateCalled = false;
+        infologData = this.infologData();
+        this.viewBuild(infologData, emptyTmpInfolog);
+    }
+
+    void viewRefresh()
+    {
+        #Resource
+        #ResAppl
+        #WinAPI
+        #define.EM_GetLineCount(0x00BA)
+
+        if (!this.browserResizedOnce())
+        {
+            this.browserCloseButton().visible(false);
+            this.browserDeleteAll().visible(false);
+            this.browser().lock();
+
+            this.browserHelpButton().visible(false);
+            this.browserActionButton().visible(false);
+            this.browserErrorTree().visible(true);
+            this.browserDeleteAll().visible(true);
+            this.browserTreeGroup().visible(true);
+            this.browserCloseButton().visible(true);
+            this.browserDeleteAll().visible(true);
+
+            if (WinAPI::getWindowLong(this.browser().hWnd(),#GWL_STYLE) & #WS_MAXIMIZE == 0)
+                this.browser().design().width(340);     //resize if we're not maximized
+            this.browser().resetSize();
+            this.browser().arrange();
+            this.browser().redraw();
+            this.browser().unLock();
+            this.browser().redraw();
+            this.browserResizedOnce(true);
+        }
+
+        this.browserCloseButton().setFocus();
+    }
+
+    void viewUpdate()
+    {
+        if (!this.canUpdateView())
+            return;
+
+        this.viewDelay(false);
+        if (!emptyTmpInfologCalled)
+        {
+            emptyTmpInfologCalled = true;
+            this.setTimeOut(identifierstr(emptyTmpInfolog),1,true);
+        }
+    }
+
+    void watchDog()
+    {
+        int infologLine;
+        this.setTimeOut(methodstr(Info,watchDog), #watchdogInterval, false);
+
+        infologLine = infologLine();
+        try
+        {
+            SysUserLog::updateLogoutTime();
+            SysUtilElementsLog::persistRegisteredUsages();
+        }
+        catch
+        {
+            //
+            // Clean up any exception messages in the infolog, caused by logging.
+            //
+            this.clear(infologLine);
+        }
+    }
+
+    SysGlobalCache workspaceCache(int workSpaceNum = xInfo::currentWorkspaceNum())
+    {
+        SysGlobalCache workspaceCache;
+    ;
+        // Construct the singleton cache map object. This will hold a cache
+        // object associated to each workspace window. The cache will be
+        // cleaned up in the overriden method workspaceWindowDestroyed()
+        if (!workspaceCacheMap)
+        {
+            workspaceCacheMap = new Map(Types::Integer, Types::Class);
+        }
+
+        // Check if an existing cache is associated with the workspace
+        if (workspaceCacheMap.exists(this.hWnd(workSpaceNum)))
+        {
+            workspaceCache = workspaceCacheMap.lookup(this.hWnd(workSpaceNum));
+        }
+        else
+        {
+            // construct a new cache and associate it with the current workspace
+            workspaceCache = SysGlobalCache::construct();
+            workspaceCacheMap.insert(this.hWnd(workSpaceNum), workspaceCache);
+        }
+
+        return workspaceCache;
+    }
+
+    void workspaceWindowCreated(int _hWnd)
+    {
+        super(_hWnd);
+
+        // Put workspace window specific initialization here.
+
+        // Update areas pages for Retail Essentials
+        RetailSMB::UpdateAreaPages();
+    }
+
+    void workspaceWindowDestroyed(int _hWnd)
+    {
+        FormRun tempWindow;
+
+        // Clean up the instance of infolog
+        if (this.browser())
+        {
+            tempWindow = this.browser();
+            this.browser(null);
+            if (tempWindow.hWnd())
+            {
+                tempWindow.close();
+            }
+            tempWindow = null;
+        }
+
+        // Clean up the breakpoint form
+        if (this.breakpointForm())
+        {
+            tempWindow = this.breakpointForm();
+            this.breakpointForm(null);
+            if (tempWindow.hWnd())
+            {
+                tempWindow.close();
+            }
+            tempWindow = null;
+        }
+
+        // This method is called when a workspace window is destroyed
+        // here workspace related resources can be cleaned up
+        if (workspaceCacheMap && workspaceCacheMap.exists(_hWnd))
+        {
+            // clean up the workspace cache object. This is created in the
+            // workspaceCache() function.
+            workspaceCacheMap.remove(_hWnd);
+        }
+
+        super(_hWnd);
+    }
+
+    void xref(str _path, xRef _xRef)
+    {
+        Map xRefCompileMap;
+        Map xRefProperyMap;
+        str className;
+
+        ;
+        lastxRef = _xRef;
+
+        if (this.canUpdatexRef())
+        {
+            xRefCreate::xRefUpdate(_path);
+        }
+        else
+        {
+            // if xref information is from compiler add it to xRefCompilerMap else into xRefProperyMap
+            if(XRefMode::COMPILE == _xRef.mode())
+            {
+                xRefCompileMap = infolog.globalCache().get(classstr(xRefUpdateTmpReferences), '', null);
+                if(xRefCompileMap != null)
+                {
+                    xRefCompileMap.insert(_path, _xRef);
+                }
+            }
+            else
+            {
+                if(XRefMode::PROPERTY == _xRef.mode())
+                {
+                    className = classstr(xRefUpdateTmpReferences);
+                    className = strins(className,#PropertyString,strlen(classname)+1);
+                    xRefProperyMap = infolog.globalCache().get(className, '', null);
+                    if(xRefProperyMap != null)
+                    {
+                        xRefProperyMap.insert(_path, _xRef);
+                    }
+                }
+            }
+        }
+    }
+
+    server static void checkStartupCompany_Server(str _curext, userId _curuseid)
+    {
+        UserInfo userInfo;
+
+        if (!hasMenuItemAccess(menuitemdisplaystr(SysDataAreaSelect), MenuItemType::Display) ||
+            !hasMenuItemAccess(menuitemdisplaystr(OMLegalEntities), MenuItemType::Display))
+        {
+            select firstonly Company from userInfo
+                where userInfo.Id == curuserid();
+
+            if (userInfo.Company != curext())
+            {
+                appl.setDefaultCompany(userInfo.Company, false);
+            }
+        }
+    }
+
+    client server static XML con2xml(container _data)
+    {
+        int j;
+        Exception    exception;
+        SysInfologMessageStruct struc;
+        XmlDocument  doc = XmlDocument::newBlank();
+        XmlElement   elem, e, e2;
+        SysInfologEnumerator enum = SysInfologEnumerator::newData(_data);
+        str          s;
+
+        elem = doc.createElement('infolog');
+        doc.appendChild(elem);
+
+        while (enum.moveNext())
+        {
+            exception = enum.currentException();
+            struc = SysInfologMessageStruct::construct(enum.currentMessage());
+            e2 = elem;
+            for (j=1; j<= struc.prefixDepth(); j++)
+            {
+                if (s)
+                    s = strrem(struc.preFixTextElement(j), ' ');
+                else
+                    s = '_';
+
+                e = doc.createElement(s);
+                e2.appendChild(e);
+                e2 = e;
+            }
+            e = doc.createElement(strfmt('%1',exception));
+            e2.appendChild(e);
+            e.text(struc.message());
+        }
+
+        return strrem(doc.xml(),'\n');
+    }
+
+    /// <summary>
+    ///    Gets a server side directory based on the directory type.
+    /// </summary>
+    /// <param name="_directoryType">
+    ///    The directory type.
+    /// </param>
+    /// <returns>
+    ///    The server side directory.
+    /// </returns>
+    public server static FilePath directoryOnServer(DirectoryType _directoryType)
+    {
+        return xInfo::directory(_directoryType);
+    }
+
+    client server static str infoCon2Str(container c)
+    {
+        str s;
+        SysInfologEnumerator enum = SysInfologEnumerator::newData(c);
+
+        while (enum.moveNext())
+        {
+            s+=strfmt('%1#%2#',int2str(enum.currentException()), enum.currentMessage());
+        }
+        return s;
+    }
+
+    client server static container infoStr2Con(str s)
+    {
+        container c;
+        int i = strfind(s, '#', 1, strlen(s));
+
+        while (i)
+        {
+            c += substr(s, 1, i-1);
+            s = substr(s, i+1, strlen(s));
+            i = strfind(s, '#', 1, strlen(s));
+        }
+
+        return c;
+    }
+
+    static server int licensedComUsers()
+    {
+        Dictionary  dictionary = new Dictionary();
+        SysConfig   sysConfigTemp;
+
+        select firstOnly Id, Value, ConfigType from sysConfigTemp
+            where sysConfigTemp.Id == licensecodenum(SysCOMUsers)  && (sysConfigTemp.ConfigType == ConfigType::AccessCodes);
+
+        return dictionary.testCode(sysConfigTemp.Id,
+                                   sysConfigTemp.Value,
+                                   xSysConfig::find(ConfigType::LicenseName,0).Value,
+                                   xSysConfig::find(ConfigType::SerialNo,0).Value,
+                                   xSysConfig::find(ConfigType::LicenseName,1).Value);
+    }
+
+    static server int licensedObjectServers()
+    {
+        Dictionary  dictionary = new Dictionary();
+        SysConfig   sysConfigTemp;
+
+        select firstOnly Id, Value, ConfigType from sysConfigTemp
+            where sysConfigTemp.Id == licensecodenum(SysObjectServers)  && (sysConfigTemp.ConfigType == ConfigType::AccessCodes);
+
+        return dictionary.testCode(sysConfigTemp.Id,
+                                   sysConfigTemp.Value,
+                                   xSysConfig::find(ConfigType::LicenseName,0).Value,
+                                   xSysConfig::find(ConfigType::SerialNo,0).Value,
+                                   xSysConfig::find(ConfigType::LicenseName,1).Value);
+    }
+
+    static server int licensedUsers()
+    {
+        Dictionary  dictionary = new Dictionary();
+        SysConfig   sysConfigTemp;
+
+        select firstOnly Id, Value, ConfigType from sysConfigTemp
+            where (sysConfigTemp.Id == licensecodenum(SysUsers)) && (sysConfigTemp.ConfigType == ConfigType::AccessCodes);
+
+        return dictionary.testCode(sysConfigTemp.Id,
+                                   sysConfigTemp.Value,
+                                   xSysConfig::find(ConfigType::LicenseName,0).Value,
+                                   xSysConfig::find(ConfigType::SerialNo,0).Value,
+                                   xSysConfig::find(ConfigType::LicenseName,1).Value);
+    }
+
+    static server int licensedUsersTotal()
+    {
+        return Info::licensedUsers()+Info::licensedComUsers();
+    }
+
+    client static void messageWinAddLine(str _messageLine)
+    {
+        infolog.messageWin().addLine(_messageLine);
+    }
+}

@@ -1,0 +1,26 @@
+static void checkNumSeq(Args _args)
+{
+    NumberSequenceReference     NumberSequenceReference;
+    NumberSequenceTable         NumberSequenceTable;
+    int  good, bad;
+    ;
+    ttsBegin;
+    while select forUpdate NumberSequenceReference
+    {
+        select NumberSequenceTable
+            where NumberSequenceTable.RecId == NumberSequenceReference.NumberSequenceId;
+        if (NumberSequenceTable.RecId)
+        {
+            good++;
+        }
+        else
+        {
+            bad++;
+            NumberSequenceReference.delete();
+        }
+
+    }
+    ttsCommit;
+    info(strFmt("%1 %2", good, bad));
+
+}

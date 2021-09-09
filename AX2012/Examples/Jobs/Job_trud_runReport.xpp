@@ -1,0 +1,17 @@
+static void trud_runReport(Args _args)
+{
+    /*
+    DEVDailyPricingComDP        DEVDailyPricingComDP = new DEVDailyPricingComDP();
+    DEVDailyPricingComContract             contract = new DEVDailyPricingComContract();
+    Query    query = new Query(Querystr(DEVCommodityBasePrice));
+    ;
+    contract.parmCurrencyCode('USD');
+    contract.parmMonthsBehind(1);
+    contract.parmMonthsAhead(3);
+    contract.parmUnitId('T');
+    DEVDailyPricingComDP.parmQuery(query);
+    DEVDailyPricingComDP.parmDataContract(contract);
+
+    DEVDailyPricingComDP.processReport();
+    */
+}

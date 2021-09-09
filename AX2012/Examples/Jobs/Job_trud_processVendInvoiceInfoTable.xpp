@@ -1,0 +1,26 @@
+static void trud_processVendInvoiceInfoTable(Args _args)
+{
+     PurchFormLetter_Invoice purchFormLetterInvoice;
+    VendInvoiceInfoTable    vendInvoiceInfoTable;
+
+    ttsBegin;
+    vendInvoiceInfoTable = VendInvoiceInfoTable::findRecId(35637297858);
+
+   // if (vendInvoiceInfoTable.RequestStatus == VendInvoiceRequestStatus::InReview)// && this.areAllLinesApproved(vendInvoiceInfoTable))
+    {
+        //this.deleteActiveInvoice(vendInvoiceInfoTable.TableRefId);
+        purchFormLetterInvoice = PurchFormLetter_Invoice::newFromSavedInvoice(vendInvoiceInfoTable);
+        purchFormLetterInvoice.purchParmUpdate(null);
+        purchFormLetterInvoice.parmId('');
+        purchFormLetterInvoice.initNewPurchParmUpdate();
+        purchFormLetterInvoice.printFormLetter(false);
+        purchFormLetterInvoice.usePrintManagement(false);
+        purchFormLetterInvoice.printSalesFormLetter(false);
+        purchFormLetterInvoice.printEUVatInvoice(false);
+        purchFormLetterInvoice.proforma(false);
+        purchFormLetterInvoice.parmExecutingPaymentAuthorizationTask(true);
+        purchFormLetterInvoice.update(vendInvoiceInfoTable, vendInvoiceInfoTable.Num);
+    }
+    //ttsCommit;
+    ttsAbort;
+}

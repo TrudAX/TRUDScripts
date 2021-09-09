@@ -1,0 +1,44 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBE
+
+; Microsoft Dynamics AX Enumtype : DEVLabelActionType unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #DEVLabelActionType
+    PROPERTIES
+      Name                #DEVLabelActionType
+      Label               #Label action
+      UseEnumValue        #Yes
+      Origin              #{D31E4FC7-1181-46A2-8B89-553D2CE0F7DC}
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #Skip
+      PROPERTIES
+        Name                #Skip
+        Label               #Skip
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #CreateNewLabel
+      PROPERTIES
+        Name                #CreateNewLabel
+        Label               #Create New Label
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #UseExisting
+      PROPERTIES
+        Name                #UseExisting
+        Label               #Use Existing
+        EnumValue           #2
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+END

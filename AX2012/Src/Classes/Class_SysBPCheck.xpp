@@ -1,0 +1,918 @@
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+// Class must be AOSRunMode::Client based as long the FormBuild nodes are client only based
+class SysBPCheck
+{
+    #SysBPCheck
+    #SysCompilerOutput
+    #TreeNodeSysNodeType
+    #Properties
+    #ResAppl
+    #AOT
+
+    Label                           label;
+    Label                           labelEnUs;
+    TreeNode                        treeNode; // TreeNode to be checked
+    SysBPParameters                 parameters;
+    SysCompilationResultProvider    compilationResultProvider;
+
+    Map                             sysBPCheckMap;
+    int                             systemErrors;
+    Map                             ignoreMap;
+
+    boolean                         checkChildren;
+    Set                             layerSetting;
+
+    #define.matchLettersOneOrSeveral(':a+')
+    #define.matchEndByPeriod('\\.>')
+    #define.matchEndBy3Periods('\\.\\.\\.>')
+    #define.matchEndByQuestionMark('\\?>')
+    #define.matchEndByNr('nr\\.>')
+
+
+    public void addError(int _errorCode, int _line, int _col, str _errorMessage, str _propertyName = '', TreeNodePath _treeNodePath = SysTreeNode::getPath(treeNode))
+    {
+        boolean ignore = false;
+
+        //
+        // Tutorial objetcs should be accepted as is.
+        // Errors are treated as warnings
+        //
+        if (match('Tutorial', _treeNodePath))
+        {
+            this.addWarning(_errorCode, _line, _col, _errorMessage, _propertyName);
+        }
+        else
+        {
+            ignore = this.shouldIgnore(_errorCode, _treeNodePath);
+            if (ignore)
+            {
+                this.addInfo(_errorCode, _line, _col, _errorMessage, _propertyName, _treeNodePath);
+            }
+            else
+            {
+                if (compilationResultProvider)
+                {
+                    compilationResultProvider.compilerOutputMessage(_treeNodePath, _errorCode, _line, _col, SysCompilerSeverity::Error, _errorMessage, _propertyName, SysCompilerOutputTab::BestPractices);
+                    //trud labels -->
+                    DEVLabelsCreateHelper::DEVhandleLabelError(_errorCode, _line, _col, _errorMessage, _propertyName , _treeNodePath);
+                    //trud labels <--
+                }
+                else
+                {
+                    this.addMessageWindow(Exception::Error, _line, _col, _errorMessage, _propertyName);
+                }
+            }
+        }
+    }
+
+    public void addInfo(int _errorCode, int _line, int _col, str _errorMessage, str _propertyName = '', TreeNodePath _treeNodePath = SysTreeNode::getPath(treeNode))
+    {
+        if (this.toBeUsed(SysBPWarningLevel::All))
+        {
+            if (compilationResultProvider)
+            {
+                compilationResultProvider.compilerOutputMessage(_treeNodePath, _errorCode, _line, _col, SysCompilerSeverity::BestPractice, _errorMessage, _propertyName, SysCompilerOutputTab::BestPractices);
+            }
+            else
+            {
+                this.addMessageWindow(Exception::Info, _line, _col, _errorMessage, _propertyName);
+            }
+        }
+    }
+
+
+    public void addMessageWindow(Exception _exception, int _line, int _col, str _errorMessage, str _propertyName = '')
+    {
+        if (_propertyName) // Property
+        {
+            switch (_exception)
+            {
+                case Exception::Error:
+                    error(_errorMessage, '', new SysInfoAction_Properties(SysTreeNode::getPath(treeNode)));
+                    break;
+
+                case Exception::Warning:
+                    warning(_errorMessage, '', new SysInfoAction_Properties(SysTreeNode::getPath(treeNode)));
+                    break;
+
+                default:
+                    info(_errorMessage, '', new SysInfoAction_Properties(SysTreeNode::getPath(treeNode)));
+                    break;
+            }
+        }
+        else
+        if (_line && _col) // Source
+        {
+            switch (_exception)
+            {
+                case Exception::Error:
+                    error(_errorMessage,'', SysInfoAction_Editor::newLineColumn(SysTreeNode::getPath(treeNode), _line, _col));
+                    break;
+
+                case Exception::Warning :
+                    warning(_errorMessage,'', SysInfoAction_Editor::newLineColumn(SysTreeNode::getPath(treeNode), _line, _col));
+                    break;
+
+                default :
+                    info(_errorMessage,'', SysInfoAction_Editor::newLineColumn(SysTreeNode::getPath(treeNode), _line, _col));
+                    break;
+            }
+        }
+        else
+        {
+            switch (_exception)
+            {
+                case Exception::Error:
+                    error(_errorMessage,'', SysInfoAction_Editor::newLineColumn(SysTreeNode::getPath(treeNode), _line, _col));
+                    break;
+
+                case Exception::Warning:
+                    warning(_errorMessage,'', SysInfoAction_Editor::newLineColumn(SysTreeNode::getPath(treeNode), _line, _col));
+                    break;
+
+                default:
+                    info(_errorMessage,'', SysInfoAction_Editor::newLineColumn(SysTreeNode::getPath(treeNode), _line, _col));
+                    break;
+            }
+        }
+    }
+
+    public void addWarning(int _errorCode, int _line, int _col, str _errorMessage, str _propertyName = '', TreeNodePath _treeNodePath = SysTreeNode::getPath(treeNode))
+    {
+        boolean ignore = false;
+
+        ignore = this.shouldIgnore(_errorCode, _treeNodePath);
+
+        if(ignore)
+        {
+            this.addInfo(_errorCode, _line, _col, _errorMessage, _propertyName, _treeNodePath);
+        }
+        else
+        {
+
+            if (this.toBeUsed(SysBPWarningLevel::Warning))
+            {
+                if (compilationResultProvider)
+                {
+                    compilationResultProvider.compilerOutputMessage(_treeNodePath, _errorCode, _line, _col, SysCompilerSeverity::WarningLevel1, _errorMessage, _propertyName, SysCompilerOutputTab::BestPractices);
+                }
+                else
+                {
+                    this.addMessageWindow(Exception::Warning, _line, _col, _errorMessage, _propertyName);
+                }
+            }
+        }
+    }
+
+
+    public void check(str _treeNodePath, boolean _checkSubNodes = true)
+    {
+        treeNode = infolog.findNode(_treeNodePath);
+
+        if (treeNode)
+        {
+            if (_checkSubNodes)
+            {
+                this.traverseTreeNodes(treeNode);
+            }
+            else
+            {
+                this.performCheckOfTreenode(treeNode);
+            }
+        }
+        treeNode = null;
+    }
+
+
+    public boolean checkConfigurationKey(ConfigurationKeyId _configurationKeyId)
+    {
+        DictConfigurationKey    dictConfigurationKey;
+        boolean                 ret = true;
+
+        if (_configurationKeyId)
+        {
+            dictConfigurationKey = new DictConfigurationKey(_configurationKeyId);
+            if (dictConfigurationKey)
+            {
+                if (this.toBeUsed(SysBPWarningLevel::Warning) && dictConfigurationKey.name() == #NotDecided)
+                {
+                    this.addWarning(#BPErrorConfigurationKeySpecific, 0, 0, strFmt("@SYS72461", dictConfigurationKey.name()), #PropertyConfigurationKey);
+                }
+            }
+            else
+            {
+                this.addError(#BPErrorConfigurationKeyUnknown, 0, 0, strFmt("@SYS73068", int2str(_configurationKeyId)), #PropertyConfigurationKey);
+                ret = false;
+            }
+        }
+
+        return ret;
+
+    }
+
+
+    public boolean checkHelpBasics(
+        str             _propertyValue,
+        LabelString     _labelString,
+        SysPropertyName _sysPropertyName,
+        boolean         _mandatory = true,
+        TreeNodePath    _treeNodePath = SysTreeNode::getPath(treeNode)
+        )
+    {
+        LabelString helpString;
+        boolean     ret = true;
+
+        if (_propertyValue)
+        {
+            if (SysLabel::isLabelId(_propertyValue))
+            {
+                if (!this.label().exists(_propertyValue))
+                {
+                    if (SysLabelLog::exists(_propertyValue))
+                    {
+                        this.addError(#BPError, 0, 0, strFmt("@SYS76945", _propertyValue), _sysPropertyName, _treeNodePath);
+                    }
+                    else
+                    {
+                        this.addError(#BPError, 0, 0, strFmt("@SYS76844", _propertyValue), _sysPropertyName, _treeNodePath); // Unknown Label
+                    }
+                    ret = false;
+                }
+                else
+                {
+                    helpString = this.label().extractString(_propertyValue);
+
+                    // are label and help equal?!
+                    if (_labelString  && (_labelString == helpString))
+                    {
+                        this.addError(#BPErrorLabelAndHelpAreEqual, 0, 0, "@SYS55404", _sysPropertyName, _treeNodePath); // Label and Help are equal
+                        ret = false;
+                    }
+                }
+            }
+            else
+            {
+                this.addError(#BPErrorHelpIsText, 0, 0, strFmt("@SYS60289", _sysPropertyName, _propertyValue), _sysPropertyName, _treeNodePath); // Property '%1' must contain a label ID, not '%2'
+                ret = false;
+            }
+        }
+        else
+        if (_mandatory)
+        {
+            this.addError(#BPErrorHelpNotDefined, 0, 0, "@SYS55407", _sysPropertyName, _treeNodePath); // No Help defined
+            ret = false;
+        }
+
+        return ret;
+
+    }
+
+
+    public boolean checkLabelBasics(
+        str             _propertyValue,
+        SysPropertyName _sysPropertyName,
+        boolean         _mandatory = true,
+        str             _labelDefined = _propertyValue,
+        TreeNodePath    _treeNodePath = SysTreeNode::getPath(treeNode)
+        )
+    {
+        LabelString labelString;
+        boolean     ret = true;
+        container   allowedAcronyms = ['sr','jr','prof','dr','ms','mrs','mr','avg', 'pct', 'qty', 'no', 'etc', 'agrmt', 'mth', 'qtr', 'ref', 'min', 'max', 'rep', 'incl', 'excl', 'pcs', 'C.O.D'];
+        str         acronym;
+        int         i;
+        boolean     skip;
+
+        if (_propertyValue)
+        {
+            if (SysLabel::isLabelId(_propertyValue))
+            {
+                if (!this.label().exists(_propertyValue))
+                {
+                    if (SysLabelLog::exists(_propertyValue))
+                    {
+                        this.addError(#BPError, 0, 0, strFmt("@SYS76945", _propertyValue), _sysPropertyName, _treeNodePath);
+                    }
+                    else
+                    {
+                        this.addError(#BPError, 0, 0, strFmt("@SYS76844", _propertyValue), _sysPropertyName, _treeNodePath);
+                    }
+                    ret = false;
+                }
+                else
+                {
+                    if (_labelDefined)
+                    {
+                        labelString = this.label().extractString(_labelDefined);
+                        skip = false;
+                        if (infolog.language() == 'en-us')
+                        {
+                            for (i=conLen(allowedAcronyms); i; i--)
+                            {
+                                acronym = conPeek(allowedAcronyms, i);
+                                if (strScan(labelString, acronym+'.', strLen(labelString)-strLen(acronym)-1, strLen(acronym)+1))
+                                {
+                                    skip = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!skip &&
+                            match(#matchEndByPeriod, labelString) &&
+                            !match(#matchEndBy3Periods, labelString))
+                        {
+                            this.addError(#BPErrorLabelWrongEndSign, 0, 0, strFmt("@SYS55433",_propertyValue), _sysPropertyName, _treeNodePath); // Label may not end with a period ('.')
+                            ret = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (parameters.CheckLabelUse) //trud
+                {
+                if (match(':a+', _propertyValue))
+                {
+                    this.addError(#BPErrorLabelIsText, 0, 0, strFmt("@SYS60289", _sysPropertyName, _propertyValue), _sysPropertyName, _treeNodePath); // Property '%1' must contain a label ID, not '%2'
+                    ret = false;
+                }
+                }
+            }
+        }
+        else
+        if (_mandatory)
+        {
+            if (_sysPropertyName == #PropertyCaption)
+            {
+                this.addError(#BPErrorCaptionNotDefined, 0, 0, "@SYS60369", #PropertyCaption, _treeNodePath); // No caption defined
+            }
+            else
+            {
+                this.addError(#BPErrorLabelNotDefined, 0, 0, "@SYS55406", _sysPropertyName, _treeNodePath); // No Label defined
+            }
+            ret = false;
+        }
+
+        return ret;
+
+    }
+
+
+
+    private SysBPCheckBase getSysBpCheckBase(TreeNode _treeNode)
+    {
+        SysBPCheckBase  sysBPCheckBase;
+        ClassId         classId = SysBPCheckBase::treeNode2SysBPCheckClassId(_treeNode);
+        DictClass       dictClass;
+
+        if (sysBPCheckMap.exists(classId))
+            return sysBPCheckMap.lookup(classId);
+
+        dictClass = new DictClass(classId);
+        sysBPCheckBase = dictClass.makeObject();
+
+        sysBPCheckMap.insert(classId, sysBPCheckBase);
+        return sysBPCheckBase;
+    }
+
+    protected void initIgnoreMap()
+    {
+        int             errorCode;
+        str             errorCodeStr;
+        TreeNodePath    path;
+        Set             set;
+        Set             ignoreSet;
+        SetEnumerator   enum;
+        XmlReader       xmlReader;
+        Map             errorCodeMap = new Map(Types::String, Types::Integer);
+        TreeNode        macroNode;
+        TreeNode        bpIgnoreMacroNode = TreeNode::findNode(#pathForIgnoreList);
+        TreeNode        bpStyleExceptionsMacroNode = TreeNode::findNode(#pathForStyleExceptionList);
+        Array           macroArray = new Array(Types::Class);
+        int             i;
+
+        ignoreMap = new Map(Types::Integer, Types::Class);
+
+        if (!bpIgnoreMacroNode)
+        {
+            throw error("@SYS28152", #pathForIgnoreList);
+        }
+
+        if (!bpStyleExceptionsMacroNode)
+        {
+            throw error("@SYS28152", #pathForStyleExceptionList);
+        }
+
+        macroArray.value(1, bpIgnoreMacroNode);
+        macroArray.value(2, bpStyleExceptionsMacroNode);
+
+        for(i=1;i<=macroArray.lastIndex();i++)
+        {
+            macroNode = macroArray.value(i);
+            xmlReader = XmlReader::newXml(macroNode.AOTgetSource());
+            while (xmlReader.read())
+            {
+                if (xmlReader.name() == #IgnoreListViolation)
+                {
+                    errorCodeStr = xmlReader.getAttribute2(#IgnoreListErrorCode);
+                    if (errorCodeMap.exists(errorCodeStr))
+                    {
+                        errorCode = errorCodeMap.lookup(errorCodeStr);
+                    }
+                    else
+                    {
+                        //BP Deviation Documented
+                        errorCode = runbuf(strFmt('int convert(){#SysBPCheck return %1;}', errorCodeStr));
+                        errorCodeMap.insert(errorCodeStr, errorCode);
+                    }
+
+                    path = xmlReader.getAttribute2(#IgnoreListPath);
+
+                    if (ignoreMap.exists(errorCode))
+                    {
+                        set = ignoreMap.lookup(errorCode);
+                    }
+                    else
+                    {
+                        set = new Set(Types::String);
+                        ignoreMap.insert(errorCode, set);
+                    }
+                    set.add(path);
+                }
+            }
+        }
+
+        //
+        // Re-add manually ignored BP checks
+        //
+        ignoreSet = infolog.globalCache().get(classStr(SysBPCheck), staticMethodStr(SysBPCheck, ignore), new Set(Types::Integer));
+        enum = ignoreSet.getEnumerator();
+        while (enum.moveNext())
+        {
+            ignoreMap.insert(enum.current(), null);
+        }
+    }
+
+    private boolean isProxyNode(TreeNode _treeNode)
+    {
+        return _treeNode.AOTIsProxyNode();
+    }
+
+    public Label label()
+    {
+        return label;
+    }
+
+    public Label labelEnUs()
+    {
+        return labelEnUs;
+    }
+
+    void new()
+    {
+        Map languageMap;
+        Set languageIdSet;
+        UtilEntryLevel layer;
+
+        label             = new Label();
+
+        languageMap     = Map::create(LanguageTable::installedLanguages());
+        languageIdSet   = languageMap.valueSet();
+
+        if (languageIdSet.in(#LanguageEnUs))
+        {
+            labelEnUs = new Label(#LanguageEnUs);
+        }
+        sysBPCheckMap = new Map(Types::Integer, Types::Class);
+
+        //
+        // Create a bit mask where all bits from currentlayer and up are set
+        // E.g. currentLayer = var -> mask = 1111 1100 0000 0000
+        //
+        layerSetting = new Set(Types::Enum);
+        for (layer = currentAOLayer(); layer<enumCnt(UtilEntryLevel); layer++)
+        {
+            layerSetting.add(layer);
+        }
+    }
+
+    public Map parmIgnoreMap(Map _ignoreMap = ignoreMap)
+    {
+        if (prmisDefault(_ignoreMap) && !ignoreMap)
+        {
+            this.initIgnoreMap();
+        }
+        else
+        {
+            ignoreMap = _ignoreMap;
+        }
+        return ignoreMap;
+    }
+
+
+    public SysBPParameters parmParameters(SysBPParameters _parameters = parameters)
+    {
+        parameters = _parameters;
+        return parameters;
+    }
+
+    public SysCompilationResultProvider parmSysCompilationResultProvider(SysCompilationResultProvider _compilationResultProvider = compilationResultProvider)
+    {
+        compilationResultProvider = _compilationResultProvider;
+
+        if (!prmisDefault(_compilationResultProvider))
+        {
+            if (compilationResultProvider)
+            {
+                parameters = compilationResultProvider.bestPracticesParm();
+            }
+            else
+            {
+                parameters = SysBPParameters::find();
+            }
+        }
+
+        return compilationResultProvider;
+    }
+
+
+    private boolean performCheckDueToLayerSetting(TreeNode _treeNode)
+    {
+        SysDictMethod dictMethod;
+        UtilElements utilElement;
+
+        // Is the node valid, if not the node+children cannot be skipped
+        if (!TreeNode::isNodeReferenceValid(_treeNode))
+            return true;
+
+        // The node exist in a layer that must be checked
+        if (Set::intersection(_treeNode.AOTLayers(), layerSetting).elements() > 0)
+            return true;
+
+        // The node is a method on a table or a class that is not yet saved in current layer
+        if ((_treeNode is MemberFunction ||  _treeNode.handle() == classNum(MemberFunction)) &&
+             _treeNode.treeNodeType().isUtilElement())
+        {
+            utilElement = _treeNode.utilElement();
+            dictMethod = new SysDictMethod(utilElement.RecordType, utilElement.ParentId, utilElement.Name);
+
+            if (dictMethod &&
+                dictMethod.getSource() != _treeNode.AOTgetSource())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void performCheckOfTreenode(TreeNode _treeNode)
+    {
+        SysBPCheckBase      sysBPCheckBase;
+        int                 infologLines;
+
+        //Find the BP rules applying to this treenode
+        sysBPCheckBase = this.getSysBpCheckBase(treeNode);
+        sysBPCheckBase.parmSysBPCheck(this);
+
+        try
+        {
+            if (sysBPCheckBase)
+            {
+                infologLines = infologLine();
+                checkChildren = sysBPCheckBase.checkChildren();
+
+                sysBPCheckBase.checkPreInit();
+
+                if (sysBPCheckBase.init())
+                {
+                    sysBPCheckBase.check();
+                }
+                else
+                {
+                    // init() has failed with an error msg in the infolog
+                    if (infologLines != infologLine())
+                    {
+                        systemErrors++;
+                        this.addError(#BPError, systemErrors, 0, strFmt("@SYS90607", SysTreeNode::getPath(treeNode)), methodStr(SysBPCheck, performCheckOfTreenode), #ClassesPath+'\\'+classStr(SysBPCheck));
+                    }
+                }
+            }
+        }
+        catch
+        {
+            //Unknown references can lead to exceptions being thrown.
+            exceptionTextFallThrough();
+        }
+
+        if (sysBPCheckBase)
+        {
+            sysBPCheckBase.dispose();
+            sysBPCheckBase = null;
+            // objects that are treeNodeRelease'd and contains
+            // references to other objects has to be null'ed explicitely before
+            // the release when they are going to be reassigned
+        }
+    }
+
+    public boolean shouldIgnore(int _errorCode, TreeNodePath _treeNodePath)
+    {
+        Set ignoreSet;
+        boolean ignore = false;
+
+        if (this.parmIgnoreMap().exists(_errorCode))
+        {
+            ignoreSet = ignoreMap.lookup(_errorCode);
+            if (!ignoreSet || ignoreSet.in(_treeNodePath))
+                ignore = true;
+        }
+
+        return ignore;
+    }
+
+    // Error if check includes errors
+    // Warning if check includes warnings and/or errors
+    // All if check includes info
+    public boolean toBeUsed(SysBPWarningLevel _sysBPWarningLevel)
+    {
+        boolean ret;
+
+        switch (parameters.WarningLevel)
+        {
+            case SysBPWarningLevel::Error : // Only Errors
+                ret = (_sysBPWarningLevel == SysBPWarningLevel::Error) ? true : false;
+                break;
+
+            case SysBPWarningLevel::Warning : // Errors and Warnings
+                ret = (_sysBPWarningLevel == SysBPWarningLevel::Error ||
+                       _sysBPWarningLevel == SysBPWarningLevel::Warning) ? true : false;
+                break;
+
+            default : // All
+                ret = true;
+                break;
+        }
+
+        return ret;
+
+    }
+
+    private void traverseTreeNodes(TreeNode _treeNode)
+    {
+        TreeNodeTraverser   treeNodeTraverser;
+        TreeNodePath        parentPath;
+        TreeNode            parentNode;
+        boolean             performCheck = true;
+        boolean             includeProxyNodes = false;
+
+        checkChildren = true;
+        if (_treeNode)
+        {
+            includeProxyNodes = this.isProxyNode(_treeNode);
+            if (parameters.LayerSetting == SysBPLayerSetting::SkipLowerLayer)
+            {
+                parentNode = _treeNode;
+                while (parentNode)
+                {
+                    if (parentNode.treeNodeType().isLayerAware())
+                    {
+                        performCheck = this.performCheckDueToLayerSetting(parentNode);
+                        break;
+                    }
+                    parentNode = parentNode.AOTparent();
+                }
+            }
+
+            treeNodeTraverser = new TreeNodeTraverser(_treeNode);
+
+            // Traverse treenodes
+            while (treeNodeTraverser.next())
+            {
+                if (!compilationResultProvider)
+                {
+                    setPrefix(treeNodeTraverser.infologPrefix());
+                }
+
+                // Get current treenode
+                treeNode = treeNodeTraverser.currentNode();
+
+                if (!includeProxyNodes && this.isProxyNode(treeNode))
+                {
+                    continue;
+                }
+
+                if (parameters.LayerSetting == SysBPLayerSetting::SkipLowerLayer
+                 && treeNode.treeNodeType().isLayerAware())
+                {
+                    performCheck = this.performCheckDueToLayerSetting(treeNode);
+                }
+
+                // Is the current node a child, and should children be skipped?
+                if (checkChildren ||
+                    strStartsWith(treeNode.treeNodePath(), parentPath)) //No longer a child to the parent
+                {
+                    //No longer a child to the parent
+                    checkChildren = true;
+                    parentPath = treeNode.treeNodePath();
+
+                    if (performCheck)
+                    {
+                        //Perform the BP check
+                        this.performCheckOfTreenode(treeNode);
+                    }
+                }
+
+                if (treeNode.treeNodeType().isRootElement())
+                {
+                    if (Global::hasGUI())
+                    {
+                        infolog.messageWin().addLine(treeNode.treeNodePath());
+                    }
+                }
+            }
+        }
+
+        infolog.globalCache().remove(classStr(SysScannerClass), classStr(Map));
+    }
+
+    public TreeNode treeNode()
+    {
+        return treeNode;
+    }
+
+    static public void checkTreeNode(TreeNode _treeNode)
+    {
+        SysBPParameters parameters = SysBPParameters::find();
+        Args args = new Args();
+
+        args.object(_treeNode);
+        args.record(parameters);
+        SysBPCheck::main(args);
+    }
+
+    private static SysBPCheck construct()
+    {
+        return new SysBPCheck();
+    }
+
+
+    public client server static ClassDescription description()
+    {
+        return strFmt("@SYS28198");
+    }
+
+    static public TreeNode handleTreenode(
+        TreeNode                        _node,
+        SysCompilationResultProvider    _compilationResultProvider,
+        SysBPCheck                      _sysBPCheck)
+    {
+        TreeNode treeNode = SysTreeNode::getNode(_node); // find the same node, on the server. If it doesn't exists the method will return the original
+
+        if (_compilationResultProvider &&
+            treeNode.treeNodeType().isRootElement())
+        {
+            _compilationResultProvider.startBPCheckObject(SysTreeNode::getPath(_node));
+        }
+
+        if (treeNode)
+        {
+            _sysBPCheck.traverseTreeNodes(treeNode);
+        }
+        else
+        {
+            _sysBPCheck.addError(#BPError, 0, 0, strFmt("@SYS75310", classStr(SysBPCheck)));
+        }
+        return treeNode;
+
+    }
+
+    public static void ignore(int _errorCode)
+    {
+        SysCompilerOutput   compilerOutput = infolog.compilerOutput();
+        SysBPCheck          bpCheck;
+        Map                 ignoreMap;
+        Set                 ignoreSet;
+
+        if (compilerOutput)
+        {
+            bpCheck = compilerOutput.getBPCheck();
+            if (bpCheck)
+            {
+                ignoreMap = bpCheck.parmIgnoreMap();
+                //
+                // Null means ignore all occurrances
+                //
+                ignoreMap.insert(_errorCode, null);
+            }
+            ignoreSet = infolog.globalCache().get(classStr(SysBPCheck), staticMethodStr(SysBPCheck, ignore), new Set(Types::Integer));
+            ignoreSet.add(_errorCode);
+            infolog.globalCache().set(classStr(SysBPCheck), staticMethodStr(SysBPCheck, ignore), ignoreSet);
+        }
+    }
+
+    public static void main(Args args)
+    {
+        SysCompilationResultProvider    compilationResultProvider;
+        SysBPCheck                      sysBPCheck;
+        TreeNode                        contextNode;
+        TreeNode                        treeNode;
+        TreeNode                        treeNodeToRelease;
+        SysBPParameters                 originalParameters;
+
+        if (infolog)
+        {
+            compilationResultProvider = infolog.compilerOutput() as SysCompilationResultProvider;
+        }
+
+        if (compilationResultProvider)
+        {
+            sysBPCheck = compilationResultProvider.getBPCheck();
+        }
+        else
+        {
+            sysBPCheck = SysBPCheck::newCompilerOutput(null);
+            setPrefix("@SYS70918");
+        }
+
+        if (sysBPCheck)
+        {
+            if (compilationResultProvider)
+            {
+                compilationResultProvider.startBPCheckContext();
+            }
+
+            if (SysContextMenu::startedFrom(args))
+            {
+
+                contextNode = args.parmObject().first();
+
+                while (contextNode)
+                {
+                    treeNode = SysBPCheck::handleTreenode(contextNode, compilationResultProvider, sysBPCheck);
+
+                    if (treeNodeToRelease &&
+                        treeNode.treeNodeType().isConsumingMemory())
+                    {
+                        treeNodeToRelease.treeNodeRelease();
+                        treeNodeToRelease = null;
+                    }
+
+                    contextNode = args.parmObject().next();
+
+                    if (treeNode.treeNodeType().isConsumingMemory())
+                    {
+                        treeNodeToRelease = treeNode;
+                    }
+                }
+            }
+            else
+            {
+                if (args.object() is TreeNode)
+                {
+                    contextNode = args.object() as TreeNode;
+                    if (args.record() is SysBPParameters)
+                    {
+                        originalParameters = sysBPCheck.parmParameters();
+                        sysBPCheck.parmParameters(args.record() as SysBPParameters);
+                    }
+
+                    treeNode = SysBPCheck::handleTreenode(contextNode, compilationResultProvider, sysBPCheck);
+
+                    if (args.record() is SysBPParameters)
+                    {
+                        // Reset back to original parameters
+                        sysBPCheck.parmParameters(originalParameters);
+                    }
+                }
+            }
+            if (compilationResultProvider)
+            {
+                compilationResultProvider.endBPCheckContext();
+            }
+            if (treeNodeToRelease)
+            {
+                treeNodeToRelease.treeNodeRelease();
+                treeNodeToRelease = null;
+            }
+
+        }
+        else
+        {
+            throw error(strFmt("@SYS19384", classStr(SysBPCheck)));
+        }
+
+        // Notify the editors to allow them to update markings
+        CompileOutputInfos::NotifyChanges();
+    }
+
+
+    public static SysBPCheck newCompilerOutput(SysCompilationResultProvider _compilationResultProvider)
+    {
+        SysBPCheck sysBPCheck = SysBPCheck::construct();
+
+        sysBPCheck.parmSysCompilationResultProvider(_compilationResultProvider);
+        sysBPCheck.initIgnoreMap();
+        return sysBPCheck;
+    }
+}

@@ -1,0 +1,57 @@
+static void dimensionCombValuesforMainAccount(Args _args)
+{
+    DimensionAttributeValueCombination  dimAttrValueComb;
+
+    DimensionStorage        dimensionStorage;
+
+    DimensionStorageSegment segment;
+    int                     segmentCount, segmentIndex;
+    int                     hierarchyCount, hierarchyIndex;
+    str                     segmentName, segmentDescription;
+    SysDim                  segmentValue;
+
+    DimensionHierarchyLevel  dimensionHierarchyLevel;
+    RefRecId recordvalue;
+    DimensionAttributeValueCombination dimCombination;
+    MainAccount  mainAccount;
+    ;
+
+   mainAccount = MainAccount::findByMainAccountId('110110');
+    recordvalue=DimensionHierarchy::getAccountStructure(mainAccount.RecId);
+
+    select  recid from dimCombination where  dimCombination.MainAccount==mainAccount.RecId
+               && dimCombination.AccountStructure==recordvalue;
+
+    dimAttrValueComb = DimensionAttributeValueCombination::find(dimCombination.RecId);
+    setPrefix("Breakup for " + dimAttrValueComb.DisplayValue);
+
+    dimensionStorage = DimensionStorage::findById(dimAttrValueComb.RecId);
+    if (dimensionStorage == null)
+    {
+        throw error("No dimension Specified for the Main Account");
+    }
+    hierarchyCount = dimensionStorage.hierarchyCount();
+    for(hierarchyIndex = 1; hierarchyIndex <= hierarchyCount; hierarchyIndex++)
+    {
+        setPrefix(strFmt("Hierarchy: %1", DimensionHierarchy::find(dimensionStorage.getHierarchyId(hierarchyIndex)).Name));
+
+        segmentCount = dimensionStorage.segmentCountForHierarchy(hierarchyIndex);
+        //Loop through segments and display required values
+        for (segmentIndex = 1; segmentIndex <= segmentCount; segmentIndex++)
+        {
+            segment = dimensionStorage.getSegmentForHierarchy(hierarchyIndex, segmentIndex);
+            if (segment.parmDimensionAttributeValueId() != 0)
+            {
+               // Dimension Name
+                segmentName = DimensionAttribute::find(DimensionAttributeValue::find(segment.parmDimensionAttributeValueId()).DimensionAttribute).Name;
+
+                 // segment value- Dimension Value
+                segmentValue        = segment.parmDisplayValue();
+
+                //Description for dimension)
+                segmentDescription  = segment.getName();
+                info(strFmt("DimensionName:%1: Value:%2,Description: %3", segmentName, segmentValue, segmentDescription));
+            }
+        }
+    }
+}

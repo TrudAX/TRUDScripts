@@ -1,0 +1,30 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FTM
+
+; Microsoft Dynamics AX MENUITEM : DEVsysCompareOld unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEVsysCompareOld
+    Type: 3
+    PROPERTIES
+      Name                #DEVsysCompareOld
+      Label               #Compare old
+      HelpText            #@SYS68610
+      ObjectType          #Class
+      Object              #systreenodecompareContext
+      Parameters          #old
+      ConfigurationKey    #SysDevelopmentMorphX
+      SecurityKey         #SysDevelopment
+      ViewUserLicense     #Functional
+      MaintainUserLicense #Functional
+      WebAccess           #None
+      Origin              #{AB28BB3A-2541-439B-876D-06FDA36CE747}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+END

@@ -1,0 +1,316 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysTaskRecorderSaveTask
+  PROPERTIES
+    Name                #SysTaskRecorderSaveTask
+    Origin              #{0B170000-0000-1000-359B-13BA8771D7F6}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #    SysTaskRecorderTask savedTask;
+      #    Object callerform;
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #void run()
+      #{
+      #    super();
+      #
+      #    if (element.args().caller())
+      #    {
+      #        callerform = element.args().caller();
+      #
+      #        if (callerform && formHasMethod(callerform,identifierstr(getTask)))
+      #        {
+      #            savedTask = callerform.getTask();
+      #            if( savedTask )
+      #            {
+      #                taskNameEdit.text(savedTask.parmCaption());
+      #                taskNotesEdit.text(savedTask.parmDescription());
+      #            }
+      #        }
+      #
+      #        if (callerform && formHasMethod(callerform,identifierstr(parmCancelSave)))
+      #        {
+      #            callerform.parmCancelSave(true);
+      #        }
+      #
+      #
+      #    }
+      #    DEVCommentsTool::processSaveTaskForm(element);//trud
+      #
+      #    if (strltrim(taskNameEdit.text())=="")
+      #        saveButton.enabled(false);
+      #    else
+      #        saveButton.enabled(true);
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SYS115063
+      HideToolbar         #Yes
+      Style               #DropDialog
+      ViewEditMode        #Edit
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          ElementPosition     #1431655764
+          HierarchyParent     #BottomGroup
+          Style               #DialogCommitContainer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #BottomGroup
+          ElementPosition     #1431655764
+          Style               #DialogCommit
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #MainGroup
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #715827882
+          FrameType           #None
+          Style               #DialogContent
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #CancelButton
+          AutoDeclaration     #Yes
+          AlignControl        #Yes
+          HelpText            #@SYS112495
+          ElementPosition     #1610612733
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS57717
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    if (callerform && formHasMethod(callerform,identifierstr(parmCancelSave)))
+            #    {
+            #        callerform.parmCancelSave(true);
+            #    }
+            #
+            #    element.close();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #SaveButton
+          AutoDeclaration     #Yes
+          AlignControl        #Yes
+          HelpText            #@SYS107737
+          ElementPosition     #1073741822
+          HierarchyParent     #ButtonGroup
+          Text                #@SYS12229
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #
+            #    savedTask.parmCaption(taskNameEdit.valueStr());
+            #    savedTask.parmDescription(taskNotesEdit.valueStr());
+            #    if (callerform && formHasMethod(callerform,identifierstr(parmCancelSave)))
+            #        callerform.parmCancelSave(false);
+            #
+            #    element.close();
+            #
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #StaticText
+          ElementPosition     #715827880
+          HierarchyParent     #MainGroup
+          Text                #@SYS107737
+          Style               #MainInstruction
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #TaskNameEdit
+          AutoDeclaration     #Yes
+          Width               #Column width
+          ElementPosition     #1073741822
+          HierarchyParent     #MainGroup
+          Label               #@SYS107747
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #textChange
+            #public void textChange()
+            #{
+            #    super();
+            #
+            #    if (strltrim(this.text())=="")
+            #        saveButton.enabled(false);
+            #    else
+            #        saveButton.enabled(true);
+            #
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #TaskNotesEdit
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #MainGroup
+          MultiLine           #Yes
+          Label               #@SYS107746
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

@@ -1,0 +1,485 @@
+class DEVWizard
+{
+    #AOT
+    #Properties
+
+    static void addFieldToGroupByExample(TreeNode _tableNode, str _fieldname, str _searchfield)
+    {
+        TreeNode            groupNode;
+        TreeNodeIterator    treeNodeIterator = infolog.findNode(_tableNode.treeNodePath() + '\\Field Groups').AOTiterator();
+
+        ;
+
+        groupNode = treeNodeIterator.next();
+
+        while (groupNode)
+        {
+            if (groupNode.AOTfindChild(_searchfield))
+            {
+                DEVWizard::assert(! groupNode.AOTfindChild(_fieldname),
+                    strfmt("@CIT72", funcname(), _fieldname, groupnode.treeNodeName()));
+
+                groupNode.AOTadd(_fieldName);
+            }
+            groupNode = treeNodeIterator.next();
+        }
+    }
+
+    public static MemberFunction aotElement_addMethod(TreeNode _AOTelement, str _methodName, str _source, boolean _isStatic = false, boolean _findMethods = true, boolean _overwrite = false)
+    {
+        TreeNode        methodsNode    = _findMethods ? infolog.findNode(_AOTelement.treeNodePath() + '\\Methods') : _AOTelement;
+        MemberFunction  memberFunction = methodsNode.AOTfindChild(_methodName);
+
+        ;
+
+        DEVWizard::assert(_overwrite || ! memberFunction, strfmt("@CIT118135", _methodName));
+
+        if (memberFunction)
+        {
+            memberFunction.AOTdelete();
+            _AOTelement.AOTsave();
+        }
+
+        methodsNode.AOTadd(_methodName);
+        memberFunction = methodsNode.AOTfindChild(_methodName);
+        memberFunction.AOTsetSource(_source, _isStatic);
+        memberFunction.AOTsave();
+        memberFunction.AOTcompile();
+        memberFunction.AOTrestore();
+
+        return memberFunction;
+    }
+
+    static void assert(anytype _condition, str _message)
+    {
+        if (! _condition)
+            throw error(_message);
+    }
+
+    public static classid buildClassId2classId(classid _classId)
+    {
+        switch (_classId)
+        {
+            case classNum(FormBuildStaticTextControl):
+                return classNum(FormStaticTextControl);
+            case classnum(FormBuildStringControl):
+                return classnum(FormStringControl);
+            case classnum(FormBuildTabControl):
+                return classNum(FormTabControl);
+            case classnum(FormBuildCheckBoxControl):
+                return classNum(FormCheckBoxControl);
+            case classnum(FormBuildGroupControl):
+                return classnum(FormGroupControl);
+            case classNum(FormBuildButtonControl):
+                return classNum(FormButtonControl);
+            case classNum(FormBuildRealControl):
+                return classNum(FormRealControl);
+            case classNum(FormBuildIntControl):
+                return classNum(FormIntControl);
+            case classNum(FormBuildComboBoxControl):
+                return classNum(FormComboBoxControl);
+            case classNum(FormBuildWindowControl):
+                return classNum(FormWindowControl);
+            case classNum(FormBuildDateControl):
+                return classNum(FormDateControl);
+            case classNum(FormBuildGridControl):
+                return classNum(FormGridControl);
+            case classNum(FormBuildRadioControl):
+                return classNum(FormRadioControl);
+            case classNum(FormBuildButtonGroupControl):
+                return classNum(FormButtonGroupControl);
+            case classNum(FormBuildTabPageControl):
+                return classNum(FormTabPageControl);
+            case classNum(FormBuildCommandButtonControl):
+                return classNum(FormCommandButtonControl);
+            case classNum(FormBuildMenuButtonControl):
+                return classNum(FormMenuButtonControl);
+            case classNum(FormBuildFunctionButtonControl):
+                return classNum(FormFunctionButtonControl);
+            case classNum(FormBuildListBoxControl):
+                return classNum(FormListBoxControl);
+            case classNum(FormBuildTimeControl):
+                return classNum(FormTimeControl);
+            case classNum(FormBuildTableControl):
+                return classNum(FormTableControl);
+            case classNum(FormBuildButtonSeparatorControl):
+                return classNum(FormButtonSeparatorControl);
+            case classNum(FormBuildTreeControl):
+                return classNum(FormTreeControl);
+            case classNum(FormBuildActiveXControl):
+                return classNum(FormActiveXControl);
+            case classNum(FormBuildListControl):
+                return classNum(FormListControl);
+            case classNum(FormBuildProgressControl):
+                return classNum(FormProgressControl);
+            case classNum(FormBuildAnimateControl):
+                return classNum(FormAnimateControl);
+            case classNum(FormBuildHTMLControl):
+                return classNum(FormHTMLControl);
+        }
+
+        throw error(strFmt("@SYS18598",funcName()));
+    }
+
+    static boolean checkNameExist(IdentifierName _identifierName, str _elementName, container _pathes = [#TablesPath, #ExtendedDataTypesPath, #ClassesPath])
+    {
+        int     pathCnt = conlen(_pathes);
+        int     pathIdx;
+        boolean exist;
+
+        if (_identifierName)
+        {
+            for (pathIdx = 1; pathIdx <= pathCnt; pathIdx++)
+            {
+                exist = TreeNode::findNode(conpeek(_pathes, pathIdx) + '\\' + _identifierName) && true;
+                if (exist)
+                {
+                    break;
+                }
+            }
+
+            if (exist)
+            {
+                warning(strfmt("@CIT74", _elementName,_identifierName));
+            }
+        }
+        else
+        {
+            exist = true;
+        }
+
+        return exist;
+    }
+
+    public static ProjectNode createGroup(TreeNode _parent, GroupNodeType _type, str _name = "")
+    {
+        DEVPropertyMap propertyMap;
+        ProjectNode        groupNode;
+        str                groupType;
+
+        ;
+
+        if (_parent.AOTtypeStr() != 'PRN' && _parent.AOTtypeStr() != 'PGR')
+        {
+            throw error(strfmt("@CIT75", funcname()));
+        }
+
+        groupType = enum2str(_type);
+        _name     = _name ? _name : groupType;
+        _parent.AOTadd(_name);
+        groupNode = _parent.AOTfindChild(_name);
+
+        propertyMap = new DEVPropertyMap(groupNode);
+        propertyMap.setProperty('ProjectGroupType', groupType, true);
+
+        return groupNode;
+    }
+
+    static TreeNode ctrlId2treeNode(Form _form, int _ctrlId)
+    {
+        return TreeNode::findNode(DEVWizard::ctrlId2treeNodePath(_form, _ctrlId));
+    }
+
+    static TreeNodePath ctrlId2treeNodePath(Form _form, int _ctrlId)
+    {
+        #AOT
+
+        return #FormsPath + '\\' + _form.treeNodeName() + '\\designs\\design' + DEVWizard::getParent(_form, _ctrlId);
+    }
+
+    client public static void edt_addRefDataSet(TreeNode _edtNode, str _table, str _field)
+    {
+        #Winapi
+        #file
+
+        TextBuffer  textBuffer   = new TextBuffer();
+
+        str         filename;
+        str         inputText, outputText;
+        str         line;
+        int         lineCount;
+        int         i;
+        int         importId;
+        boolean     updated;
+        str         name = _edtNode.treeNodeName();
+        ;
+
+        filename = WinApi::getFolderPath(#CSIDL_INTERNET_CACHE) + '\\AxaptaExport_' + name + #xpo;
+        _edtNode.treeNodeExport(filename);
+
+        textBuffer.fromFile(filename);
+
+        inputText   = textBuffer.getText();
+        lineCount   = textBuffer.numLines();
+
+        for (i = 0; i < lineCount; i++)
+        {
+            line = strline(inputText, i);
+            outputText += line + '\n';
+            if (! updated && strscan(line, 'TYPEREFERENCES', 1, strlen(line)))
+            {
+                outputText += '      TYPEREFERENCETYPE DATASET\n';
+                outputText += '      PROPERTIES\n';
+                outputText += '        Table               #' + _table + '\n';
+                outputText += '        RelatedField        #' + _field + '\n';
+                outputText += '      ENDPROPERTIES\n\n';
+                updated = true;
+            }
+        }
+        textBuffer.setText(outputText);
+        textBuffer.toFile(filename);
+        textBuffer.regularExpressions(false);
+        textBuffer.find('***');
+
+        importId = infolog.startImport(filename, 0);
+        infolog.importElement(importId, 0, UtilElementType::ExtendedType, name, textBuffer.matchPos(), 4);
+        infolog.endImport(importId, 0);
+    }
+
+    client public static void edt_addRefTable(TreeNode _edtNode, str _table, str _field)
+    {
+        DEVPropertyMap propertyMap  = new DEVPropertyMap();
+        ;
+        propertyMap.setNode(_edtNode);
+
+        propertyMap.setProperty('ReferenceTable',   _table, true);
+        _edtNode.AOTsave();
+    }
+
+    public static Types getBaseType(identifiername _typename)
+    {
+        return new DictType(new Dictionary().typename2id(_typename)).baseType();
+    }
+
+    static Map getIndexStructure(TableId _tableId, IndexId _indexId)
+    {
+        Map                 indexMap        = new Map(Types::STRING, Types::STRING);
+        DictTable           dictTable       = new DictTable(_tableId);
+        DictIndex           primaryIndex    = new DictIndex(_tableId, _indexId);
+        DictField           indexField;
+        int                 fieldCnt;
+        int                 fieldIdx;
+        ;
+
+        fieldCnt = primaryIndex.numberOfFields();
+
+        for (fieldIdx = 1; fieldIdx <= fieldCnt; fieldIdx++)
+        {
+            indexField = new DictField(_tableId, primaryIndex.field(fieldIdx));
+            DEVWizard::assert(indexField.typeId() || indexField.enumId(),
+                strfmt("@CIT76", funcname(), indexField.name(), tableid2name(_tableId)));
+
+            indexMap.insert(indexField.name(), indexField.typeId() ? extendedTypeId2name(indexField.typeId()) : enumId2Name(indexField.enumId()));
+        }
+        return indexMap;
+    }
+
+    static  TreeNodePath getParent(Form _form, int _id)
+    {
+        Object          fbc;
+        TreeNodePath    subNodePath;
+
+        if (! _id)
+        {
+            return '';
+        }
+        fbc = _form.design().control(_id);
+
+        subNodePath = sysFormRun::controlTypeStr(DEVWizard::buildClassId2classId(classidget(fbc))) + ':' + fbc.name();
+
+        if (fbc.isContainer())
+        {
+            subNodePath = strFmt('[%1]', subNodePath);
+        }
+        return DEVWizard::getParent(_form, fbc.containerId()) + '\\' + subNodePath;
+    }
+
+    public static ProjectNode getWizardResults()
+    {
+        #define.projectName('Wizard_Results')
+        TreeNode        treeNode = infolog.projectRootNode().AOTfindChild('Private');
+        ProjectNode     project = treeNode.AOTfindChild(#projectName);
+
+        ;
+
+        if (! project)
+        {
+            treeNode.AOTadd(#projectName);
+            project = treeNode.AOTfindChild(#projectName);
+        }
+
+        return project.getRunNode();
+    }
+
+    public static TreeNode index_addField(TreeNode _index, str _fieldname)
+    {
+        ;
+
+        DEVWizard::assert(! _index.AOTfindChild(_fieldname),
+            strfmt("@CIT72", funcname(), _fieldname, _index.treeNodePath()));
+
+        _index.AOTadd(_fieldname);
+
+        return _index.AOTfindChild(_fieldname);
+    }
+
+    #Characters
+    public static boolean isObjectNameValid(str _name)
+    {
+        DictType    dictType = new DictType(extendedtypenum(identifiername));
+        str 1       c;
+        int         len = strlen(_name);
+        int         i;
+        boolean     ok = (len > 0) && (len <= dictType.stringLen());
+
+        boolean isAlpha(str 1 _c)
+        {
+            return (_c >= #a && _c <= #z) || (_c >= #capitalA && _c <= #capitalZ);
+        }
+        boolean isDigit(str 1 _c)
+        {
+            return (_c >= #0 && _c <= #9);
+        }
+
+        if (ok)
+        {
+            ok = isAlpha(substr(_name, 1, 1));
+            if (ok)
+            {
+                for (i = 2; i <= len; i++)
+                {
+                    c = substr(_name, i, 1);
+                    ok = (isAlpha(c) || isDigit(c) || c == '_') && ok;
+                }
+            }
+        }
+
+        return ok;
+    }
+
+    client public static void reexportNode(TreeNode _treeNode)
+    {
+        #Winapi
+        #file
+        int         importId;
+        str         filename    = WinApi::getFolderPath(#CSIDL_INTERNET_CACHE) + '\\AxaptaExport_' + _treeNode.treeNodeName() + #xpo;
+        TextBuffer  textBuffer  = new TextBuffer();
+
+        _treeNode.treeNodeExport(filename);
+
+        textBuffer.fromFile(filename);
+        textBuffer.regularExpressions(false);
+        textBuffer.find('***');
+
+        importId = infolog.startImport(filename, 0);
+        infolog.importElement(importId, 0, _treeNode.utilElement().RecordType, _treeNode.treeNodeName(), textBuffer.matchPos(), 4);
+        infolog.endImport(importId, 0);
+    }
+
+    public static TreeNode table_addField(TreeNode _table, str _fieldname, types _fieldtype)
+    {
+        AOTTableFieldList    fieldList = infolog.findNode(_table.treeNodePath() + '\\Fields');
+
+        ;
+
+        DEVWizard::assert(! fieldList.AOTfindChild(_fieldname),
+            strfmt("@CIT72", funcname(), _fieldname, fieldlist.treeNodePath()));
+
+        switch (_fieldtype)
+        {
+            case types::CONTAINER:
+                fieldlist.addContainer(_fieldname);
+                break;
+            case types::DATE:
+                fieldlist.addDate(_fieldname);
+                break;
+            case types::ENUM:
+                fieldlist.addEnum(_fieldname);
+                break;
+            case types::INTEGER:
+                fieldlist.addInteger(_fieldname);
+                break;
+            case types::REAL:
+                fieldlist.addReal(_fieldname);
+                break;
+            case types::STRING:
+            case types::RSTRING:
+                fieldList.addString(_fieldname);
+                break;
+            case types::UtcDateTime:
+                fieldlist.addTime(_fieldname);
+                break;
+            case types::Int64:
+                fieldlist.addInt64(_fieldname);
+                break;
+            default:
+                throw error(strfmt("@CIT77", funcname(), enum2str(_fieldtype)));
+        }
+
+        return infolog.findNode(fieldList.treeNodePath() + '\\' + _fieldname);
+    }
+
+    public static TreeNode table_addFieldToGroup(TreeNode _tableNode, str _groupName, str _fieldname)
+    {
+        TreeNode    groupNode = infolog.findNode(_tableNode.treeNodePath() + '\\Field Groups\\' + _groupName);
+
+        ;
+
+        DEVWizard::assert(! groupNode.AOTfindChild(_fieldname),
+                            strfmt("@CIT72", funcname(), _fieldname, _groupName));
+
+        groupNode.AOTadd(_fieldName);
+
+        return infolog.findNode(groupNode.treeNodePath() + '\\' + _fieldName);
+    }
+
+    public static TreeNode table_addIndex(TreeNode _table, str _indexname)
+    {
+        TreeNode    indexesNode = infolog.findNode(_table.treeNodePath() + '\\Indexes');
+
+        ;
+
+        DEVWizard::assert(! indexesNode.AOTfindChild(_indexname),
+            strfmt("@CIT72", funcname(), _indexname, indexesNode.treeNodePath()));
+
+        indexesNode.AOTadd(_indexName);
+
+        return indexesNode.AOTfindChild(_indexName);
+    }
+
+    static str typeDefaultValue(str _typeName)
+    {
+        Types baseType = new DictType(new Dictionary().typename2id(_typename)).baseType();
+
+        ;
+
+        switch (baseType)
+        {
+            case Types::CONTAINER:
+                return 'connull()';
+            case Types::DATE:
+                return 'datenull()';
+            case Types::RSTRING:
+            case Types::STRING:
+            case Types::VARSTRING:
+                return '\'\'';
+        }
+
+        return '0';
+    }
+
+    public static extendedtypeid typename2id(identifiername _typeName)
+    {
+        return new Dictionary().typename2id(_typename);
+    }
+
+    static boolean validateCondition(anytype _condition, str _message, Exception _exception = Exception::Error)
+    {
+        if (! _condition)
+        {
+            error(_message);
+        }
+
+        return _condition && true;
+    }
+}

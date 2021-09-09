@@ -1,0 +1,325 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysModelsInstalledList
+  PROPERTIES
+    Name                #SysModelsInstalledList
+    Origin              #{8DEB7369-D12B-42C5-B2F4-1FE1EE3DA321}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #    SysFormSplitter_X verticalSplitter;
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+      Query               #SysModelsInstalledQuery
+      Version             #75
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #ModelManifest
+          Table               #SysModelManifest
+          MaxAccessRight      #View
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #layer
+          #public display UtilEntryLevel layer(SysModelManifest _manifest)
+          #{
+          #    SysModel model;
+          #    //get the string of the layer, not the int
+          #    select firstOnly layer from model
+          #        where model.RecId == _manifest.Model;
+          #
+          #    return model.Layer;
+          #}
+        ENDSOURCE
+        SOURCE #signed
+          #public display NoYes signed(SysModelManifest _manifest)
+          #{
+          #    return _manifest.signed;
+          #}
+        ENDSOURCE
+        SOURCE #version
+          #public display SysBuildNo version(SysModelManifest _manifest)
+          #{
+          #
+          #    return strFmt("%1.%2.%3.%4",
+          #        _manifest.VersionMajor,
+          #        _manifest.VersionMinor,
+          #        _manifest.VersionBuildNo,
+          #        _manifest.VersionRevision);
+          #}
+        ENDSOURCE
+      ENDMETHODS
+      LINKTYPES
+      ENDLINKTYPES
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SYS342480
+      UseCaptionFromMenuItem  #Yes
+      SetCompany          #No
+      DataSource          #ModelManifest
+      Style               #SimpleList
+      ViewEditMode        #View
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #GridContainer
+          ShowRowLabels       #No
+          DataSource          #ModelManifest
+          AlternateRowShading #No
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GridContainer
+          AllowEdit           #No
+          ElementPosition     #1073741823
+          Style               #BorderlessGridContainer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Layer
+          AllowEdit           #No
+          HelpText            #@SYS342481
+          ElementPosition     #715827882
+          HierarchyParent     #Grid
+          Label               #@SYS342472
+          LabelAlignment      #Center
+          DataSource          #ModelManifest
+          DataMethod          #layer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #signed
+          HelpText            #@SYS342477
+          ElementPosition     #1670265058
+          HierarchyParent     #Grid
+          Label               #@SYS342476
+          DataSource          #ModelManifest
+          DataMethod          #signed
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INT64EDIT
+        PROPERTIES
+          Name                #ModelID
+          ElementPosition     #477218588
+          HierarchyParent     #Grid
+          Alignment           #Center
+          DataSource          #ModelManifest
+          DataField           #Model
+          ViewEditMode        #Edit
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #ModelDescription
+          HelpText            #@SYS342482
+          ElementPosition     #1908874352
+          HierarchyParent     #Grid
+          DataSource          #ModelManifest
+          DataField           #Description
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #ModelManifest_DisplayName
+          ElementPosition     #1073741823
+          HierarchyParent     #Grid
+          DataSource          #ModelManifest
+          DataField           #DisplayName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #ModelName
+          ElementPosition     #954437176
+          HierarchyParent     #Grid
+          DataSource          #ModelManifest
+          DataField           #Name
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Publisher
+          ElementPosition     #1193046470
+          HierarchyParent     #Grid
+          DataSource          #ModelManifest
+          DataField           #Publisher
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Version
+          HelpText            #@SYS342475
+          ElementPosition     #1431655764
+          HierarchyParent     #Grid
+          Alignment           #Center
+          Label               #@SYS342474
+          DataSource          #ModelManifest
+          DataMethod          #version
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

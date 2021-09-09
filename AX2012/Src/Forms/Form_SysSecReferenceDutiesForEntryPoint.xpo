@@ -1,0 +1,303 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysSecReferenceDutiesForEntryPoint
+  PROPERTIES
+    Name                #SysSecReferenceDutiesForEntryPoint
+    Origin              #{D57A11F7-66C3-4E48-BE6F-A3BDF543FC9E}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    SecurityTask duty;
+      #    SecuritySubTask dutyPrivileges;
+      #    SecurityTask privilege;
+      #    SecurableObject entryPointObject;
+      #    SecurityTaskEntryPoint privilegeEntryPoint;
+      #    SysSecEntryPointTmp tmpTable;
+      #    SecurableType entryPointType;
+      #    SecurableName entryPointName;
+      #    SecurableChildName entryPointChildName;
+      #    container paramAOTNames;
+      #
+      #    super();
+      #
+      #    if(element.args() == null)
+      #    {
+      #        return;
+      #    }
+      #
+      #    entryPointType = element.args().parmEnum();
+      #    paramAOTNames = str2con(element.args().parm(), '.');
+      #
+      #    if(conLen(paramAOTNames) == 0)
+      #    {
+      #        return;
+      #    }
+      #    entryPointName = conPeek(paramAOTNames, 1);
+      #    if(conLen(paramAOTNames) > 1)
+      #    {
+      #        entryPointChildName = conPeek(paramAOTNames, 2);
+      #    }
+      #
+      #    this.design().caption(strFmt("@SDT231", entryPointType, entryPointName, entryPointChildName));
+      #
+      #    //Show all duties that grant entry point with the max access level
+      #    insert_recordset tmpTable(ObjectID, ObjectKey, ObjectAOTName, ObjectLabel, ObjectDescription, AccessRight)
+      #            select RecId, AOTName, AOTName, Name, Description from duty
+      #                    group by RecId, AOTName, Name, Description
+      #                    where duty.Type == SecurityTaskType::Duty &&
+      #                        duty.IsEnabled == NoYes::Yes
+      #                join privilege
+      #                join dutyPrivileges where duty.RecId == dutyPrivileges.SecurityTask &&
+      #                        privilege.RecId == dutyPrivileges.SecuritySubTask
+      #                    join maxOf(PermissionGroup) from privilegeEntryPoint
+      #                    where
+      #                        privilegeEntryPoint.SecurityTask == privilege.RecId &&
+      #                        privilege.Type == SecurityTaskType::Privilege &&
+      #                        privilege.IsEnabled == NoYes::Yes
+      #                    join entryPointObject where
+      #                        entryPointObject.RecId == privilegeEntryPoint.EntryPoint &&
+      #                        entryPointObject.Type == entryPointType &&
+      #                        entryPointObject.Name == entryPointName &&
+      #                        entryPointObject.ChildName == entryPointChildName;
+      #
+      #    SysSecEntryPointTmp.setTmpData(tmpTable);
+      #    SysSecEntryPointTmp_DS.executeQuery();
+      #
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysSecEntryPointTmp
+          Table               #SysSecEntryPointTmp
+          AllowEdit           #No
+          AllowCreate         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Height              #Column height
+      Caption             #@SDT232
+      Frame               #Dialog
+      SetCompany          #No
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #715827882
+          DataSource          #SysSecEntryPointTmp
+          DataGroup           #ReferenceObject
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #Button
+          AutoDeclaration     #Yes
+          Left                #Auto (right)
+          HelpText            #@SDT233
+          ElementPosition     #1431655764
+          Text                #@SDT226
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    #AOT
+            #    SysSecEntryPointTmp developmentTmp;
+            #    TreeNode dutyNode;
+            #    TreeNode roleNode, roleDutiesNode;
+            #    SecurityRole role;
+            #    SecurityRoleTaskGrant roleTaskGrant;
+            #
+            #    super();
+            #
+            #    if(element.args().caller().CurrentDevelopmentObject() == '')
+            #    {
+            #        throw error(strFmt("@SDT227"));
+            #    }
+            #
+            #    if(isDeveloper())
+            #    {
+            #        roleNode = TreeNode::findNode(strFmt('%1\\%2', #SecRolesPath, element.args().caller().CurrentDevelopmentObject()));
+            #
+            #        //Ensure object still exists
+            #        if(roleNode == null)
+            #        {
+            #            throw error(strFmt("@SDT228", element.args().caller().CurrentDevelopmentObject()));
+            #        }
+            #
+            #        //Handle VCS
+            #        if(!SysSecEntryPointManager::ObjectEditableVCS(roleNode))
+            #        {
+            #            return;
+            #        }
+            #
+            #        roleDutiesNode = roleNode.AOTfindChild('Duties');
+            #
+            #        for (developmentTmp = getFirstSelection(SysSecEntryPointTmp_ds);
+            #                developmentTmp;
+            #                developmentTmp = SysSecEntryPointTmp_ds.getNext())
+            #        {
+            #            dutyNode = TreeNode::findNode(strFmt('%1\\%2', #SecDutiesPath, developmentTmp.ObjectAOTName));
+            #
+            #            if(dutyNode == null)
+            #            {
+            #                throw error(strFmt("@SDT229", developmentTmp.ObjectAOTName));
+            #            }
+            #
+            #            if(roleDutiesNode.AOTfindChild(developmentTmp.ObjectAOTName) == null)
+            #            {
+            #                roleDutiesNode.AOTDrop(dutyNode);
+            #            }
+            #
+            #        }
+            #        roleNode.AOTsave();
+            #    }
+            #    else
+            #    {
+            #        SysSecEntryPointManager::EnsureVCSDisabledForBusinessUser();
+            #
+            #        //Non-admin can only add privileges to role
+            #        select RecId from role where role.AotName == element.args().caller().GetCurrentRoleAOTname();
+            #        roleTaskGrant.SecurityRole = role.RecId;
+            #
+            #        for (developmentTmp = getFirstSelection(SysSecEntryPointTmp_ds);
+            #                developmentTmp;
+            #                developmentTmp = SysSecEntryPointTmp_ds.getNext())
+            #        {
+            #            roleTaskGrant.SecurityTask = developmentTmp.ObjectID;
+            #            roleTaskGrant.insert();
+            #        }
+            #    }
+            #
+            #    if(element.args() && element.args().caller() &&
+            #        formHasMethod(element.args().caller(), identifierStr(SetPermissions)))
+            #    {
+            #        element.args().caller().SetPermissions();
+            #    }
+            #    element.close();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_AccessRight
+          ElementPosition     #1431655764
+          HierarchyParent     #Grid
+          Label               #@SDT158
+          DataSource          #SysSecEntryPointTmp
+          DataField           #AccessRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Grid_ObjectLabel
+          ElementPosition     #715827882
+          HierarchyParent     #Grid
+          Label               #@SDT166
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectLabel
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+      ReadPermissions     #No
+      UpdatePermissions   #No
+      DeletePermissions   #No
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Create
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+      TABLE #SecurityRoleTaskGrant
+        PROPERTIES
+          Table               #SecurityRoleTaskGrant
+          EffectiveAccess     #Create
+          ManagedBy           #Manual
+        ENDPROPERTIES
+        
+      ENDTABLE
+      
+  ENDTABLES
+  
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

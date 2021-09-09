@@ -1,0 +1,2177 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysSecSetEntryPointRights
+  PROPERTIES
+    Name                #SysSecSetEntryPointRights
+    Origin              #{DD1F597E-3781-40FE-B132-35251C3FDE5E}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #    #AOT
+      #    #Properties
+      #    #resAppl
+      #    SysFormSplitter_Y               _formSplitterY;
+      #    SysFormSplitter_X               _formSplitterX;
+      #
+      #    IdentifierName                  currentObjectAOTName;
+      #    SysSecDevelopmentType                         developmentType;
+      #    ImageListAppl_SecurityAccess    imageList_access;
+      #    ImageListAppl_Aot               imageListAppl_AOT;
+      #    ImageRes                        accessImages[7];
+      #    TreeItemIdx                     rootItemIdx;
+      #
+      #    Map                             currentHiglightedItems;
+      #    Map                             entryPointRelatedTreeItems;
+      #    Map                             privilegeTreeIdxs;
+      #    Map                             entryPointPrivilegePermissions;
+      #    Map                             parentsMap;
+      #
+      #    boolean                         step1Complete;
+      #
+      #    RecId                           selectedTask;
+      #    boolean                         permissionChange;
+      #}
+    ENDSOURCE
+    SOURCE #AddRoleObjects
+      #public void AddRoleObjects(TreeItemIdx _roleTreeItemIdx, TreeNode _roleNode)
+      #{
+      #    #Properties
+      #    TreeNode dutiesListNode, dutyReferenceNode;
+      #    TreeNode dutyNode;
+      #    TreeNodeIterator dutyIterator;
+      #    TreeItemIdx dutyIdx;
+      #
+      #    //Process duties assigned to role
+      #    dutiesListNode = _roleNode.AOTfindChild('Duties');
+      #    dutyIterator = dutiesListNode.AOTiterator();
+      #    dutyReferenceNode = dutyIterator.next();
+      #
+      #    while(dutyReferenceNode != null)
+      #    {
+      #        dutyNode = TreeNode::findNode(strFmt('%1\\%2', #SecDutiesPath, dutyReferenceNode.AOTname()));
+      #
+      #        if(dutyNode != null && dutyNode.AOTgetProperty(#PropertyEnabled) == 'Yes')
+      #        {
+      #            dutyIdx = SysFormTreeControl::addTreeItem(SecurityTree, dutyReferenceNode.AOTname(), _roleTreeItemIdx,
+      #                        dutyNode, imageListAppl_AOT.image(dutyReferenceNode.AOTbitmapId()), true);
+      #            parentsMap.insert(dutyIdx, '');
+      #
+      #            element.ProcessPrivileges(dutyIdx, TreeNode::findNode(strFmt('%1\\%2',
+      #                                #SecDutiesPath, dutyReferenceNode.AOTname())).AOTfindChild('Privileges'));
+      #
+      #            parentsMap.remove(dutyIdx);
+      #        }
+      #
+      #        dutyReferenceNode = dutyIterator.next();
+      #    }
+      #
+      #    //Process privileges assigned to role
+      #    element.ProcessPrivileges(_roleTreeItemIdx, _roleNode.AOTfindChild('Privileges'));
+      #}
+    ENDSOURCE
+    SOURCE #ApplySelectedPermissionsToObject
+      #public void ApplySelectedPermissionsToObject(TreeNode _privilegeNode, TreeItemIdx _treeItemIdx)
+      #{
+      #    SysSecEntryPointTmp tmpData, selectedEntryPoints;
+      #    str entryPointKey;
+      #    FormTreeItem privilegeTreeItem, childItem;
+      #    Map relatedObjects;
+      #    Map selectedItems = new Map(Types::String, Types::String);
+      #    MapIterator privilegeIterator, relatedObjectsIterator, highlightedObjectsIterator, selectedItemsIterator;
+      #    TreeItemIdx nextIdx, parentIdx;
+      #    TreeNode privilegeNode, entryPointListNode, entryPointReferenceNode;
+      #    TreeNodeIterator entryPointIterator;
+      #    TreeItemIdx entryPointIdx, deleteIdx;
+      #    FormTreeItem newEntryPointTreeItem, formTreeItem, highLightedTreeItem;
+      #    Map privilegesPermissionMap;
+      #    boolean highlightParents = false;
+      #    List entryPointsThatWillBeRemoved = new List(Types::String);
+      #    List removeFromMap;
+      #    ListEnumerator entryPointListEnumerator, removeListEnumerator;
+      #    boolean foundSelectedEntryPoint;
+      #
+      #    boolean FormTreeItemContainsEntryPoint(TreeItemIdx _idx, str _entryPointKey)
+      #    {
+      #        FormTreeItem item = SecurityTree.getItem(_idx);
+      #        TreeItemIdx childIndex;
+      #        formTreeItem currentTreeItem;
+      #        TreeNode currentTreeNode;
+      #
+      #        currentTreeNode = item.data();
+      #        if(currentTreeNode != null && findProperty(currentTreeNode.AOTgetProperties(), #PropertyObjectType) != '')
+      #        {
+      #            if(SysSecEntryPointManager::GetKeyForEntryPointReferenceNode(currentTreeNode) == _entryPointKey)
+      #            {
+      #                return true;
+      #            }
+      #        }
+      #
+      #        if(item.children())
+      #        {
+      #            childIndex = SecurityTree.getChild(_idx);
+      #            while(childIndex != 0)
+      #            {
+      #                currentTreeItem = SecurityTree.getItem(childIndex);
+      #                currentTreeNode = currentTreeItem.data();
+      #                if(currentTreeNode != null && findProperty(currentTreeNode.AOTgetProperties(), #PropertyObjectType) != '')
+      #                {
+      #                    if(SysSecEntryPointManager::GetKeyForEntryPointReferenceNode(currentTreeNode) == _entryPointKey)
+      #                    {
+      #                        //Found one so return true;
+      #                        return true;
+      #                    }
+      #                }
+      #
+      #                if(FormTreeItemContainsEntryPoint(childIndex, _entryPointKey))
+      #                {
+      #                    return true;
+      #                }
+      #
+      #                childIndex = SecurityTree.getNextSibling(childIndex);
+      #            }
+      #        }
+      #
+      #        return false;
+      #    }
+      #
+      #    if(_privilegeNode == null)
+      #    {
+      #        throw error(strFmt("@SDT181"));
+      #    }
+      #
+      #    element.lockWindowUpdate(true);
+      #
+      #    for (tmpData = getFirstSelection(SysSecEntryPointTmp_ds);
+      #            tmpData;
+      #            tmpData = SysSecEntryPointTmp_ds.getNext())
+      #    {
+      #        selectedEntryPoints.data(tmpData);
+      #        selectedEntryPoints.insert();
+      #        entryPointKey = SysSecEntryPointManager::GetKeyForSysSecEntryPointTmp(selectedEntryPoints);
+      #        selectedItems.insert(entryPointKey, '');
+      #
+      #        if(selectedEntryPoints.NewAccessRight == AccessRight::NoAccess)
+      #        {
+      #            entryPointsThatWillBeRemoved.addEnd(entryPointKey);
+      #        }
+      #    }
+      #
+      #    //Remove all entry points references for existing privilege references in the security tree
+      #    if(privilegeTreeIdxs.exists(_privilegeNode.AOTname()))
+      #    {
+      #        privilegeIterator = new MapIterator(privilegeTreeIdxs.lookup(_privilegeNode.AOTname()));
+      #        while(privilegeIterator.more())
+      #        {
+      #            privilegeTreeItem = SecurityTree.getItem(privilegeIterator.key());
+      #            if(privilegeTreeItem != null)
+      #            {
+      #                childItem = SecurityTree.getItem(SecurityTree.getChild(privilegeIterator.key()));
+      #
+      #                while(childItem != null)
+      #                {
+      #                    //Remove the idx from entryPointRelatedTreeItems
+      #                    entryPointReferenceNode = childItem.data();
+      #                    entryPointKey = SysSecEntryPointManager::GetKeyForEntryPointReferenceNode(entryPointReferenceNode);
+      #                    if(entryPointRelatedTreeItems.exists(entryPointKey))
+      #                    {
+      #                        relatedObjects = entryPointRelatedTreeItems.lookup(entryPointKey);
+      #                        if(relatedObjects.exists(childItem.idx()))
+      #                        {
+      #                            relatedObjects.remove(childItem.idx());
+      #                            entryPointRelatedTreeItems.remove(entryPointKey);
+      #                            entryPointRelatedTreeItems.insert(entryPointKey, relatedObjects);
+      #                        }
+      #                    }
+      #
+      #                    //Remove the idx from currentHiglightedItems
+      #                    if(currentHiglightedItems != null && currentHiglightedItems.exists(childItem.idx()))
+      #                    {
+      #                        currentHiglightedItems.remove(childItem.idx());
+      #                    }
+      #
+      #                    //Remove from entry point privilege permission cache
+      #                    if(entryPointPrivilegePermissions.exists(entryPointKey))
+      #                    {
+      #                        privilegesPermissionMap = entryPointPrivilegePermissions.lookup(entryPointKey);
+      #                        if(privilegesPermissionMap != null && privilegesPermissionMap.exists(_privilegeNode.AOTname()))
+      #                        {
+      #                            privilegesPermissionMap.remove(_privilegeNode.AOTname());
+      #                            entryPointPrivilegePermissions.remove(entryPointKey);
+      #                            entryPointPrivilegePermissions.insert(entryPointKey, privilegesPermissionMap);
+      #                        }
+      #                    }
+      #
+      #                    //Set next child
+      #                    deleteIdx = childItem.idx();
+      #                    nextIdx = SecurityTree.getNextSibling(childItem.idx());
+      #                    childItem = SecurityTree.getItem(nextIdx);
+      #
+      #                    //Remove from the tree
+      #                    SecurityTree.delete(deleteIdx);
+      #                }
+      #            }
+      #
+      #            privilegeIterator.next();
+      #        }
+      #    }
+      #
+      #    if(entryPointsThatWillBeRemoved != null && entryPointsThatWillBeRemoved.elements() > 0)
+      #    {
+      #        //Need to update relatedObjects cache for entry points that get removed from a privilege
+      #        entryPointListEnumerator = entryPointsThatWillBeRemoved.getEnumerator();
+      #        while(entryPointListEnumerator.moveNext())
+      #        {
+      #            entryPointKey = entryPointListEnumerator.current();
+      #
+      #            if(entryPointRelatedTreeItems.exists(entryPointKey))
+      #            {
+      #                relatedObjects = entryPointRelatedTreeItems.lookup(entryPointKey);
+      #
+      #                //Remove the current parent privilege from the related objects
+      #                if(relatedObjects.exists(_treeItemIdx))
+      #                {
+      #                    relatedObjects.remove(_treeItemIdx);
+      #                }
+      #
+      #                //Process all other related objects and remove them as well if needed
+      #                removeFromMap = new List(Types::Int64);
+      #                relatedObjectsIterator = new MapIterator(relatedObjects);
+      #                while(relatedObjectsIterator.more())
+      #                {
+      #                    if(!FormTreeItemContainsEntryPoint(relatedObjectsIterator.key(), entryPointKey))
+      #                    {
+      #                        removeFromMap.addEnd(relatedObjectsIterator.key());
+      #                    }
+      #                    relatedObjectsIterator.next();
+      #                }
+      #
+      #                removeListEnumerator = removeFromMap.getEnumerator();
+      #                while(removeListEnumerator.moveNext())
+      #                {
+      #                    relatedObjects.remove(removeListEnumerator.current());
+      #                }
+      #                entryPointRelatedTreeItems.remove(entryPointKey);
+      #                entryPointRelatedTreeItems.insert(entryPointKey, relatedObjects);
+      #            }
+      #        }
+      #
+      #        //For each currently highlighted item check if it still contains an entry point that is selected in grid, if not remove highlighting
+      #        highlightedObjectsIterator = new MapIterator(currentHiglightedItems);
+      #        removeFromMap = new List(Types::Int64);
+      #        while(highlightedObjectsIterator.more())
+      #        {
+      #            foundSelectedEntryPoint = false;
+      #            selectedItemsIterator = new MapIterator(selectedItems);
+      #            while(selectedItemsIterator.more())
+      #            {
+      #                if(FormTreeItemContainsEntryPoint(highlightedObjectsIterator.key(), selectedItemsIterator.key()))
+      #                {
+      #                    foundSelectedEntryPoint = true;
+      #                    break;
+      #                }
+      #                selectedItemsIterator.next();
+      #            }
+      #            if(!foundSelectedEntryPoint)
+      #            {
+      #                removeFromMap.addEnd(highlightedObjectsIterator.key());
+      #            }
+      #            highlightedObjectsIterator.next();
+      #        }
+      #
+      #        removeListEnumerator = removeFromMap.getEnumerator();
+      #        while(removeListEnumerator.moveNext())
+      #        {
+      #            highLightedTreeItem = SecurityTree.getItem(removeListEnumerator.current());
+      #            highLightedTreeItem.stateBold(false);
+      #            SecurityTree.setItem(highLightedTreeItem);
+      #            currentHiglightedItems.remove(removeListEnumerator.current());
+      #        }
+      #    }
+      #
+      #    //Update the entry point permissions
+      #    SysSecEntryPointManager::MergeEntryPointRightsIntoPrivilegeNode(_privilegeNode, selectedEntryPoints);
+      #    permissionChange = true;
+      #
+      #    //Get the new privilege node
+      #    privilegeNode = TreeNode::findNode(strFmt('%1\\%2', #SecPrivilegesPath, _privilegeNode.AOTname()));
+      #    if(privilegeNode == null)
+      #    {
+      #        throw error(strFmt("@SDT182", privilegeNode.AOTname()));
+      #    }
+      #
+      #    //Add the new entry points to the tree for each privilege reference
+      #    if(privilegeTreeIdxs.exists(privilegeNode.AOTname()))
+      #    {
+      #        privilegeIterator = new MapIterator(privilegeTreeIdxs.lookup(_privilegeNode.AOTname()));
+      #        while(privilegeIterator.more())
+      #        {
+      #            privilegeTreeItem = SecurityTree.getItem(privilegeIterator.key());
+      #            highlightParents = false;
+      #            if(privilegeTreeItem != null)
+      #            {
+      #                entryPointListNode = privilegeNode.AOTfindChild('Entry Points');
+      #                entryPointIterator = entryPointListNode.AOTiterator();
+      #
+      #                entryPointReferenceNode = entryPointIterator.next();
+      #                while(entryPointReferenceNode != null)
+      #                {
+      #                    entryPointIdx = SysFormTreeControl::addTreeItem(SecurityTree, entryPointReferenceNode.AOTname(), privilegeIterator.key(),
+      #                        entryPointReferenceNode, imageListAppl_AOT.image(entryPointReferenceNode.AOTbitmapId()), 0,
+      #                        accessImages[1+SysSecEntryPointManager::AccessLevel2AccessRight(entryPointReferenceNode.AOTgetProperty(#PropertyAccessLevel))]);
+      #
+      #                    entryPointKey = SysSecEntryPointManager::GetKeyForEntryPointReferenceNode(entryPointReferenceNode);
+      #
+      #                    //Update entryPointRelatedTreeItems
+      #                    if(!entryPointRelatedTreeItems.exists(entryPointKey))
+      #                    {
+      #                        relatedObjects = new Map(Types::Int64, Types::String);
+      #                    }
+      #                    else
+      #                    {
+      #                        relatedObjects = entryPointRelatedTreeItems.lookup(entryPointKey);
+      #                        entryPointRelatedTreeItems.remove(entryPointKey);
+      #                    }
+      #                    relatedObjects.insert(entryPointIdx, '');
+      #                    //Add all parents
+      #                    parentIdx = SecurityTree.getParent(entryPointIdx);
+      #                    while(parentIdx != 0)
+      #                    {
+      #                        relatedObjects.insert(parentIdx, '');
+      #                        parentIdx = SecurityTree.getParent(parentIdx);
+      #                    }
+      #
+      #                    entryPointRelatedTreeItems.insert(entryPointKey, relatedObjects);
+      #
+      #                    //Higlight selected items
+      #                    if(selectedItems.exists(entryPointKey))
+      #                    {
+      #                        newEntryPointTreeItem = SecurityTree.getItem(entryPointIdx);
+      #                        newEntryPointTreeItem.stateBold(true);
+      #                        highlightParents = true;
+      #                        SecurityTree.setItem(newEntryPointTreeItem);
+      #                        currentHiglightedItems.insert(newEntryPointTreeItem.idx(), '');
+      #                    }
+      #
+      #                    //Update entry point privilege permission cache
+      #                    if(!entryPointPrivilegePermissions.exists(entryPointKey))
+      #                    {
+      #                        privilegesPermissionMap = new Map(Types::String, Types::Enum);
+      #                    }
+      #                    else
+      #                    {
+      #                        privilegesPermissionMap = entryPointPrivilegePermissions.lookup(entryPointKey);
+      #                        entryPointPrivilegePermissions.remove(entryPointKey);
+      #                    }
+      #                    privilegesPermissionMap.insert(privilegeNode.AOTname(),
+      #                            SysSecEntryPointManager::AccessLevel2AccessRight(entryPointReferenceNode.AOTgetProperty(#PropertyAccessLevel)));
+      #                    entryPointPrivilegePermissions.insert(entryPointKey, privilegesPermissionMap);
+      #
+      #                    entryPointReferenceNode = entryPointIterator.next();
+      #                }
+      #
+      #                //Map new privilege node to privilege FormTreeItem data
+      #                privilegeTreeItem.data(privilegeNode);
+      #                SecurityTree.setItem(privilegeTreeItem);
+      #
+      #                //Ensure current privilege is expanded
+      #                if(_treeItemIdx == privilegeIterator.key())
+      #                {
+      #                    if(!privilegeTreeItem.stateExpanded())
+      #                    {
+      #                        SecurityTree.expand(privilegeIterator.key());
+      #                    }
+      #                }
+      #
+      #                //Highlight the parents if needed
+      #                if(highlightParents)
+      #                {
+      #                    if(!currentHiglightedItems.exists(privilegeIterator.key()))
+      #                    {
+      #                        formTreeItem = SecurityTree.getItem(privilegeIterator.key());
+      #                        formTreeItem.stateBold(true);
+      #                        SecurityTree.setItem(formTreeItem);
+      #                        currentHiglightedItems.insert(privilegeIterator.key(), '');
+      #                    }
+      #
+      #                    parentIdx = SecurityTree.getParent(privilegeIterator.key());
+      #                    while(parentIdx != 0)
+      #                    {
+      #                        if(!currentHiglightedItems.exists(parentIdx))
+      #                        {
+      #                            formTreeItem = SecurityTree.getItem(parentIdx);
+      #                            formTreeItem.stateBold(true);
+      #                            SecurityTree.setItem(formTreeItem);
+      #                            currentHiglightedItems.insert(parentIdx, '');
+      #                        }
+      #                        parentIdx = SecurityTree.getParent(parentIdx);
+      #                    }
+      #                }
+      #            }
+      #            privilegeIterator.next();
+      #        }
+      #    }
+      #
+      #    //Refresh current role access level in grid for new entry points
+      #    element.UpdateEffectiveAccessRightsInGrid();
+      #    element.lockWindowUpdate(false);
+      #}
+    ENDSOURCE
+    SOURCE #BuildSecurityTree
+      #public void BuildSecurityTree()
+      #{
+      #    #AviFiles
+      #    SysOperationProgress    progress;
+      #    TreeNode roleNode, dutyNode;
+      #
+      #    void addSubRoles(TreeItemIdx _parentIdx, TreeNode _roleNode)
+      #    {
+      #        TreeNode subRolesNode, subRoleNode;
+      #        TreeNodeIterator subRoleIterator;
+      #        TreeNode childRoleNode;
+      #        TreeItemIdx newRoleItemIdx;
+      #
+      #        subRolesNode = _roleNode.AOTfindChild('Sub Roles');
+      #        subRoleIterator = subRolesNode.AOTiterator();
+      #
+      #        subRoleNode = subRoleIterator.next();
+      #
+      #        while(subRoleNode != null)
+      #        {
+      #            childRoleNode = TreeNode::findNode(strFmt('%1\\%2', #SecRolesPath, subRoleNode.AOTname()));
+      #
+      #            if(childRoleNode != null && childRoleNode.AOTgetProperty(#PropertyEnabled) == 'Yes')
+      #            {
+      #                newRoleItemIdx = SysFormTreeControl::addTreeItem(SecurityTree, childRoleNode.AOTname(),
+      #                        _parentIdx, childRoleNode, imageListAppl_AOT.image(childRoleNode.AOTbitmapId()), 1);
+      #
+      #                parentsMap.insert(newRoleItemIdx, '');
+      #
+      #                element.AddRoleObjects(newRoleItemIdx, childRoleNode);
+      #                addSubRoles(newRoleItemIdx, childRoleNode);
+      #
+      #                parentsMap.remove(newRoleItemIdx);
+      #            }
+      #            subRoleNode = subRoleIterator.next();
+      #        }
+      #    }
+      #
+      #    if(currentObjectAOTName == '')
+      #    {
+      #        return;
+      #    }
+      #
+      #    SecurityTree.setImagelist(imageListAppl_AOT.imageList());
+      #    SecurityTree.setStateImagelist(imageList_access.imageList());
+      #
+      #    entryPointRelatedTreeItems = new Map(Types::String, Types::Class);
+      #    privilegeTreeIdxs = new Map(Types::String, Types::Class);
+      #    entryPointPrivilegePermissions = new Map(Types::String, Types::Class);
+      #    parentsMap = new Map(Types::Int64, Types::String);
+      #
+      #    if(developmentType == SysSecDevelopmentType::Role)
+      #    {
+      #        roleNode = TreeNode::findNode(strFmt('%1\\%2', #SecRolesPath, currentObjectAOTName));
+      #        if(roleNode == null)
+      #        {
+      #            throw error(strFmt("@SDT183", currentObjectAOTName));
+      #        }
+      #
+      #        progress = SysOperationProgress::newGeneral(#aviupdate, strFmt("@SDT184"), 1);
+      #        progress.updateInterval(0);
+      #        progress.setText(strfmt("@SDT185"));
+      #
+      #        //Add the role itself
+      #        rootItemIdx = SysFormTreeControl::addTreeItem(SecurityTree, roleNode.AOTname(),
+      #            FormTreeAdd::Root, roleNode, imageListAppl_AOT.image(roleNode.AOTbitmapId()), 1);
+      #
+      #        parentsMap.insert(rootItemIdx, '');
+      #        element.AddRoleObjects(rootItemIdx, roleNode);
+      #
+      #        //Process sub roles assigned to role
+      #        addSubRoles(rootItemIdx, roleNode);
+      #    }
+      #    else
+      #    {
+      #        dutyNode = TreeNode::findNode(strFmt('%1\\%2', #SecDutiesPath, currentObjectAOTName));
+      #        if(dutyNode == null)
+      #        {
+      #            throw error(strFmt("@SDT186", currentObjectAOTName));
+      #        }
+      #
+      #        progress = SysOperationProgress::newGeneral(#aviupdate, strFmt("@SDT187"), 1);
+      #        progress.updateInterval(0);
+      #        progress.setText(strfmt("@SDT188"));
+      #
+      #        //Add the duty itself
+      #        rootItemIdx = SysFormTreeControl::addTreeItem(SecurityTree, dutyNode.AOTname(),
+      #            FormTreeAdd::Root, dutyNode, imageListAppl_AOT.image(dutyNode.AOTbitmapId()), 1);
+      #
+      #        parentsMap.insert(rootItemIdx, '');
+      #        element.ProcessPrivileges(rootItemIdx, dutyNode.AOTfindChild('Privileges'));
+      #    }
+      #
+      #    //Expand the tree
+      #    SecurityTree.expand(rootItemIdx);
+      #    SysSecEntryPointTmp_ds.selectionChanged();
+      #
+      #    progress.incCount();
+      #}
+    ENDSOURCE
+    SOURCE #canClose
+      #public boolean canClose()
+      #{
+      #    boolean ret;
+      #    DialogButton dialogButton;
+      #
+      #    ret = super();
+      #
+      #    while select SysSecEntryPointTmp
+      #    {
+      #        if(SysSecEntryPointTmp.NewAccessRight != SysSecEntryPointTmp.AccessRight)
+      #        {
+      #            dialogButton = Box::yesNoOnce(strFmt("@SDT46"),
+      #                                        strFmt("@SDT189"),
+      #                                                    DialogButton::No, 'SysSecSetEntryPointRights');
+      #            if(dialogButton == dialogButton::No)
+      #            {
+      #                return false;
+      #            }
+      #            else
+      #            {
+      #                break;
+      #            }
+      #        }
+      #    }
+      #
+      #    return ret;
+      #}
+    ENDSOURCE
+    SOURCE #close
+      #public void close()
+      #{
+      #    super();
+      #
+      #    if(permissionChange)
+      #    {
+      #        if(element.args() && element.args().caller() &&
+      #            formHasMethod(element.args().caller(), identifierStr(SetPermissions)))
+      #        {
+      #            element.args().caller().SetPermissions();
+      #        }
+      #    }
+      #
+      #    if(rootItemIdx != 0)
+      #    {
+      #        SecurityTree.deleteAll();
+      #    }
+      #
+      #}
+    ENDSOURCE
+    SOURCE #DuplicateNodeAndReplaceReference
+      #public void DuplicateNodeAndReplaceReference(TreeNode _currentNode, FormTreeItem _currentItem)
+      #{
+      #    TreeNode duplicateNode;
+      #    Dialog      dialog;
+      #    DialogField fieldAOTName, fieldLabel, fieldDescription;
+      #    SysSecDevelopmentType curDevelopmentObjectType, parentDevelopmentObjectType;
+      #    FormTreeItem parentItem;
+      #    TreeNode parentNode, privilegeEntryPointsNode, referenceNode, entryPointRefNode;
+      #    TreeNodeIterator entryPointReferenceIterator;
+      #    Map treeIndexes, privilegesPermissionMap;
+      #    str entryPointKey;
+      #    boolean duplicatedPrivilegeStillReferencedInTree;
+      #
+      #    if(strStartsWith(_currentNode.treeNodePath(), #SecRolesPath))
+      #    {
+      #        curDevelopmentObjectType = SysSecDevelopmentType::Role;
+      #    }
+      #    else if(strStartsWith(_currentNode.treeNodePath(), #SecDutiesPath))
+      #    {
+      #        curDevelopmentObjectType = SysSecDevelopmentType::Duty;
+      #    }
+      #    else if(strStartsWith(_currentNode.treeNodePath(), #SecPrivilegesPath))
+      #    {
+      #        curDevelopmentObjectType = SysSecDevelopmentType::Privilege;
+      #    }
+      #    else
+      #    {
+      #        throw error(strFmt("@SDT190", _currentNode.treeNodePath()));
+      #    }
+      #
+      #    parentItem = SecurityTree.getItem(SecurityTree.getParent(_currentItem.idx()));
+      #    if(parentItem == null)
+      #    {
+      #        throw error(strFmt("@SDT191", _currentNode.treeNodePath()));
+      #    }
+      #    parentNode = parentItem.data();
+      #
+      #    //Make sure object is checked out
+      #    if(!SysSecEntryPointManager::ObjectEditableVCS(parentNode))
+      #    {
+      #        return;
+      #    }
+      #
+      #    if(strStartsWith(parentNode.treeNodePath(), #SecRolesPath))
+      #    {
+      #        parentDevelopmentObjectType = SysSecDevelopmentType::Role;
+      #    }
+      #    else if(strStartsWith(parentNode.treeNodePath(), #SecDutiesPath))
+      #    {
+      #        parentDevelopmentObjectType = SysSecDevelopmentType::Duty;
+      #    }
+      #    else if(strStartsWith(parentNode.treeNodePath(), #SecPrivilegesPath))
+      #    {
+      #        parentDevelopmentObjectType = SysSecDevelopmentType::Privilege;
+      #    }
+      #    else
+      #    {
+      #        throw error(strFmt("@SDT192", parentNode.treeNodePath()));
+      #    }
+      #
+      #    //Duplicate the object using AOTDuplicate
+      #    duplicateNode = _currentNode.AOTDuplicate();
+      #    duplicateNode.AOTsave();
+      #
+      #    //Show dialog to enter new object information
+      #    dialog = new Dialog(strFmt("@SDT193", curDevelopmentObjectType), element);
+      #    fieldAOTName = dialog.addFieldValue('IdentifierName', duplicateNode.AOTgetProperty(#PropertyName), "@SDT18");
+      #    fieldLabel = dialog.addFieldValue('SecurityTaskName', duplicateNode.AOTgetProperty(#PropertyLabel), "@SDT169");
+      #    fieldDescription = dialog.addFieldValue('SecurityTaskDescription', duplicateNode.AOTgetProperty(#PropertyDescription), "@SDT20");
+      #
+      #    dialog.run();
+      #
+      #    if (dialog.closedOK())
+      #    {
+      #        //Update label and text
+      #        if(fieldAOTName.value() != duplicateNode.AOTname() && _currentNode.AOTparent().AOTfindChild(fieldAOTName.value()) != null)
+      #        {
+      #            error(strFmt("@SDT194", fieldAOTName.value()));
+      #            duplicateNode.AOTdelete();
+      #            return;
+      #        }
+      #
+      #        duplicateNode.AOTsetProperty(#PropertyName, fieldAOTName.value());
+      #        duplicateNode.AOTsetProperty(#PropertyLabel, fieldLabel.value());
+      #        duplicateNode.AOTsetProperty(#PropertyDescription, fieldDescription.value());
+      #        duplicateNode.AOTsave();
+      #
+      #        // BP Deviation documented
+      #        _currentItem.text(fieldAOTName.value());
+      #        _currentItem.data(duplicateNode);
+      #        SecurityTree.setItem(_currentItem);
+      #
+      #        if(curDevelopmentObjectType == SysSecDevelopmentType::Privilege &&
+      #            (parentDevelopmentObjectType == SysSecDevelopmentType::Duty || parentDevelopmentObjectType == SysSecDevelopmentType::Role))
+      #        {
+      #            referenceNode = parentNode.AOTfindChild('Privileges').AOTfindChild(_currentNode.AOTname());
+      #            referenceNode.AOTdelete();
+      #            referenceNode = parentNode.AOTfindChild('Privileges').AOTadd(fieldAOTName.value());
+      #            referenceNode.AOTsetProperty(#PropertyName, fieldAOTName.value());
+      #            parentNode.AOTsave();
+      #
+      #            //Update privilegeTreeIdxs
+      #            treeIndexes = new Map(Types::Int64, Types::String);
+      #            treeIndexes.insert(_currentItem.idx(), '');
+      #            privilegeTreeIdxs.insert(fieldAOTName.value(), treeIndexes);
+      #
+      #            treeIndexes = privilegeTreeIdxs.lookup(_currentNode.AOTname());
+      #            if(treeIndexes.exists(_currentItem.idx()))
+      #            {
+      #                treeIndexes.remove(_currentItem.idx());
+      #                privilegeTreeIdxs.remove(_currentNode.AOTname());
+      #                privilegeTreeIdxs.insert(_currentNode.AOTname(), treeIndexes);
+      #            }
+      #
+      #            //Update entryPointPrivilegePermissions
+      #            privilegeEntryPointsNode = duplicateNode.AOTfindChild('Entry Points');
+      #            entryPointReferenceIterator = privilegeEntryPointsNode.AOTiterator();
+      #            entryPointRefNode = entryPointReferenceIterator.next();
+      #
+      #            duplicatedPrivilegeStillReferencedInTree = element.SecurityTreeContainsTreeNode(rootItemIdx, _currentNode);
+      #            while(entryPointRefNode != null)
+      #            {
+      #                entryPointKey = SysSecEntryPointManager::GetKeyForEntryPointReferenceNode(entryPointRefNode);
+      #
+      #                if(!entryPointPrivilegePermissions.exists(entryPointKey))
+      #                {
+      #                    privilegesPermissionMap = new Map(Types::String, Types::Enum);
+      #                }
+      #                else
+      #                {
+      #                    privilegesPermissionMap = entryPointPrivilegePermissions.lookup(entryPointKey);
+      #                    entryPointPrivilegePermissions.remove(entryPointKey);
+      #                }
+      #
+      #                if(!duplicatedPrivilegeStillReferencedInTree)
+      #                {
+      #                    if(privilegesPermissionMap.lookup(_currentNode.AOTname()))
+      #                    {
+      #                        privilegesPermissionMap.remove(_currentNode.AOTname());
+      #                    }
+      #                }
+      #
+      #                privilegesPermissionMap.insert(duplicateNode.AOTname(),
+      #                        SysSecEntryPointManager::AccessLevel2AccessRight(entryPointRefNode.AOTgetProperty(#PropertyAccessLevel)));
+      #                entryPointPrivilegePermissions.insert(entryPointKey, privilegesPermissionMap);
+      #
+      #                entryPointRefNode = entryPointReferenceIterator.next();
+      #            }
+      #
+      #        }
+      #        else if (curDevelopmentObjectType == SysSecDevelopmentType::Duty && parentDevelopmentObjectType == SysSecDevelopmentType::Role)
+      #        {
+      #            referenceNode = parentNode.AOTfindChild('Duties').AOTfindChild(_currentNode.AOTname());
+      #            referenceNode.AOTdelete();
+      #            referenceNode = parentNode.AOTfindChild('Duties').AOTadd(fieldAOTName.value());
+      #            referenceNode.AOTsetProperty(#PropertyName, fieldAOTName.value());
+      #            parentNode.AOTsave();
+      #        }
+      #        else if (curDevelopmentObjectType == SysSecDevelopmentType::Role && parentDevelopmentObjectType == SysSecDevelopmentType::Role)
+      #        {
+      #            referenceNode = parentNode.AOTfindChild('Sub Roles').AOTfindChild(_currentNode.AOTname());
+      #            referenceNode.AOTdelete();
+      #            referenceNode = parentNode.AOTfindChild('Sub Roles').AOTadd(fieldAOTName.value());
+      #            referenceNode.AOTsetProperty(#PropertyName, fieldAOTName.value());
+      #            parentNode.AOTsave();
+      #        }
+      #
+      #        SecurityTree.updateDetails();
+      #    }
+      #    else
+      #    {
+      #        duplicateNode.AOTdelete();
+      #    }
+      #
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    super();
+      #
+      #    _formSplitterY   = new SysFormSplitter_Y(YSplitter, Grid, this);
+      #    _formSplitterX   = new SysFormSplitter_X(XSplitter, SecurityTree, this);
+      #
+      #    selectedTask = 0;
+      #    permissionChange = false;
+      #
+      #    imageListAppl_AOT = new ImageListAppl_Aot();
+      #    imageList_access = new ImageListAppl_SecurityAccess();
+      #
+      #    accessImages[1+AccessRight::NoAccess]   = imageList_access.image(#ImageNoAccess);
+      #    accessImages[1+AccessRight::View]       = imageList_access.image(#ImageView);
+      #    accessImages[1+AccessRight::Edit]       = imageList_access.image(#ImageEdit);
+      #    accessImages[1+AccessRight::Add]        = imageList_access.image(#ImageAdd);
+      #    accessImages[1+AccessRight::Correction] = imageList_access.image(#ImageSecuritykey);
+      #    accessImages[1+AccessRight::Delete]     = imageList_access.image(#ImageFullControl);
+      #
+      #    StepInfoText.text(strFmt("@SDT195"));
+      #}
+    ENDSOURCE
+    SOURCE #ProcessPrivileges
+      #public void ProcessPrivileges(TreeItemIdx _parentIdx, TreeNode _privilegeListNode)
+      #{
+      #    TreeNode privilegeReferenceNode, privilegeNode;
+      #    TreeNode entryPointListNode, entryPointReferenceNode;
+      #    TreeNodeIterator privilegeIterator, entryPointIterator;
+      #    TreeItemIdx privilegeIdx, entryPointIdx;
+      #    str entryPointKey;
+      #    Map relatedObjects;
+      #    Map treeIndexes;
+      #    MapIterator mapIterator;
+      #    Map privilegesPermissionMap;
+      #
+      #    privilegeIterator = _privilegeListNode.AOTiterator();
+      #    privilegeReferenceNode = privilegeIterator.next();
+      #
+      #    while(privilegeReferenceNode != null)
+      #    {
+      #        privilegeNode = TreeNode::findNode(strFmt('%1\\%2', #SecPrivilegesPath, privilegeReferenceNode.AOTname()));
+      #
+      #        if(privilegeNode != null && privilegeNode.AOTgetProperty(#PropertyEnabled) == 'Yes')
+      #        {
+      #            privilegeIdx = SysFormTreeControl::addTreeItem(SecurityTree, privilegeReferenceNode.AOTname(), _parentIdx,
+      #                    privilegeNode, imageListAppl_AOT.image(privilegeReferenceNode.AOTbitmapId()), true);
+      #            parentsMap.insert(privilegeIdx, '');
+      #
+      #            if(!privilegeTreeIdxs.exists(privilegeNode.AOTname()))
+      #            {
+      #                treeIndexes = new Map(Types::Int64, Types::String);
+      #                treeIndexes.insert(privilegeIdx, '');
+      #                privilegeTreeIdxs.insert(privilegeNode.AOTname(), treeIndexes);
+      #            }
+      #            else
+      #            {
+      #                treeIndexes = privilegeTreeIdxs.lookup(privilegeNode.AOTname());
+      #                if(!treeIndexes.exists(privilegeIdx))
+      #                {
+      #                    treeIndexes.insert(privilegeIdx, '');
+      #                }
+      #                privilegeTreeIdxs.remove(privilegeNode.AOTname());
+      #                privilegeTreeIdxs.insert(privilegeNode.AOTname(), treeIndexes);
+      #            }
+      #
+      #            entryPointListNode = privilegeNode.AOTfindChild('Entry Points');
+      #            entryPointIterator = entryPointListNode.AOTiterator();
+      #
+      #            entryPointReferenceNode = entryPointIterator.next();
+      #            while(entryPointReferenceNode != null)
+      #            {
+      #                entryPointIdx = SysFormTreeControl::addTreeItem(SecurityTree, entryPointReferenceNode.AOTname(), privilegeIdx,
+      #                    entryPointReferenceNode, imageListAppl_AOT.image(entryPointReferenceNode.AOTbitmapId()), 0,
+      #                    accessImages[1+SysSecEntryPointManager::AccessLevel2AccessRight(entryPointReferenceNode.AOTgetProperty(#PropertyAccessLevel))]);
+      #
+      #                //Cache related entry point tree indexes
+      #                entryPointKey = SysSecEntryPointManager::GetKeyForEntryPointReferenceNode(entryPointReferenceNode);
+      #                if(!entryPointRelatedTreeItems.exists(entryPointKey))
+      #                {
+      #                    relatedObjects = new Map(Types::Int64, Types::String);
+      #                }
+      #                else
+      #                {
+      #                    relatedObjects = entryPointRelatedTreeItems.lookup(entryPointKey);
+      #                    entryPointRelatedTreeItems.remove(entryPointKey);
+      #                }
+      #                relatedObjects.insert(entryPointIdx, '');
+      #                mapIterator = new MapIterator(parentsMap);
+      #                while(mapIterator.more())
+      #                {
+      #                    if(!relatedObjects.exists(mapIterator.key()))
+      #                    {
+      #                        relatedObjects.insert(mapIterator.key(), '');
+      #                    }
+      #                    mapIterator.next();
+      #                }
+      #                entryPointRelatedTreeItems.insert(entryPointKey, relatedObjects);
+      #
+      #                //Cache permission for entry point granted in each privilege
+      #                if(!entryPointPrivilegePermissions.exists(entryPointKey))
+      #                {
+      #                    privilegesPermissionMap = new Map(Types::String, Types::Enum);
+      #                }
+      #                else
+      #                {
+      #                    privilegesPermissionMap = entryPointPrivilegePermissions.lookup(entryPointKey);
+      #                    entryPointPrivilegePermissions.remove(entryPointKey);
+      #                }
+      #                privilegesPermissionMap.insert(privilegeReferenceNode.AOTname(),
+      #                        SysSecEntryPointManager::AccessLevel2AccessRight(entryPointReferenceNode.AOTgetProperty(#PropertyAccessLevel)));
+      #                entryPointPrivilegePermissions.insert(entryPointKey, privilegesPermissionMap);
+      #                entryPointReferenceNode = entryPointIterator.next();
+      #            }
+      #
+      #            parentsMap.remove(privilegeIdx);
+      #        }
+      #        privilegeReferenceNode = privilegeIterator.next();
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    SysSecEntryPointTmp tmpData;
+      #
+      #    super();
+      #
+      #    AccessRight.selection(AccessRight::NoAccess);
+      #
+      #    if(element.args() && element.args().caller() &&
+      #        formHasMethod(element.args().caller(), identifierStr(GetSelectionDataGrid)) &&
+      #        formHasMethod(element.args().caller(), identifierStr(GetTreeData)))
+      #    {
+      #        if(element.args().parmEnum() == NoYes::Yes)
+      #        {
+      #            tmpData = element.args().caller().GetSelectionDataGrid();
+      #        }
+      #        else
+      #        {
+      #            tmpData = element.args().caller().GetTreeData();
+      #        }
+      #        Grid_ObjectLabel.visible(element.args().caller().AreLabelsLoaded());
+      #
+      #        Grid_UserLicenseApplies.visible(element.args().caller().IsLicenseInfoLoaded());
+      #        Grid_ViewUserLicense.visible(element.args().caller().IsLicenseInfoLoaded());
+      #        Grid_MaintainUserLicense.visible(element.args().caller().IsLicenseInfoLoaded());
+      #
+      #        Grid_ObjectAOTLayer.visible(element.args().caller().IsLayerModelInfoLoaded());
+      #        Grid_ObjectAOTModel.visible(element.args().caller().IsLayerModelInfoLoaded());
+      #
+      #        SysSecEntryPointTmp.setTmpData(tmpData);
+      #        SysSecEntryPointTmp_ds.executeQuery();
+      #    }
+      #
+      #    if(element.args() && element.args().caller() &&
+      #        formHasMethod(element.args().caller(), identifierStr(CurrentDevelopmentType)))
+      #    {
+      #        developmentType = element.args().caller().CurrentDevelopmentType();
+      #    }
+      #
+      #    if(element.args() && element.args().caller() &&
+      #        formHasMethod(element.args().caller(), identifierStr(CurrentDevelopmentObject)))
+      #    {
+      #        currentObjectAOTName = element.args().caller().CurrentDevelopmentObject();
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #SecurityTreeContainsTreeNode
+      #public boolean SecurityTreeContainsTreeNode(TreeItemIdx _idx, TreeNode _privilegeNode)
+      #{
+      #    FormTreeItem item = SecurityTree.getItem(_idx);
+      #    TreeItemIdx childIndex;
+      #    formTreeItem currentTreeItem;
+      #    TreeNode currentTreeNode;
+      #
+      #    currentTreeNode = item.data();
+      #    if(currentTreeNode != null && currentTreeNode.treeNodePath() == _privilegeNode.treeNodePath())
+      #    {
+      #        return true;
+      #    }
+      #
+      #    if(item.children())
+      #    {
+      #        childIndex = SecurityTree.getChild(_idx);
+      #        while(childIndex != 0)
+      #        {
+      #            currentTreeItem = SecurityTree.getItem(childIndex);
+      #            currentTreeNode = currentTreeItem.data();
+      #            if(currentTreeNode != null && currentTreeNode.treeNodePath() == _privilegeNode.treeNodePath())
+      #            {
+      #                //Found privilege so return true;
+      #                return true;
+      #            }
+      #
+      #            if(element.SecurityTreeContainsTreeNode(childIndex, _privilegeNode))
+      #            {
+      #                return true;
+      #            }
+      #
+      #            childIndex = SecurityTree.getNextSibling(childIndex);
+      #        }
+      #    }
+      #
+      #    return false;
+      #}
+      #
+    ENDSOURCE
+    SOURCE #UpdateEffectiveAccessRightsInGrid
+      #public void UpdateEffectiveAccessRightsInGrid()
+      #{
+      #    SysSecEntryPointTmp tmpData2 = SysSecEntryPointTmp;
+      #    SysSecEntryPointTmp tmpData;
+      #    SysSecEntryPointTmp curRecord = SysSecEntryPointTmp.data();
+      #    Map selectedRows = new Map(Types::Int64, Types::Record);
+      #    MapIterator mapIterator;
+      #    str entryPointKey;
+      #    AccessRight curHighestRight;
+      #    MapIterator privilegeIterator;
+      #
+      #    for (tmpData = getFirstSelection(SysSecEntryPointTmp_ds);
+      #            tmpData;
+      #            tmpData = SysSecEntryPointTmp_ds.getNext())
+      #    {
+      #        selectedRows.insert(tmpData.RecId, tmpData);
+      #    }
+      #
+      #    ttsBegin;
+      #    while select forUpdate tmpData2
+      #    {
+      #        entryPointKey = SysSecEntryPointManager::GetKeyForSysSecEntryPointTmp(tmpData2);
+      #        curHighestRight = AccessRight::NoAccess;
+      #
+      #        if(entryPointPrivilegePermissions != null && entryPointPrivilegePermissions.exists(entryPointKey))
+      #        {
+      #            privilegeIterator = new MapIterator(entryPointPrivilegePermissions.lookup(entryPointKey));
+      #            while(privilegeIterator.more())
+      #            {
+      #                if(privilegeIterator.value() > curHighestRight)
+      #                {
+      #                    curHighestRight = privilegeIterator.value();
+      #                }
+      #                privilegeIterator.next();
+      #            }
+      #        }
+      #        tmpData2.AccessRight = curHighestRight;
+      #        tmpData2.update();
+      #    }
+      #    ttsCommit;
+      #
+      #    SysSecEntryPointTmp.setTmpData(tmpData2);
+      #    SysSecEntryPointTmp_ds.executeQuery();
+      #    SysSecEntryPointTmp_ds.findRecord(curRecord);
+      #    SysSecEntryPointTmp_ds.setCurrent();
+      #
+      #    mapIterator = new mapIterator(selectedRows);
+      #    while(mapIterator.more())
+      #    {
+      #        tmpData = mapIterator.value();
+      #        SysSecEntryPointTmp_DS.markRecord(tmpData, 1);
+      #        mapIterator.next();
+      #    }
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysSecEntryPointTmp
+          Table               #SysSecEntryPointTmp
+          AllowCreate         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+          DATAFIELD AccessRight
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #selectionChanged
+          #public void selectionChanged()
+          #{
+          #    SysSecEntryPointTmp tmpData;
+          #    MapIterator mapIterator;
+          #    str entryPointKey;
+          #    FormTreeItem treeItem;
+          #
+          #    super();
+          #
+          #    if(!step1Complete)
+          #    {
+          #        return;
+          #    }
+          #
+          #    infolog.startLengthyOperation();
+          #    element.lockWindowUpdate(true);
+          #
+          #    //Clear previous selection
+          #    if(currentHiglightedItems != null)
+          #    {
+          #        mapIterator = new mapIterator(currentHiglightedItems);
+          #
+          #        while(mapIterator.more())
+          #        {
+          #            treeItem = SecurityTree.getItem(mapIterator.key());
+          #            treeItem.stateBold(false);
+          #            SecurityTree.setItem(treeItem);
+          #            mapIterator.next();
+          #        }
+          #    }
+          #
+          #    if(entryPointRelatedTreeItems == null)
+          #        return;
+          #
+          #    currentHiglightedItems = new Map(Types::Int64, Types::String);
+          #
+          #    for (tmpData = getFirstSelection(SysSecEntryPointTmp_ds);
+          #            tmpData;
+          #            tmpData = SysSecEntryPointTmp_ds.getNext())
+          #    {
+          #        entryPointKey = SysSecEntryPointManager::GetKeyForSysSecEntryPointTmp(tmpData);
+          #        if(entryPointRelatedTreeItems.exists(entryPointKey))
+          #        {
+          #            mapIterator = new mapIterator(entryPointRelatedTreeItems.lookup(entryPointKey));
+          #            while(mapIterator.more())
+          #            {
+          #                treeItem = SecurityTree.getItem(mapIterator.key());
+          #                if(treeItem != null)
+          #                {
+          #                    treeItem.stateBold(true);
+          #                    SecurityTree.setItem(treeItem);
+          #                    currentHiglightedItems.insert(mapIterator.key(), '');
+          #                }
+          #                mapIterator.next();
+          #            }
+          #        }
+          #    }
+          #
+          #    element.lockWindowUpdate(false);
+          #    infolog.endLengthyOperation();
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SecurityRole
+          Table               #SecurityRole
+          AllowEdit           #No
+          AllowCreate         #No
+          AllowDelete         #No
+          OnlyFetchActive     #Yes
+          InsertAtEnd         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #executeQuery
+          #public void executeQuery()
+          #{
+          #    SecurityRoleExplodedGraph securityRoleExplodedGraph;
+          #    SecurityTaskExplodedGraph securityTaskExplodedGraph;
+          #    SecurityRoleTaskGrant srtGrant;
+          #
+          #    super();
+          #
+          #    select Name, AOTName, RecId from SecurityRole order by SecurityRole.Name where SecurityRole.IsEnabled
+          #        exists join securityRoleExplodedGraph
+          #        where securityRoleExplodedGraph.SecurityRole == SecurityRole.RecId
+          #        join RecId from srtGrant
+          #                where srtGrant.SecurityRole == securityRoleExplodedGraph.SecuritySubRole
+          #        join RecId from securityTaskExplodedGraph
+          #                where securityTaskExplodedGraph.SecurityTask == srtGrant.SecurityTask &&
+          #                        securityTaskExplodedGraph.SecuritySubTask == selectedTask;
+          #
+          #
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #@SDT120
+      Frame               #Dialog
+      SetCompany          #No
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #150
+          ElementPosition     #652835026
+          DataSource          #SysSecEntryPointTmp
+          DataGroup           #SetEntryPointRights
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #RolesWithSelectedTask
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612734
+          HierarchyParent     #Group
+          DataSource          #SecurityRole
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #DetailsInformation
+          Width               #Column width
+          ElementPosition     #1431655764
+          HierarchyParent     #DetailsView
+          Caption             #@SDT196
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #DetailsView
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1717986916
+          HierarchyParent     #UpdateRightsControl
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #EntryPointObjectGroup
+          AutoDeclaration     #Yes
+          Visible             #No
+          Width               #Column width
+          ElementPosition     #1717986916
+          HierarchyParent     #DetailsInformation
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #EntryPointRightGroup
+          ElementPosition     #1789569705
+          HierarchyParent     #EntryPointObjectGroup
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Group
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1789569705
+          HierarchyParent     #DetailsView
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #NextGroup
+          AutoDeclaration     #Yes
+          Left                #Auto (right)
+          ElementPosition     #979252539
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #SecurityObjectGroup
+          AutoDeclaration     #Yes
+          Visible             #No
+          Width               #Column width
+          ElementPosition     #1288490187
+          HierarchyParent     #DetailsInformation
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Settings
+          AutoDeclaration     #Yes
+          ElementPosition     #1305670054
+          FrameType           #Edged 3D
+          Caption             #@SDT197
+          Columns             #3
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #UpdateRightsControl
+          AutoDeclaration     #Yes
+          Visible             #No
+          Width               #Column width
+          ElementPosition     #1889785606
+          Columns             #3
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #XSplitter
+          AutoDeclaration     #Yes
+          Width               #5
+          Height              #Column height
+          ElementPosition     #1288490187
+          HierarchyParent     #UpdateRightsControl
+          FrameType           #Raised 3D
+          BackgroundColor     #Window background
+          HideIfEmpty         #No
+          AlignChild          #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDown
+            #int mouseDown(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterX.mouseDown(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseMove
+            #int mouseMove(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterX.mouseMove(x,y,button,ctrl,shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseUp
+            #int mouseUp(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterX.mouseUp(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #YSplitter
+          AutoDeclaration     #Yes
+          Visible             #No
+          Width               #Column width
+          Height              #5
+          ElementPosition     #1632087569
+          FrameType           #Raised 3D
+          BackgroundColor     #Window background
+          HideIfEmpty         #No
+          AlignChild          #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDown
+            #int mouseDown(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterY.mouseDown(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseMove
+            #int mouseMove(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterY.mouseMove(x,y,button,ctrl,shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseUp
+            #int mouseUp(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterY.mouseUp(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #ApplyAccessRight
+          HelpText            #@SDT198
+          ElementPosition     #1610612733
+          HierarchyParent     #Settings
+          Text                #@SDT199
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    SysSecEntryPointTmp tmpData2 = SysSecEntryPointTmp;
+            #    SysSecEntryPointTmp tmpData;
+            #    SysSecEntryPointTmp curRecord = SysSecEntryPointTmp.data();
+            #    MapIterator mapIterator;
+            #    Map selectedRows = new Map(Types::Int64, Types::Record);
+            #
+            #    for (tmpData = getFirstSelection(SysSecEntryPointTmp_ds);
+            #            tmpData;
+            #            tmpData = SysSecEntryPointTmp_ds.getNext())
+            #    {
+            #        selectedRows.insert(tmpData.RecId, tmpData);
+            #    }
+            #
+            #    ttsBegin;
+            #    while select forUpdate tmpData2
+            #    {
+            #        if(selectedRows.exists(tmpData2.RecId))
+            #        {
+            #            tmpData2.NewAccessRight = AccessRight.selection();
+            #            tmpData2.update();
+            #        }
+            #    }
+            #    ttsCommit;
+            #
+            #    SysSecEntryPointTmp.setTmpData(tmpData2);
+            #    SysSecEntryPointTmp_ds.executeQuery();
+            #    SysSecEntryPointTmp_ds.findRecord(curRecord);
+            #    SysSecEntryPointTmp_ds.setCurrent();
+            #
+            #    mapIterator = new mapIterator(selectedRows);
+            #    while(mapIterator.more())
+            #    {
+            #        tmpData = mapIterator.value();
+            #        SysSecEntryPointTmp_DS.markRecord(tmpData, 1);
+            #        mapIterator.next();
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #Step1CompleteButton
+          AutoDeclaration     #Yes
+          Left                #Auto (right)
+          HelpText            #@SDT200
+          ElementPosition     #1431655764
+          HierarchyParent     #NextGroup
+          Text                #@SDT201
+          MultiSelect         #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #
+            #    //Build the role tree
+            #    step1Complete = true;
+            #    Settings.visible(false);
+            #    NextGroup.visible(false);
+            #
+            #    YSplitter.visible(true);
+            #    UpdateRightsControl.visible(true);
+            #    //Grid_NewAccessRight.allowEdit(false);
+            #
+            #    //Make group auto-resizable in height
+            #    UpdateRightsControl.heightMode(1);
+            #
+            #    if(developmentType == SysSecDevelopmentType::Role)
+            #    {
+            #        StepInfoText.text(strFmt("@SDT202"));
+            #    }
+            #    else
+            #    {
+            #        StepInfoText.text(strFmt("@SDT203"));
+            #    }
+            #
+            #    //element.BuildSecurityTree();
+            #    element.setTimeOut(identifierStr(BuildSecurityTree), 0, true);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #Grid_UserLicenseApplies
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          ElementPosition     #1651910490
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          Label               #@SDT27
+          DataSource          #SysSecEntryPointTmp
+          DataField           #UserLicenseApplies
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #AccessRight
+          AutoDeclaration     #Yes
+          ElementPosition     #1073741822
+          HierarchyParent     #Settings
+          Label               #@SDT204
+          EnumType            #AccessRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #EntryPointRight
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #100
+          ElementPosition     #1073741822
+          HierarchyParent     #EntryPointRightGroup
+          Label               #@SDT158
+          EnumType            #AccessRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_AccessRight
+          AllowEdit           #No
+          ElementPosition     #825955245
+          HierarchyParent     #Grid
+          Label               #@SDT205
+          DataSource          #SysSecEntryPointTmp
+          DataField           #AccessRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_MaintainUserLicense
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          ElementPosition     #1486719441
+          HierarchyParent     #Grid
+          Label               #@SDT14
+          DataSource          #SysSecEntryPointTmp
+          DataField           #MaintainUserLicense
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_NewAccessRight
+          AutoDeclaration     #Yes
+          ElementPosition     #660764196
+          HierarchyParent     #Grid
+          Label               #@SDT206
+          DataSource          #SysSecEntryPointTmp
+          DataField           #NewAccessRight
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    boolean ret;
+            #
+            #    ret = super();
+            #
+            #    SysSecEntryPointTmp_ds.write();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_ObjectAOTLayer
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          ElementPosition     #1817101539
+          HierarchyParent     #Grid
+          Label               #@SDT159
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectAOTLayer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_ObjectType
+          AllowEdit           #No
+          ElementPosition     #330382098
+          HierarchyParent     #Grid
+          Label               #@SDT160
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectType
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_SystemUserRight
+          AllowEdit           #No
+          ElementPosition     #991146294
+          HierarchyParent     #Grid
+          Label               #@SDT25
+          DataSource          #SysSecEntryPointTmp
+          DataField           #SystemUserRight
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #Grid_ViewUserLicense
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          ElementPosition     #1321528392
+          HierarchyParent     #Grid
+          Label               #@SDT29
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ViewUserLicense
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #GridRolesForTaskInfo
+          ElementPosition     #1073741822
+          HierarchyParent     #Group
+          Text                #@SDT207
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #AOTName
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #858993458
+          HierarchyParent     #DetailsInformation
+          LimitText           #40
+          Label               #@SDT18
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Description
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1610612733
+          HierarchyParent     #SecurityObjectGroup
+          Label               #@SDT20
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Grid_ObjectAOTDisplayName
+          AllowEdit           #No
+          ElementPosition     #495573147
+          HierarchyParent     #Grid
+          Label               #@SDT167
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectAOTDisplayName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Grid_ObjectAOTModel
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          ElementPosition     #1982292588
+          HierarchyParent     #Grid
+          Label               #@SDT168
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectAOTModel
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Grid_ObjectLabel
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          ElementPosition     #1156337343
+          HierarchyParent     #Grid
+          Label               #@SDT169
+          DataSource          #SysSecEntryPointTmp
+          DataField           #ObjectLabel
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #Label
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1073741822
+          HierarchyParent     #SecurityObjectGroup
+          Label               #@SDT169
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #ObjectChildName
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1431655764
+          HierarchyParent     #EntryPointObjectGroup
+          Label               #@SDT208
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #ObjectName
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1073741823
+          HierarchyParent     #EntryPointObjectGroup
+          Label               #@SDT167
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #ObjectType
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #200
+          ElementPosition     #715827882
+          HierarchyParent     #EntryPointObjectGroup
+          Label               #@SDT160
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SecurityRole_AotName
+          Width               #150
+          ElementPosition     #1610612733
+          HierarchyParent     #RolesWithSelectedTask
+          DataSource          #SecurityRole
+          DataField           #AotName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #SecurityRole_Name
+          Width               #150
+          ElementPosition     #1073741822
+          HierarchyParent     #RolesWithSelectedTask
+          DataSource          #SecurityRole
+          DataField           #Name
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #StepInfoText
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Skip                #Yes
+          AlignControl        #No
+          ElementPosition     #326417513
+          DisplayHeight       #3
+          Border              #None
+          MultiLine           #Yes
+          FontSize            #10
+          ShowLabel           #No
+          IMEMode             #Disabled
+          ViewEditMode        #View
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TREE
+        PROPERTIES
+          Name                #SecurityTree
+          Width               #400
+          Height              #Column height
+          ElementPosition     #858993458
+          HierarchyParent     #UpdateRightsControl
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #context
+            #public void context()
+            #{
+            #    #WinAPI
+            #    int selectedMenu;
+            #    int mouseX, mouseY;
+            #    int idx;
+            #
+            #    int addNewDuty;
+            #    int addNewPrivilege;
+            #    int duplicateAndRemove;
+            #    int applyPermissions;
+            #    Dialog      dialog;
+            #    DialogField fieldAOTName, fieldLabel, fieldDescription;
+            #    TreeNode newDutyNode;
+            #    TreeNode newPrivilegeNode;
+            #    TreeItemIdx newPrivilegeTreeItemIdx;
+            #    Map treeIndexes;
+            #
+            #    PopupMenu contextMenu = new PopupMenu(element.hWnd());
+            #
+            #    FormTreeItem itemUnder;
+            #    TreeNode nodeUnder;
+            #
+            #    [mouseX, mouseY] = WinAPI::getCursorPos();
+            #    [mouseX, mouseY] = WinAPI::screenToClient(element.hWnd(), mouseX, mouseY);
+            #
+            #    idx = SecurityTree.getSelection();
+            #    if (!idx)
+            #    {
+            #        return;
+            #    }
+            #
+            #    itemUnder = SecurityTree.getItem(idx);
+            #    if (!itemUnder)
+            #    {
+            #        return;
+            #    }
+            #
+            #    nodeUnder = itemUnder.data();
+            #    if (!nodeUnder)
+            #    {
+            #        return;
+            #    }
+            #
+            #    if(idx == rootItemIdx)
+            #    {
+            #        if(developmentType == SysSecDevelopmentType::Role)
+            #        {
+            #            addNewDuty = contextMenu.insertItem(strFmt("@SDT209"));
+            #        }
+            #        addNewPrivilege = contextMenu.insertItem(strFmt("@SDT210"));
+            #    }
+            #    else if(strStartsWith(nodeUnder.treeNodePath(), #SecRolesPath))
+            #    {
+            #        duplicateAndRemove = contextMenu.insertItem(strFmt("@SDT211"));
+            #    }
+            #    else if(strStartsWith(nodeUnder.treeNodePath(), #SecDutiesPath))
+            #    {
+            #        addNewPrivilege = contextMenu.insertItem(strFmt("@SDT210"));
+            #        duplicateAndRemove = contextMenu.insertItem(strFmt("@SDT211"));
+            #    }
+            #    else if(strStartsWith(nodeUnder.treeNodePath(), #SecPrivilegesPath) &&
+            #            findProperty(nodeUnder.AOTgetProperties(), #PropertyObjectType) == '')
+            #    {
+            #        applyPermissions = contextMenu.insertItem(strFmt("@SDT212"));
+            #        duplicateAndRemove = contextMenu.insertItem(strFmt("@SDT211"));
+            #    }
+            #
+            #    selectedMenu = contextMenu.draw();
+            #
+            #    switch (selectedMenu)
+            #    {
+            #        case -1:
+            #            break;
+            #
+            #        case addNewDuty:
+            #            //Show dialog to get the new AOTName, label and description
+            #            dialog = new Dialog("@SDT213", element);
+            #            fieldAOTName = dialog.addField('IdentifierName', "@SDT18");
+            #            fieldLabel = dialog.addField('SecurityTaskName', "@SDT169");
+            #            fieldDescription = dialog.addField('SecurityTaskDescription', "@SDT20");
+            #
+            #            dialog.run();
+            #            if (dialog.closedOK())
+            #            {
+            #                //Create the new duty
+            #                if(TreeNode::findNode(#SecDutiesPath).AOTfindChild(fieldAOTName.value()) != null)
+            #                {
+            #                    throw error(strFmt("@SDT214", fieldAOTName.value()));
+            #                }
+            #
+            #                newDutyNode = TreeNode::findNode(#SecDutiesPath).AOTadd(fieldAOTName.value());
+            #                newDutyNode.AOTsetProperty(#PropertyLabel, fieldLabel.value());
+            #                newDutyNode.AOTsetProperty(#PropertyDescription, fieldDescription.value());
+            #                newDutyNode.AOTsave();
+            #                SysSecEntryPointManager::AddObjectToVersionControl(newDutyNode);
+            #
+            #                //Add duty to current object
+            #                if(SysSecEntryPointManager::ObjectEditableVCS(nodeUnder))
+            #                {
+            #                    nodeUnder.AOTfindChild('Duties').AOTDrop(newDutyNode);
+            #                    nodeUnder.AOTsave();
+            #
+            #                    //Add new duty in tree
+            #                    SysFormTreeControl::addTreeItem(SecurityTree, newDutyNode.AOTname(),
+            #                        idx, newDutyNode, imageListAppl_AOT.image(newDutyNode.AOTbitmapId()), 1);
+            #
+            #                    if(!itemUnder.stateExpanded())
+            #                    {
+            #                        SecurityTree.expand(idx);
+            #                    }
+            #                }
+            #            }
+            #            break;
+            #
+            #        case addNewPrivilege:
+            #            //Show dialog to get the new AOTName, label and description
+            #            dialog = new Dialog("@SDT215", element);
+            #            fieldAOTName = dialog.addField('IdentifierName', "@SDT18");
+            #            fieldLabel = dialog.addField('SecurityTaskName', "@SDT169");
+            #            fieldDescription = dialog.addField('SecurityTaskDescription', "@SDT20");
+            #
+            #            dialog.run();
+            #            if (dialog.closedOK())
+            #            {
+            #                //Create the new privilege
+            #                if(TreeNode::findNode(#SecPrivilegesPath).AOTfindChild(fieldAOTName.value()) != null)
+            #                {
+            #                    throw error(strFmt("@SDT216", fieldAOTName.value()));
+            #                }
+            #
+            #                newPrivilegeNode = TreeNode::findNode(#SecPrivilegesPath).AOTadd(fieldAOTName.value());
+            #                newPrivilegeNode.AOTsetProperty(#PropertyLabel, fieldLabel.value());
+            #                newPrivilegeNode.AOTsetProperty(#PropertyDescription, fieldDescription.value());
+            #                newPrivilegeNode.AOTsave();
+            #                SysSecEntryPointManager::AddObjectToVersionControl(newPrivilegeNode);
+            #
+            #                //Add duty to current object
+            #                if(SysSecEntryPointManager::ObjectEditableVCS(nodeUnder))
+            #                {
+            #                    nodeUnder.AOTfindChild('Privileges').AOTDrop(newPrivilegeNode);
+            #                    nodeUnder.AOTsave();
+            #
+            #                    //Add new privilege in tree
+            #                    newPrivilegeTreeItemIdx = SysFormTreeControl::addTreeItem(SecurityTree, newPrivilegeNode.AOTname(),
+            #                        idx, newPrivilegeNode, imageListAppl_AOT.image(newPrivilegeNode.AOTbitmapId()), 1);
+            #
+            #                    //A new privilege AOT name should never exists in the map
+            #                    if(!privilegeTreeIdxs.exists(newPrivilegeNode.AOTname()))
+            #                    {
+            #                        treeIndexes = new Map(Types::Int64, Types::String);
+            #                        treeIndexes.insert(newPrivilegeTreeItemIdx, '');
+            #                        privilegeTreeIdxs.insert(newPrivilegeNode.AOTname(), treeIndexes);
+            #                    }
+            #
+            #                    if(!itemUnder.stateExpanded())
+            #                    {
+            #                        SecurityTree.expand(idx);
+            #                    }
+            #                }
+            #            }
+            #            break;
+            #
+            #        case applyPermissions:
+            #            element.ApplySelectedPermissionsToObject(nodeUnder, idx);
+            #            break;
+            #
+            #        case duplicateAndRemove:
+            #            element.DuplicateNodeAndReplaceReference(nodeUnder, itemUnder);
+            #            break;
+            #
+            #        default:
+            #            break;
+            #
+            #    }
+            #}
+          ENDSOURCE
+          SOURCE #selectionChanged
+            #public void selectionChanged(FormTreeItem _OldItem, FormTreeItem _NewItem, FormTreeSelect _how)
+            #{
+            #    super(_OldItem, _NewItem, _how);
+            #    SecurityTree.updateDetails();
+            #}
+          ENDSOURCE
+          SOURCE #updateDetails
+            #public void updateDetails()
+            #{
+            #    TreeNode nodeUnder;
+            #    AccessRight effectiveRight;
+            #    FormTreeItem formTreeItem;
+            #    SysSecEntryPointTmp developmentTmp = SysSecEntryPointTmp;
+            #    SecurityTask task;
+            #
+            #    formTreeItem = SecurityTree.getItem(SecurityTree.getSelection());
+            #
+            #    if(!formTreeItem)
+            #    {
+            #        return;
+            #    }
+            #
+            #    nodeUnder = formTreeItem.data();
+            #    if (!nodeUnder)
+            #    {
+            #        return;
+            #    }
+            #
+            #    AOTName.text(nodeUnder.AOTname());
+            #    selectedTask = 0;
+            #
+            #    if(findProperty(nodeUnder.AOTgetProperties(), #PropertyObjectType) == '')
+            #    {
+            #        SecurityObjectGroup.visible(true);
+            #        EntryPointObjectGroup.visible(false);
+            #        Label.text(SysLabel::labelId2String2(nodeUnder.AOTgetProperty(#PropertyLabel)));
+            #        Description.text(SysLabel::labelId2String2(nodeUnder.AOTgetProperty(#PropertyDescription)));
+            #
+            #        if(strStartsWith(nodeUnder.treeNodePath(), #SecDutiesPath))
+            #        {
+            #            select RecId from task where task.AotName == nodeUnder.AOTname() &&
+            #                task.Type == SecurityTaskType::Duty;
+            #            selectedTask = task.RecId;
+            #        }
+            #        else if(strStartsWith(nodeUnder.treeNodePath(), #SecPrivilegesPath))
+            #        {
+            #            select RecId from task where task.AotName == nodeUnder.AOTname() &&
+            #                task.Type == SecurityTaskType::Privilege;
+            #            selectedTask = task.RecId;
+            #        }
+            #    }
+            #    else
+            #    {
+            #        EntryPointObjectGroup.visible(true);
+            #        SecurityObjectGroup.visible(false);
+            #        ObjectType.text(nodeUnder.AOTgetProperty(#PropertyObjectType));
+            #        effectiveRight = SysSecEntryPointManager::AccessLevel2AccessRight(nodeUnder.AOTgetProperty(#PropertyAccessLevel));
+            #        EntryPointRight.selection(effectiveRight);
+            #        ObjectName.text(nodeUnder.AOTgetProperty(#PropertyObjectName));
+            #        ObjectChildName.text(nodeUnder.AOTgetProperty(#PropertyObjectChildName));
+            #    }
+            #
+            #    securityrole_ds.executeQuery();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+      ReadPermissions     #No
+      UpdatePermissions   #No
+      CreatePermissions   #No
+      DeletePermissions   #No
+    ENDPROPERTIES
+    
+  ENDPERMISSIONS
+  
+ENDFORM
+
+
+END

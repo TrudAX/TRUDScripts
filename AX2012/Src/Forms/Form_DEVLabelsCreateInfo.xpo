@@ -1,0 +1,536 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #DEVLabelsCreateInfo
+  PROPERTIES
+    Name                #DEVLabelsCreateInfo
+    Origin              #{59B2DD16-2DC0-4B1C-A09E-8C9ED3989D83}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #    SysFormSplitter_X           verticalSplitter;
+      #
+      #    DEVLabelsCreateHelper       labelsCreateHelper;
+      #}
+    ENDSOURCE
+    SOURCE #deleteAllAction
+      #void deleteAllAction()
+      #{
+      #    ;
+      #    delete_from DEVLabelsCreateInfo;
+      #
+      #    element.refreshAction();
+      #}
+    ENDSOURCE
+    SOURCE #refreshAction
+      #void refreshAction()
+      #{
+      #    ;
+      #    SetHookBox.value(false);
+      #    SetHookBox.modified();
+      #    DEVLabelsCreateInfo_ds.research();
+      #}
+    ENDSOURCE
+    SOURCE #setLabelAction
+      #void setLabelAction()
+      #{
+      #
+      #    ;
+      #    labelsCreateHelper = new DEVLabelsCreateHelper();
+      #    labelsCreateHelper.setLabelAction();
+      #
+      #    element.refreshAction();
+      #
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #DEVLabelsCreateInfo
+          Table               #DEVLabelsCreateInfo
+          AllowCreate         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+          DATAFIELD Column
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+          DATAFIELD ElementPath
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+          DATAFIELD Line
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+          DATAFIELD NewLabel
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+          DATAFIELD NewLabelValue
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+          DATAFIELD PropertyName
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+          DATAFIELD dataAreaId
+            PROPERTIES
+              AllowEdit           #No
+            ENDPROPERTIES
+            
+            METHODS
+            ENDMETHODS
+          ENDDATAFIELD
+          
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #Create labels
+      Style               #SimpleList
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL ACTIONPANE
+        PROPERTIES
+          Name                #ActionPane
+          ElementPosition     #429496729
+          Style               #Strip
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL ACTIONPANETAB
+        PROPERTIES
+          Name                #ActionPaneTab
+          ElementPosition     #1431655764
+          HierarchyParent     #ActionPane
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #RecordBasics
+          ElementPosition     #1431655764
+          HierarchyParent     #ActionPaneTab
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #GridContainer
+          ShowRowLabels       #No
+          DataSource          #DEVLabelsCreateInfo
+          AlternateRowShading #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDblClick
+            #public int mouseDblClick(int _x, int _y, int _button, boolean _Ctrl, boolean _Shift)
+            #{
+            #    int ret;
+            #    TreeNode    parentNode;
+            #    TreeNode    treeNode  ;
+            #
+            #
+            #    ret = super(_x, _y, _button, _Ctrl, _Shift);
+            #
+            #
+            #    parentNode  = infolog.findNode(SysTreeNode::applObjectPath(DEVLabelsCreateInfo.ElementPath));
+            #    treeNode    = infolog.findNode(DEVLabelsCreateInfo.ElementPath);
+            #
+            #
+            #    if (treeNode)
+            #    {
+            #        if (DEVLabelsCreateInfo.PropertyName)
+            #        {
+            #            treeNode.AOTshowProperties();
+            #        }
+            #        else
+            #        {
+            #            treeNode.AOTedit(DEVLabelsCreateInfo.Line, DEVLabelsCreateInfo.Column);
+            #        }
+            #    }
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #CustomFilterGroup
+          Visible             #No
+          ElementPosition     #1288490187
+          Style               #DetailTitleContainer
+          AlignChild          #No
+          ViewEditMode        #Edit
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GridContainer
+          ElementPosition     #1717986916
+          Style               #BorderlessGridContainer
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GridGroup
+          ElementPosition     #1431655764
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          DataSource          #DEVLabelsCreateInfo
+          DataGroup           #GridGroup
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #PageTitleGroup
+          ElementPosition     #858993458
+          Style               #DetailTitleContainer
+          AlignChild          #No
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #CreateLabelsButton
+          ElementPosition     #1533916890
+          HierarchyParent     #RecordBasics
+          Text                #Create labels
+          ButtonDisplay       #Text & Image left
+          NormalImage         #11329
+          ImageLocation       #EmbeddedResource
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    labelsCreateHelper = new DEVLabelsCreateHelper();
+            #    labelsCreateHelper.createLabelsInFile();
+            #
+            #    element.refreshAction();
+            #
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #DeleteAllButton
+          ElementPosition     #920350134
+          HierarchyParent     #RecordBasics
+          Text                #Clear list
+          ButtonDisplay       #Text & Image left
+          NormalImage         #10121
+          ImageLocation       #EmbeddedResource
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    element.deleteAllAction();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #RefreshButton
+          ElementPosition     #613566756
+          HierarchyParent     #RecordBasics
+          Text                #Refresh
+          ButtonDisplay       #Text & Image left
+          NormalImage         #11437
+          ImageLocation       #EmbeddedResource
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    element.refreshAction();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #ReplaceTextWithLabels
+          ElementPosition     #1840700268
+          HierarchyParent     #RecordBasics
+          Text                #Replace Text With Labels
+          ButtonDisplay       #Text & Image left
+          NormalImage         #11289
+          ImageLocation       #EmbeddedResource
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    labelsCreateHelper = new DEVLabelsCreateHelper();
+            #    labelsCreateHelper.processLabels();
+            #
+            #    element.refreshAction();
+            #
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #SetLabelAction
+          ElementPosition     #1227133512
+          HierarchyParent     #RecordBasics
+          Text                #Set Label action
+          ButtonDisplay       #Text & Image left
+          NormalImage         #11280
+          ImageLocation       #EmbeddedResource
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    super();
+            #    element.setLabelAction();
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #SetHookBox
+          AutoDeclaration     #Yes
+          ElementPosition     #1431655764
+          HierarchyParent     #PageTitleGroup
+          Label               #Set hook
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    boolean ret;
+            #
+            #    ret = super();
+            #
+            #    if (SetHookBox.checked())
+            #    {
+            #        appl.globalCache().set(formStr(DEVLabelsCreateInfo), 'IsEnabled', 'true', false);
+            #    }
+            #    else
+            #    {
+            #        appl.globalCache().remove(formStr(DEVLabelsCreateInfo), 'IsEnabled');
+            #    }
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #GridGroup_TextValue
+          AllowEdit           #No
+          ElementPosition     #1431655760
+          HierarchyParent     #GridGroup
+          Alignment           #Left
+          ChangeCase          #None
+          DataSource          #DEVLabelsCreateInfo
+          DataField           #TextValue
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

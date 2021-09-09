@@ -1,0 +1,34 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FTM
+
+; Microsoft Dynamics AX MENUITEM : xRefUpdateTmpReferences unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #xRefUpdateTmpReferences
+    Type: 3
+    PROPERTIES
+      Name                #xRefUpdateTmpReferences
+      Label               #@SYS58914
+      HelpText            #@SYS58913
+      ObjectType          #Class
+      Object              #xRefUpdateTmpReferences
+      EnumTypeParameter   #NoYes
+      EnumParameter       #Yes
+      LinkedPermissionType #Form
+      LinkedPermissionObject  #XRefTmpReferences
+      ConfigurationKey    #SysDevelopmentMorphX
+      SecurityKey         #SysDevelopment
+      ViewUserLicense     #Enterprise
+      MaintainUserLicense #Enterprise
+      MultiSelect         #Yes
+      WebAccess           #None
+      Origin              #{03170000-0000-1000-5B25-E1E2261A413E}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+END

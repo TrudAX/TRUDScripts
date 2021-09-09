@@ -1,0 +1,1273 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #DEVTableBuilder
+  PROPERTIES
+    Name                #DEVTableBuilder
+    Origin              #{194E1362-6DC4-4FFE-A4A6-8B094DD608E4}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #//EVO RunBaseBuilder
+      #public class FormRun extends ObjectRun
+      #{
+      #    SysElementName      tableName;
+      #    NotesLine           tableLabel;
+      #    SysElementName      tableVarName;
+      #
+      #    boolean             isCreateTable;
+      #
+      #    TreeNode    tableNode;
+      #    ProjectNode project;
+      #    TreeNode    startedFrom;
+      #    #AOT
+      #    #define.descriptionField("Description")
+      #    #Properties
+      #    str indexName;
+      #
+      #    DEVTableBuilderVars      tableKeyFieldVar;
+      #
+      #
+      #    SysElementName      formName;
+      #    NotesLine           formLabel;
+      #    NotesLine           formHelp;
+      #    boolean             isCreateForm;
+      #
+      #    #define.CurrentVersion(3)
+      #    #localmacro.CurrentList
+      #        tableName,
+      #        tableLabel,
+      #        tableVarName,
+      #        isCreateTable,
+      #        formName,
+      #        formLabel,
+      #        formHelp,
+      #        isCreateForm
+      #    #endmacro
+      #
+      #    #define.newLine("\n")
+      #}
+    ENDSOURCE
+    SOURCE #addFieldsToGroup
+      #private void addFieldsToGroup(str _groupName)
+      #{
+      #    DEVTableBuilderVars      tableBuilderVars;
+      #    ;
+      #    while select tableBuilderVars
+      #        order by LineNum
+      #    {
+      #        DEVWizard::table_addFieldToGroup(tableNode, _groupName, tableBuilderVars.Name);
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #close
+      #public void close()
+      #{
+      #    super();
+      #
+      #    xSysLastValue::saveLast(this);
+      #}
+    ENDSOURCE
+    SOURCE #closeOk
+      #public void closeOk()
+      #{
+      #    super();
+      #
+      #    startLengthyOperation();
+      #
+      #    project = DEVWizard::getWizardResults();
+      #
+      #    if (isCreateTable)
+      #    {
+      #        this.doTableCreate();
+      #    }
+      #    if (isCreateForm)
+      #    {
+      #        this.createForm();
+      #        this.createMenuItem();
+      #    }
+      #
+      #    endLengthyOperation();
+      #}
+    ENDSOURCE
+    SOURCE #createForm
+      #private void createForm()
+      #{
+      #    #DictField
+      #    TreeNode                curTreeNode;
+      #    TreeNode                formlist = infolog.findNode(#FormsPath);
+      #    FormBuildDataSource     formDataSource;
+      #    FormBuildDesign         formDesign;
+      #    FormBuildTabControl     formTab;
+      #    FormBuildTabPageControl formTabPage;
+      #    FormBuild               formBuild;
+      #    FormBuildGridControl    formGrid;
+      #
+      #    FormBuildActionPaneControl    formActionPaneControl;
+      #    FormBuildActionPaneTabControl    formActionPaneTabControl;
+      #
+      #    FormBuildButtonGroupControl     buttonGroupControl;
+      #
+      #    FormBuildCommandButtonControl       commandButtonControl;
+      #
+      #    FormBuildGroupControl    formGroupControl;
+      #
+      #    DictField               dictField;
+      #    FieldId                 primaryIndexFieldId;
+      #    DictTable               common = new DictTable(tablenum(Common));
+      #    int                     i;
+      #    TreeNode                fieldGroup;
+      #    FormBuildGroupControl   formGroup;
+      #    Form                    formNode;
+      #    DEVPropertyMap  propertyMap = new DEVPropertyMap();
+      #    DictTable           dictTable = new DictTable(tablename2id(tableName));
+      #    ;
+      #    /*
+      #    formBuild = new FormBuild(formName);
+      #    formNode  = formBuild.form();
+      #    formNode.AOTfirstChild();
+      #
+      #    formNode.save();
+      #
+      #    formlist.AOTrefresh();
+      #    */
+      #    formNode = formlist.AOTadd(formName);
+      #    formNode.AOTsave();
+      #    formlist.AOTrefresh();
+      #
+      #    //formlist.AOTadd(formName);
+      #
+      #    formNode = formlist.AOTfindChild(formName);
+      #    formNode.AOTsave();
+      #    // add DS
+      #    curTreeNode = formNode.AOTfindChild('Data Sources');
+      #    curTreeNode.AOTadd(tableName);
+      #    formdataSource = formNode.dataSource(1);
+      #    propertyMap.setNode(infolog.findNode(formNode.treeNodePath() + '\\Data Sources\\' + tableName));
+      #
+      #
+      #    // Add design
+      #    formDesign = formNode.design();
+      #    formDesign.caption(formLabel);
+      #    formDesign.columns(1);
+      #    formDesign.widthMode(FormWidth::ColumnWidth);
+      #    formDesign.heightMode(FormHeight::ColumnHeight);
+      #    formDesign.titleDatasource(tableName);
+      #    formDesign.saveSize(true);
+      #    formDesign.style(FormStyle::SimpleList);
+      #
+      #
+      #    formActionPaneControl = formDesign.addControl(FormControlType::ActionPane, 'ActionPane');
+      #    formActionPaneControl.style(1);
+      #    formActionPaneControl.dataSource(1);
+      #
+      #    formActionPaneTabControl = formActionPaneControl.addControl(FormControlType::ActionPaneTab, 'ActionPaneTab');
+      #    buttonGroupControl = formActionPaneTabControl.addControl(FormControlType::ButtonGroup, 'RecordBasics');
+      #    commandButtonControl = buttonGroupControl.addControl(FormControlType::CommandButton, 'NewButton');
+      #    commandButtonControl.command(260);
+      #    commandButtonControl.imageLocation(2);
+      #    commandButtonControl.normalImage('11045');
+      #    commandButtonControl.buttonDisplay(4);
+      #    commandButtonControl = buttonGroupControl.addControl(FormControlType::CommandButton, 'DeleteButton');
+      #    commandButtonControl.command(2832);
+      #    commandButtonControl.imageLocation(2);
+      #    commandButtonControl.normalImage('10121');
+      #    commandButtonControl.buttonDisplay(4);
+      #    commandButtonControl.saveRecord(false);
+      #    commandButtonControl.text('@' + 'SYS14425');
+      #
+      #    /*
+      #    if (formRun.parmCreateTab())
+      #    {
+      #        formTab = formDesign.addControl(FormControlType::TAB, 'Tab');
+      #        formTab.columns(1);
+      #        formTab.widthMode(FormWidth::ColumnWidth);
+      #        formTab.heightMode(FormHeight::ColumnHeight);
+      #        formTab.dataSource(dictTable.name());
+      #
+      #        for (i = 1 ; i <= formRun.parmTabNum() ;i++)
+      #        {
+      #            formTabPage = formTab.addControl(FormControlType::TABPAGE, strFmt('TabPage%1', i));
+      #            formTabPage.caption(strFmt('TabPage %1 Title', i));
+      #            formTabPage.widthMode(FormWidth::ColumnWidth);
+      #            formTabPage.heightMode(FormHeight::ColumnHeight);
+      #            formTabPage.dataSource(dictTable.name());
+      #        }
+      #        formTabPage = formTab.controlNum(1);
+      #        formtabPage.caption(formRun.parmFirstTabLabel());
+      #        formtabPage.name('Overview');
+      #        formGrid = formTabPage.addControl(FormControlType::GRID, 'Grid');
+      #    }
+      #    else
+      #      */
+      #    {
+      #        formGroupControl = formDesign.addControl(FormControlType::Group, 'GridContainer');
+      #        formGroupControl.style(2);
+      #
+      #        formGrid = formGroupControl.addControl(FormControlType::GRID, 'Grid');
+      #    }
+      #
+      #    formGrid.widthMode(FormWidth::ColumnWidth);
+      #    formGrid.heightMode(FormHeight::ColumnHeight);
+      #    formGrid.dataSource(tableName);
+      #
+      #    //trud  -->
+      #    fieldGroup = treenode::findNode('\\data dictionary\\tables\\'+tableName+'\\Field Groups\\' + 'Overview');
+      #    if (fieldGroup)
+      #    {
+      #        formGroup = formGrid.addControl(FormControlType::Group,  strFmt('Grid_%1', 'Overview'));
+      #        formGroup.dataSource(formDataSource.name());
+      #        formGroup.dataGroup('Overview');
+      #    }
+      #    else
+      #    {
+      #        if (dictTable.primaryIndex())
+      #        {
+      #            primaryIndexFieldId = dictTable.indexObject(dictTable.primaryIndex()).field(1);
+      #            for (i = 1; i <= dictTable.fieldCnt(); i++)
+      #            {
+      #                if (dictTable.fieldCnt2Id(i) == primaryIndexFieldId)
+      #                {
+      #                    formGrid.addDataField(formDataSource.id(), primaryIndexFieldId);
+      #                    break;
+      #                }
+      #            }
+      #        }
+      #
+      #        for (i = 1; i <= dictTable.fieldCnt(); i++)
+      #        {
+      #            dictField = dictTable.fieldObject(dictTable.fieldCnt2Id(i));
+      #            if (! (common.fieldName2Id(dictField.name()) || primaryIndexFieldId == dictField.id()))
+      #            {
+      #                formGrid.addDataField(formDataSource.id(), dictField.id());
+      #            }
+      #        }
+      #    }
+      #    formNode.AOTsave();
+      #    project.addUtilNode(UtilElementType::Form, formNode.name());
+      #}
+    ENDSOURCE
+    SOURCE #createMenuItem
+      #private void createMenuItem()
+      #{
+      #    TreeNode    menuItems = infolog.findNode(#MenuItemsDisplayPath);
+      #    MenuItem    menuItem;
+      #
+      #    DEVPropertyMap  propertyMap = new DEVPropertyMap();
+      #
+      #    ;
+      #
+      #    menuItems.AOTadd(formName);
+      #    menuItem = menuItems.AOTfindChild(formName);
+      #    menuItem.AOTsave();
+      #
+      #    propertyMap.setNode(menuItem);
+      #    propertyMap.setProperty(#PropertyLabel,             formLabel);
+      #    propertyMap.setProperty(#PropertyHelpText,          formHelp);
+      #    propertyMap.setProperty(#PropertyClass,             'Form');
+      #    propertyMap.setProperty(#PropertyObject,            formName);
+      #    propertyMap.setProperty(#PropertyNeededAccessLevel, 'View', true);
+      #    menuItem.AOTsave();
+      #
+      #    project.addUtilNode(UtilElementType::DisplayTool, menuItem.name());
+      #    project.AOTSave();
+      #}
+    ENDSOURCE
+    SOURCE #createTable
+      #private void createTable()
+      #{
+      #    DEVPropertyMap  propertyMap = new DEVPropertyMap();
+      #    TreeNode            tablesNode = infolog.findNode(#TablesPath);
+      #    TreeNode            indexNode;
+      #    str                 source;
+      #    str                 varKeyField;
+      #    TreeNode            fieldGroup;
+      #
+      #
+      #
+      #    DEVTableBuilderVars      tableBuilderVars;
+      #
+      #    ;
+      #    select firstOnly tableKeyFieldVar
+      #        order by LineNum
+      #        where tableKeyFieldVar.IsPrimary;
+      #    if (tableKeyFieldVar.RecId)
+      #    {
+      #        indexName       = tableKeyFieldVar.Name + 'Idx';
+      #    }
+      #
+      #    // 1. Create table
+      #    tablesNode.AOTadd(tableName);
+      #    tableNode = tablesNode.AOTfindChild(tableName);
+      #    tableNode.AOTsave();
+      #
+      #    // 2. Create fields
+      #    while select tableBuilderVars
+      #        order by LineNum
+      #    {
+      #        propertyMap.setNode(DEVWizard::table_addField(tableNode, tableBuilderVars.Name, DEVWizard::getBaseType(tableBuilderVars.Type)));
+      #        propertyMap.setProperty(#PropertyExtendedDataType, tableBuilderVars.Type, true);
+      #
+      #        if (tableBuilderVars.LabelHelp)
+      #        {
+      #            propertyMap.setProperty(#PropertyHelpText, tableBuilderVars.LabelHelp);
+      #        }
+      #        if (tableBuilderVars.Label)
+      #        {
+      #            propertyMap.setProperty(#PropertyLabel, tableBuilderVars.Label);
+      #        }
+      #        if (tableBuilderVars.Mandatory || tableBuilderVars.IsPrimary)
+      #        {
+      #            propertymap.setProperty(#PropertyMandatory, #PropertyValueYes);
+      #            if (tableBuilderVars.IsPrimary)
+      #            {
+      #                propertyMap.setProperty(#PropertyAllowEdit, #PropertyValueNo);
+      #            }
+      #        }
+      #        propertyMap.save();
+      #    }
+      #
+      #    tableNode.AOTsave();
+      #
+      #    //2.5 trud - add OverView group
+      #    fieldGroup = infolog.findNode(tableNode.treeNodePath() + '\\Field Groups\\' + 'Overview');
+      #    if (! fieldGroup)
+      #    {
+      #        infolog.findNode(tableNode.treeNodePath() + '\\Field Groups').AOTadd('Overview');
+      #        fieldGroup = infolog.findNode(tableNode.treeNodePath() + '\\Field Groups\\' + 'Overview');
+      #    }
+      #    propertyMap.setNode(fieldGroup);
+      #    propertyMap.setProperty(#PropertyLabel, "@SYS9039", true);
+      #    this.addFieldsToGroup('Overview');
+      #
+      #    // 3. add field to groups
+      #    this.addFieldsToGroup(#PropertyAutoReport);
+      #    this.addFieldsToGroup('AutoLookup');
+      #
+      #    // 4. Methods
+      #
+      #    tableNode.AOTsave();
+      #
+      #
+      #    // 5. Индексы
+      #    if (indexName)
+      #    {
+      #        indexNode = DEVWizard::table_addIndex(tableNode, indexName);
+      #        tableNode.AOTsave();
+      #
+      #        while select tableKeyFieldVar
+      #            order by LineNum desc
+      #            where tableKeyFieldVar.IsPrimary
+      #        {
+      #            DEVWizard::index_addField(indexNode, tableKeyFieldVar.Name);
+      #        }
+      #
+      #        propertyMap.setNode(indexNode);
+      #        propertyMap.setProperty(#PropertyAllowDuplicates, #PropertyValueNo, true);
+      #        propertyMap.setProperty('AlternateKey', 'Yes', true);
+      #
+      #        tableNode.AOTsave();
+      #
+      #        // find()
+      #        source = this.template_method_find(tableName, indexName);
+      #
+      #        DEVWizard::AOTelement_addMethod(tableNode, 'find', source, true);
+      #        tableNode.AOTsave();
+      #    }
+      #
+      #    propertyMap.finalize();
+      #}
+    ENDSOURCE
+    SOURCE #doTableCreate
+      #private void doTableCreate()
+      #{
+      #
+      #    ;
+      #
+      #
+      #    this.createTable();
+      #    DEVWizard::reexportNode(infolog.findNode(#TablesPath + '\\' + tableName));
+      #
+      #    this.setTableProps();
+      #    project.addUtilNode(UtilElementType::Table, tableName);
+      #
+      #    select count(RecId) from tableKeyFieldVar
+      #        where tableKeyFieldVar.IsPrimary;
+      #    if (tableKeyFieldVar.RecId == 1)
+      #    {
+      #        select firstOnly tableKeyFieldVar
+      #            where tableKeyFieldVar.IsPrimary;
+      #        DEVWizard::edt_addRefTable(infolog.findNode(#ExtendedDataTypesPath + '\\' + tableKeyFieldVar.Type), tableName, tableKeyFieldVar.Name);
+      #        project.addUtilNode(UtilElementType::ExtendedType, tableKeyFieldVar.Type);
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #editformHelp
+      #public edit NotesLine editformHelp(
+      #    boolean _set,
+      #    NotesLine _formHelp
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        formHelp = _formHelp;
+      #    }
+      #    return  formHelp;
+      #}
+    ENDSOURCE
+    SOURCE #editformLabel
+      #public edit NotesLine editformLabel(
+      #    boolean _set,
+      #    NotesLine _formLabel
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        formLabel = _formLabel;
+      #    }
+      #    return  formLabel;
+      #}
+    ENDSOURCE
+    SOURCE #editformName
+      #public edit SysElementName editformName(
+      #    boolean _set,
+      #    SysElementName _formName
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        formName = _formName;
+      #    }
+      #    return  formName;
+      #}
+    ENDSOURCE
+    SOURCE #editisCreateForm
+      #public edit NoYesId editisCreateForm(
+      #    boolean _set,
+      #    NoYesId _isCreateForm
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        isCreateForm = _isCreateForm;
+      #    }
+      #    return  isCreateForm;
+      #}
+    ENDSOURCE
+    SOURCE #editisCreateTable
+      #public edit NoYesId editisCreateTable(
+      #    boolean _set,
+      #    NoYesId _isCreateTable
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        isCreateTable = _isCreateTable;
+      #    }
+      #    return  isCreateTable;
+      #}
+    ENDSOURCE
+    SOURCE #edittableLabel
+      #public edit NotesLine edittableLabel(
+      #    boolean _set,
+      #    NotesLine _tableLabel
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        tableLabel = _tableLabel;
+      #    }
+      #    return  tableLabel;
+      #}
+    ENDSOURCE
+    SOURCE #edittableName
+      #public edit SysElementName edittableName(
+      #    boolean _set,
+      #    SysElementName _tableName
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        tableName = _tableName;
+      #    }
+      #    return  tableName;
+      #}
+    ENDSOURCE
+    SOURCE #edittableVarName
+      #public edit SysElementName edittableVarName(
+      #    boolean _set,
+      #    SysElementName _tableVarName
+      #    )
+      #{
+      #    if (_set)
+      #    {
+      #        tableVarName = _tableVarName;
+      #    }
+      #    return  tableVarName;
+      #}
+    ENDSOURCE
+    SOURCE #initParmDefault
+      #public void initParmDefault()
+      #{
+      #
+      #}
+    ENDSOURCE
+    SOURCE #lastValueDataAreaId
+      #public dataAreaId lastValueDataAreaId()
+      #{
+      #    return curExt();
+      #}
+    ENDSOURCE
+    SOURCE #lastValueDesignName
+      #public identifiername lastValueDesignName()
+      #{
+      #    return '';
+      #}
+    ENDSOURCE
+    SOURCE #lastValueElementName
+      #public identifiername lastValueElementName()
+      #{
+      #    return element.name();
+      #}
+    ENDSOURCE
+    SOURCE #lastValueType
+      #public UtilElementType lastValueType()
+      #{
+      #    return UtilElementType::Form;
+      #}
+    ENDSOURCE
+    SOURCE #lastValueUserId
+      #public userId lastValueUserId()
+      #{
+      #    return curUserId();
+      #}
+    ENDSOURCE
+    SOURCE #pack
+      #public container pack()
+      #{
+      #    //container   fmtRecord;
+      #    ;
+      #    /*
+      #    while select devRunBaseBuilderVars
+      #    {
+      #        fmtRecord += [buf2con(devRunBaseBuilderVars)];
+      #    }
+      #    */
+      #    return [#CurrentVersion, #CurrentList];// + [fmtRecord];
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    super();
+      #    xSysLastValue::getLast(this);
+      #
+      #
+      #}
+    ENDSOURCE
+    SOURCE #setTableProps
+      #private void setTableProps()
+      #{
+      #    DEVPropertyMap propertyMap  = new DEVPropertyMap();
+      #    DEVTableBuilderVars         tableBuilderVars;
+      #    LineNum         lastLineNum;
+      #    ;
+      #    tableNode                       = infolog.findNode(#TablesPath + '\\' + tableName);
+      #
+      #    select firstOnly tableBuilderVars
+      #        order by LineNum;
+      #
+      #    lastLineNum = tableBuilderVars.LineNum;
+      #
+      #    propertyMap.setNode(tableNode);
+      #    propertyMap.setProperty(#PropertyLabel,        tableLabel);
+      #    propertyMap.setProperty(#PropertyTitleField1,  tableBuilderVars.Name);
+      #    select firstOnly tableBuilderVars
+      #        order by LineNum
+      #        where tableBuilderVars.LineNum > lastLineNum;
+      #
+      #    propertyMap.setProperty(#PropertyTitleField2,  tableBuilderVars.Name);
+      #    propertyMap.setProperty(#PropertyPrimaryIndex, indexName);
+      #    propertyMap.setProperty(#PropertyClusterIndex, indexName);
+      #    propertymap.setProperty(#PropertyCacheLookup,  'Found');
+      #    propertyMap.setProperty(#PropertyTableGroup,   'Group', true);
+      #    tableNode.AOTsave();
+      #}
+    ENDSOURCE
+    SOURCE #strFirstLower
+      #str strFirstLower(str _s)
+      #{
+      #    ;
+      #    return strlwr(substr(_s, 1, 1)) + substr(_s, 2, strlen(_s));
+      #}
+    ENDSOURCE
+    SOURCE #strFirstLwr
+      #public str strFirstLwr(str _str)
+      #{
+      #    int len = strlen(_str);
+      #    return len ? (strlwr(substr(_str, 1, 1)) + (len > 1 ? substr(_str, 2, len - 1) : "")) : "";
+      #}
+    ENDSOURCE
+    SOURCE #template_method_find
+      ##DictField
+      #str template_method_find(str _tableName, str _indexName)
+      #{
+      #    DictTable       dt;
+      #    DictIndex       di;
+      #    DictField       df;
+      #
+      #    int             i;
+      #    int             longestTypeLength = strlen('boolean'); //for forupdate
+      #    int             longestNameLength;
+      #    FieldId         fieldId;
+      #    str             mandatoryFields;
+      #
+      #    str             methodText;
+      #    str             indent;
+      #    str             varName;
+      #    //TextBuffer      tb;
+      #
+      #
+      #    str strTypeOf(DictField _df, int _padTo = 0)
+      #    {
+      #        str res;
+      #        if(df.typeId())
+      #            res = new DictType(df.typeId()).name();
+      #        else if(df.enumId())
+      #            res = new DictEnum(df.enumId()).name();
+      #        else
+      #            res = '?UNKNOWN?';
+      #        if(_padTo)
+      #        {
+      #            res += strrep(' ', _padTo - strlen(res));
+      #        }
+      #        return res;
+      #    }
+      #
+      #    str prettyName(str _name)
+      #    {
+      #        return strlwr(substr(_name,1,1)) + substr(_name, 2, strlen(_name)-1);
+      #    }
+      #    ;
+      #
+      #    dt = new DictTable(tablename2id(_tableName));
+      #
+      #    if(!dt)
+      #        throw error('Table name is incorrect');
+      #
+      #
+      #    di = new DictIndex(dt.id() , dt.indexName2Id(_indexName));
+      #    if(! di)
+      #        throw error('Incorrect index');
+      #
+      #    methodText = strfmt('public static %1 find(',  dt.name());
+      #    indent     = strrep(' ', strlen(methodText));
+      #    varName    = prettyName(dt.name());
+      #
+      #
+      #    // find longest type name
+      #    longestTypeLength = strlen('boolean');
+      #    //longestNameLength = strlen('_forUpdate');
+      #    for(i = 1; i <= di.numberOfFields(); ++i)
+      #    {
+      #        df = new DictField(dt.id(), di.field(i));
+      #        longestTypeLength = max(longestTypeLength, strlen(strTypeOf(df)));
+      #        longestNameLength = max(longestNameLength, strlen(df.name()));
+      #    }
+      #
+      #
+      #    // build args and mandatory fields list
+      #    for(i = 1; i <= di.numberOfFields(); ++i)
+      #    {
+      #        fieldId = di.field(i);
+      #        df = new DictField(dt.id(), fieldId);
+      #        if(df.flags() & #DBF_MANDATORY == #DBF_MANDATORY
+      #         || di.name() == 'RecId')
+      #        {
+      #            if(mandatoryFields)
+      #            {
+      #                mandatoryFields += ' && ';
+      #            }
+      #            mandatoryFields += '_' + prettyName(df.name());
+      #        }
+      #
+      #        if(i != 1)
+      #        {
+      #            methodText += strfmt(',\n%1', indent);
+      #        }
+      #
+      #        methodText += strfmt('%1 _%2', strTypeOf(df, longestTypeLength), prettyName(df.name()));
+      #    }
+      #
+      #    //build method header
+      #    methodText += strfmt(',\n%1boolean%2_forUpdate = false)\n{\n', indent, strrep(' ', 1+longestTypeLength - strlen('boolean')));
+      #    indent = '    ';
+      #    methodText += indent + dt.name() + ' ' + varName + ';\n';
+      #    methodText += indent + '\n';
+      #
+      #    //check for mandatory fields
+      #    if(mandatoryFields)
+      #    {
+      #        methodText += indent + 'if (' + mandatoryFields + ')\n';
+      #        methodText += indent + '{\n';
+      #        indent += '    ';
+      #    }
+      #
+      #    //selectForUpdate
+      #    methodText += indent + varName+'.selectForUpdate(_forUpdate);\n\n';
+      #
+      #    //build select query
+      #    methodText += indent + 'select firstonly ' + varname + '\n';
+      #    methodText += indent + '    where ';
+      #    for(i = 1; i <= di.numberOfFields(); ++i)
+      #    {
+      #        df = new DictField(dt.id(), di.field(i));
+      #        if(i != 1)
+      #        {
+      #            methodText += '\n' + indent + '       && ';
+      #        }
+      #        methodText += varName + '.' + df.name() + strrep(' ', longestNameLength - strlen(df.name())) + ' == _' + prettyName(df.name());
+      #    }
+      #    methodText += ';\n';
+      #
+      #    //footer
+      #    if(mandatoryFields)
+      #    {
+      #        indent = substr(indent, 1, strlen(indent) - 4);
+      #        methodText += indent + '}\n';
+      #    }
+      #    methodText += '\n';
+      #    methodText += indent + 'return '+varName+';\n';
+      #
+      #    methodText += '}';
+      #    return methodText;
+      #}
+    ENDSOURCE
+    SOURCE #unpack
+      #public boolean unpack(container packedClass)
+      #{
+      #    Version     version     = runbase::getVersion(packedClass);
+      #    //container   fmtRecord;
+      #    ;
+      #
+      #    switch (version)
+      #    {
+      #        case #CurrentVersion:
+      #            //[version, #CurrentList, fmtRecord] = packedClass;
+      #            [version, #CurrentList] = packedClass;
+      #            break;
+      #        default:
+      #            return false;
+      #    }
+      #    /*
+      #    while (conlen(fmtRecord))
+      #    {
+      #        devRunBaseBuilderVars.clear();
+      #        con2buf(conpeek(fmtRecord, 1), devRunBaseBuilderVars);
+      #        devRunBaseBuilderVars.insert();
+      #
+      #        fmtRecord = condel(fmtRecord, 1, 1);
+      #    }
+      #    */
+      #    return true;
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #DEVTableBuilderVars
+          Table               #DEVTableBuilderVars
+          Index               #LineNumIdx
+          CounterField        #LineNum
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Caption             #Table builder
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup1
+          Left                #Auto (right)
+          ElementPosition     #1431655764
+          HierarchyParent     #ButtonGroup
+          ArrangeWhen         #Auto
+          ArrangeMethod       #Horizontal, flush right
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1431655764
+          HierarchyParent     #Group
+          DataSource          #DEVTableBuilderVars
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ButtonGroup
+          Left                #Auto (right)
+          ElementPosition     #1610612733
+          ArrangeMethod       #Horizontal, flush right
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #FormParametersGroup
+          ElementPosition     #1610612733
+          HierarchyParent     #Group1
+          Caption             #Form
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GridGroup
+          ElementPosition     #1431655764
+          HierarchyParent     #Grid
+          BackgroundColor     #Window background
+          DataSource          #DEVTableBuilderVars
+          DataGroup           #GridGroup
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Group
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612733
+          HierarchyParent     #GroupVarList
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Group1
+          ElementPosition     #536870911
+          FrameType           #None
+          Columns             #3
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GroupProperties
+          ElementPosition     #1610612733
+          HierarchyParent     #VariableGroup
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #GroupVarList
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #VariableGroup
+          FrameType           #None
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #MoveButtos
+          ElementPosition     #1073741822
+          HierarchyParent     #GroupVarList
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #ParametersGroup
+          ElementPosition     #1073741822
+          HierarchyParent     #Group1
+          Caption             #Table
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #PropertiesGroup
+          ElementPosition     #1431655764
+          HierarchyParent     #GroupProperties
+          DataSource          #DEVTableBuilderVars
+          DataGroup           #PropertiesGroup
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #VariableGroup
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741822
+          Caption             #Variables
+          Columns             #2
+          ArrangeGuide        
+            ARRAY INDEX Columns 
+              #0
+              #0
+            ENDARRAY
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #ButtonUp
+          ElementPosition     #1073741822
+          HierarchyParent     #MoveButtos
+          Text                #@SYS35112
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    DEVTableBuilderVars save = DEVTableBuilderVars.moveUp(DEVTableBuilderVars);
+            #    ;
+            #
+            #    super();
+            #
+            #    if (save)
+            #    {
+            #        DEVTableBuilderVars_ds.research();
+            #        DEVTableBuilderVars_ds.findRecord(save);
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #DownButton
+          ElementPosition     #1610612733
+          HierarchyParent     #MoveButtos
+          Text                #@SYS35113
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    DEVTableBuilderVars cur = DEVTableBuilderVars.moveDown(DEVTableBuilderVars);
+            #    ;
+            #
+            #    super();
+            #
+            #    if (cur)
+            #    {
+            #        DEVTableBuilderVars_ds.research();
+            #        DEVTableBuilderVars_ds.findRecord(cur);
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #editisCreateForm
+          ElementPosition     #715827882
+          HierarchyParent     #FormParametersGroup
+          Label               #Is create form
+          DataMethod          #editisCreateForm
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL CHECKBOX
+        PROPERTIES
+          Name                #editisCreateTable
+          ElementPosition     #715827882
+          HierarchyParent     #ParametersGroup
+          Label               #Is create table
+          DataMethod          #editisCreateTable
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMMANDBUTTON
+        PROPERTIES
+          Name                #CommandButtonCancel
+          ElementPosition     #1610612733
+          HierarchyParent     #ButtonGroup1
+          Command             #264
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMMANDBUTTON
+        PROPERTIES
+          Name                #CommandButtonOK
+          ElementPosition     #1073741822
+          HierarchyParent     #ButtonGroup1
+          Command             #263
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #editformHelp
+          ElementPosition     #1789569705
+          HierarchyParent     #FormParametersGroup
+          Label               #Form help
+          DataMethod          #editformHelp
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #editformLabel
+          ElementPosition     #1431655764
+          HierarchyParent     #FormParametersGroup
+          Label               #Form label
+          DataMethod          #editformLabel
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #editformName
+          ElementPosition     #1073741823
+          HierarchyParent     #FormParametersGroup
+          Label               #Form name
+          DataMethod          #editformName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #edittableLabel
+          ElementPosition     #1431655764
+          HierarchyParent     #ParametersGroup
+          Label               #Table Label
+          DataMethod          #edittableLabel
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #edittableName
+          ElementPosition     #1073741823
+          HierarchyParent     #ParametersGroup
+          Label               #Table Name
+          DataMethod          #edittableName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #edittableVarName
+          ElementPosition     #1789569705
+          HierarchyParent     #ParametersGroup
+          Label               #Table Var Name
+          DataMethod          #edittableVarName
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

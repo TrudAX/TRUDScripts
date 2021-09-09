@@ -1,0 +1,37 @@
+static void trud_runReportDetPos(Args _args)
+{
+    /*
+    DEVDetailedPositioningDP                 dataProvider = new DEVDetailedPositioningDP();
+    //DEVSpreadPositionRepContract            contract ;
+    Object                                  contract;
+    Query                                   query;
+    SrsReportRunController reportRunController;
+    args        args = new args();
+
+    SrsReportDataContract  reportDataContract;
+    Map             map;
+    MapEnumerator   mapEnumerator;
+    ;
+
+
+    reportRunController = new SrsReportRunController();
+    reportRunController.parmArgs(args);
+    reportRunController.parmReportName('DEVDetailedPositioningSRS.PrecisionDesign1');
+    reportDataContract =     reportRunController.parmReportContract();
+
+    map = reportDataContract.parmQueryContracts();
+    if (map)
+    {
+        mapEnumerator = map.getEnumerator();
+        if (mapEnumerator.moveNext())
+        {
+            query = mapEnumerator.currentValue();
+            dataProvider.parmQuery(query);
+        }
+    }
+    contract = reportDataContract.parmRdpContract();
+    dataProvider.parmDataContract(contract);
+    dataProvider.processReport();
+*/
+
+}

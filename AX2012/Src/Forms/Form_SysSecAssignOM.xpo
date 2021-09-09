@@ -1,0 +1,1261 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #SysSecAssignOM
+  PROPERTIES
+    Name                #SysSecAssignOM
+    Origin              #{64580A58-8267-46F2-9F09-047246CAFCB0}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #    #resAppl
+      #    #SysSecUI
+      #    #define.GRAY_TEXT(13160660)
+      #    #SysSecEntryPointManager
+      #    SysFormSplitter_Y           _formSplitterY;
+      #    int                         treeGroupBackgroundColor;
+      #    Caption                     formCaption;
+      #    Name                        allCompaniesHierarchyName;
+      #    RefRecId                    hierarchyId;
+      #    boolean                     isReadOnlyMode;
+      #}
+    ENDSOURCE
+    SOURCE #addOrganization
+      #public void addOrganization(boolean _withChildren)
+      #{
+      #    SysSecOrganizationsTmp orgTmp;
+      #    FormTreeItem item;
+      #    TreeItemIdx idx = organizationTree.getFirstSelected();
+      #    RefRecId organizationId;
+      #    Map inMemOrgs;
+      #
+      #    if (!idx)
+      #        return;
+      #
+      #    item = organizationTree.getItem(idx);
+      #    organizationId = item.data();
+      #
+      #    orgTmp = SysSecOrganizationsTmp;
+      #    // BP Deviation documented
+      #    orgTmp.setTmp();
+      #    orgTmp.OMInternalOrganization = organizationId;
+      #    orgTmp.omHierarchyType = (_withChildren) ? hierarchyId : 0;
+      #    orgTmp.insert();
+      #
+      #    //Store org in GOC
+      #    if(infolog.globalCache().isSet(curUserId() + #AssignOMOwnerKey, #AssignOMKey))
+      #    {
+      #        inMemOrgs = infolog.globalCache().get(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+      #    }
+      #    else
+      #    {
+      #        inMemOrgs = new Map(Types::Int64, Types::Int64);
+      #    }
+      #    if(inMemOrgs && !inMemOrgs.exists(organizationId))
+      #    {
+      #        inMemOrgs.insert(organizationId, orgTmp.omHierarchyType);
+      #        infolog.globalCache().remove(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+      #        infolog.globalCache().set(curUserId() + #AssignOMOwnerKey, #AssignOMKey, inMemOrgs);
+      #    }
+      #
+      #    // BP Deviation documented
+      #    SysSecOrganizationsTmp.setTmp();
+      #    SysSecOrganizationsTmp.setTmpData(orgTmp);
+      #    SysSecOrganizationsTmp_ds.executeQuery();
+      #    element.enableButtons();
+      #}
+    ENDSOURCE
+    SOURCE #buildHierarchyList
+      #private void buildHierarchyList()
+      #{
+      #    OMHierarchyType     hierarchy;
+      #    OMHierarchyPurpose  purpose;
+      #
+      #    allCompaniesHierarchyName = strFmt("@SYS332628");
+      #    hierarchyCombo.clear();
+      #    hierarchyCombo.add(allCompaniesHierarchyName);
+      #
+      #    while select Name from hierarchy exists join purpose
+      #        where purpose.HierarchyPurpose == HierarchyPurpose::Security && purpose.HierarchyType == hierarchy.RecId
+      #    {
+      #        hierarchyCombo.add(hierarchy.Name);
+      #    }
+      #}
+    ENDSOURCE
+    SOURCE #canClose
+      #public boolean canClose()
+      #{
+      #    OrganizationAccess selection = grantAccessRadioButton.selection();
+      #    boolean ret = super();
+      #    Map inMemOrg = new Map(Types::Int64, Types::Int64);
+      #    if (ret)
+      #    {
+      #        if (selection == OrganizationAccess::Organization)
+      #        {
+      #            if(infolog.globalCache().isSet(curUserId() + #AssignOMOwnerKey, #AssignOMKey))
+      #            {
+      #                inMemOrg = infolog.globalCache().get(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+      #            }
+      #            if(inMemOrg.elements() == 0)
+      #            {
+      #                ret = (Box::yesNo(strFmt("@SYS332627", strFmt("@SYS332626")), DialogButton::No) == DialogButton::Yes);
+      #            }
+      #        }
+      #    }
+      #
+      #    return ret;
+      #}
+    ENDSOURCE
+    SOURCE #enableButtons
+      #public void enableButtons()
+      #{
+      #    TreeItemIdx idx;
+      #    FormTreeItem item;
+      #    RefRecId recId =  0;
+      #    boolean enableGrantWithChildren;
+      #    boolean enableGrant;
+      #    boolean enableRevoke;
+      #
+      #    if (isReadOnlyMode || !buttons.enabled())
+      #        return;
+      #
+      #    idx = organizationTree.getFirstSelected();
+      #    item = (idx) ? organizationTree.getItem(idx) : null;
+      #    enableRevoke = (SysSecOrganizationsTmp.RecId != 0);
+      #
+      #    enableGrant = (item != null);
+      #    if (enableGrant)
+      #    {
+      #        recId = item.data();
+      #        enableGrant = !element.IsOrganizationAdded(recId);
+      #    }
+      #
+      #    enableGrantWithChildren = enableGrant && (hierarchyId != 0) ;
+      #
+      #    grantWithChildren.enabled(enableGrantWithChildren);
+      #    grant.enabled(enableGrant);
+      #    revoke.enabled(enableRevoke);
+      #}
+    ENDSOURCE
+    SOURCE #enableTreeGroup
+      #public void enableTreeGroup(boolean _enable)
+      #{
+      #    grantAccessRadioButton.enabled(!isReadOnlyMode);
+      #    grantAccessRadioButton.allowEdit(!isReadOnlyMode);
+      #
+      #    if (_enable)
+      #    {
+      #        hierarchyCombo.enabled(!isReadOnlyMode);
+      #        organizationTree.enabled(!isReadOnlyMode);
+      #        organizationTree.backgroundColor(isReadOnlyMode ? #GRAY_TEXT : treeGroupBackgroundColor);
+      #        grid.enabled(!isReadOnlyMode);
+      #        buttons.enabled(!isReadOnlyMode);
+      #    }
+      #    else
+      #    {
+      #        hierarchyCombo.enabled(false);
+      #        organizationTree.enabled(false);
+      #        organizationTree.backgroundColor(#GRAY_TEXT);
+      #        grid.enabled(false);
+      #        buttons.enabled(false);
+      #    }
+      #    element.enableButtons();
+      #}
+    ENDSOURCE
+    SOURCE #fillTree
+      #public void fillTree()
+      #{
+      #    CompanyInfo ci;
+      #    OMHierarchyRelationship relationship;
+      #    OMInternalOrganization  organization;
+      #    boolean hasChildren;
+      #
+      #    organizationTree.lockWindowUpdate(true);
+      #    organizationTree.deleteAll();
+      #
+      #    if (!hierarchyId)
+      #    {
+      #        while select Name, RecId from ci
+      #        {
+      #            SysFormTreeControl::addTreeItem(
+      #                organizationTree,
+      #                ci.Name,
+      #                FormTreeAdd::Root,
+      #                ci.RecId,
+      #                element.getImage(ci.RecId),
+      #                false);
+      #        }
+      #    }
+      #    else
+      #    {
+      #        while select ChildOrganization from relationship
+      #            where relationship.ParentOrganization == 0 && relationship.HierarchyType == hierarchyId
+      #            join Name from organization where organization.RecId == relationship.ChildOrganization
+      #        {
+      #            hasChildren = ((select firstonly omHierarchyRelationship
+      #                            where omHierarchyRelationship.ParentOrganization == relationship.ChildOrganization &&
+      #                                omHierarchyRelationship.HierarchyType == hierarchyId).RecId != 0);
+      #            SysFormTreeControl::addTreeItem(
+      #                organizationTree,
+      #                organization.Name,
+      #                FormTreeAdd::Root,
+      #                relationship.ChildOrganization,
+      #                element.getImage(relationship.ChildOrganization),
+      #                hasChildren);
+      #        }
+      #    }
+      #    organizationTree.lockWindowUpdate(false);
+      #}
+    ENDSOURCE
+    SOURCE #getImage
+      #public ImageRes getImage(RefRecId _recId)
+      #{
+      #    ImageListAppl_Aot           imageList_Security = SysSecHelper::getImageListForAdminUIs();
+      #    CompanyInfo company;
+      #    OMOperatingUnit operatingUnit;
+      #    int nodeType = 0, imageID = 0;
+      #
+      #    select firstonly RecId from company where company.RecId == _recId;
+      #    if (company)
+      #    {
+      #        nodeType =  OMHierarchyDesigner::toNodeTypeId([OMInternalOrganizationType::LegalEntity, OMOperatingUnitType::None]);
+      #    }
+      #    else
+      #    {
+      #        select firstonly RecId, omOperatingUnitType from operatingUnit where operatingUnit.RecId == _recId;
+      #        if (operatingUnit)
+      #        {
+      #            nodeType = OMHierarchyDesigner::toNodeTypeId([OMInternalOrganizationType::OperatingUnit, operatingUnit.omOperatingUnitType]);
+      #        }
+      #    }
+      #
+      #    if (nodeType > 0)
+      #    {
+      #        imageID = OMHierDesignExtClass::getNodeTypeImageID(nodeType);
+      #        if (imageID > 0)
+      #        {
+      #            return imageList_Security.image(imageID);
+      #        }
+      #    }
+      #    return 0;
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    OMInternalOrganizationTmpType       internalOrganizationTmpType;
+      #    ImageListAppl_Aot           imageList_Security;
+      #
+      #    internalOrganizationTmpType         = OMInternalOrganizationTmpType::insertInternalOrganizationTypes(true);
+      #    formCaption = strFmt("@SDT138");
+      #
+      #    super();
+      #
+      #    _formSplitterY = new SysFormSplitter_Y(YSplitter, organizationTree, this);
+      #
+      #    // null out the record so it does not affect the caption
+      #    this.args().record(null);
+      #    element.design().caption(formCaption);
+      #
+      #    radioGroup.caption("@SDT179");
+      #
+      #    treeGroupBackgroundColor = organizationTree.backgroundColor();
+      #    imageList_Security = SysSecHelper::getImageListForAdminUIs();
+      #
+      #    while select * from internalOrganizationTmpType
+      #    {
+      #        imageList_Security.add(OMHierDesignExtClass::getNodeTypeImageID(OMHierarchyDesigner::toNodeTypeId(
+      #            [OMInternalOrganizationType::OperatingUnit,internalOrganizationTmpType.OperatingUnitType])));
+      #    }
+      #
+      #    imageList_Security.add(OMHierDesignExtClass::getNodeTypeImageID(OMHierarchyDesigner::toNodeTypeId(
+      #        [OMInternalOrganizationType::LegalEntity,OMOperatingUnitType::None])));
+      #    organizationTree.setImagelist(imageList_Security.imageList());
+      #
+      #
+      #}
+    ENDSOURCE
+    SOURCE #IsOrganizationAdded
+      #public boolean IsOrganizationAdded(RecId _orgId)
+      #{
+      #    Map inMemOrgs;
+      #    MapEnumerator mapEnumerator;
+      #    boolean retValue = false;
+      #    if(infolog.globalCache().isSet(curUserId() + #AssignOMOwnerKey, #AssignOMKey))
+      #    {
+      #        inMemOrgs = infolog.globalCache().get(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+      #        if(inMemOrgs != null)
+      #        {
+      #            mapEnumerator = inMemOrgs.getEnumerator();
+      #            while(mapEnumerator.moveNext())
+      #            {
+      #                if(mapEnumerator.currentKey() == _orgId)
+      #                    return true;
+      #            }
+      #        }
+      #    }
+      #
+      #    return retValue;
+      #}
+    ENDSOURCE
+    SOURCE #refreshForm
+      #private void refreshForm()
+      #{
+      #    this.buildHierarchyList();
+      #    SysSecOrganizationsTmp_ds.executeQuery();
+      #    organizationTree.lockWindowUpdate(true);
+      #    element.enableTreeGroup(false);
+      #    grantAccessRadioButton.setInitialValue();
+      #    this.fillTree();
+      #    organizationTree.lockWindowUpdate(false);
+      #}
+    ENDSOURCE
+    SOURCE #run
+      #public void run()
+      #{
+      #    Map                         inMemOrgs;
+      #    MapEnumerator               mapEnumerator;
+      #    SysSecOrganizationsTmp      orgTmp;
+      #
+      #    super();
+      #
+      #    // get current org assignments from GOC
+      #    if(infolog.globalCache().isSet(curUserId() + #AssignOMOwnerKey, #AssignOMKey))
+      #    {
+      #        inMemOrgs = infolog.globalCache().get(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+      #        if(inMemOrgs != null)
+      #        {
+      #            mapEnumerator = inMemOrgs.getEnumerator();
+      #            orgTmp = SysSecOrganizationsTmp;
+      #
+      #            while(mapEnumerator.moveNext())
+      #            {
+      #                orgTmp.OMInternalOrganization = mapEnumerator.currentKey();
+      #                orgTmp.omHierarchyType = mapEnumerator.currentValue();
+      #                orgTmp.insert();
+      #            }
+      #        }
+      #    }
+      #
+      #    // BP Deviation documented
+      #    SysSecOrganizationsTmp.setTmp();
+      #    SysSecOrganizationsTmp.setTmpData(orgTmp);
+      #    SysSecOrganizationsTmp_ds.executeQuery();
+      #
+      #    this.refreshForm();
+      #
+      #}
+    ENDSOURCE
+    SOURCE #setReadOnlyMode
+      #private void setReadOnlyMode()
+      #{
+      #    isReadOnlyMode = true;
+      #}
+    ENDSOURCE
+    SOURCE #task
+      #public int task(int _taskId)
+      #{
+      #    #task
+      #
+      #    switch (_taskId)
+      #    {
+      #        case #taskNew:
+      #            return true;
+      #
+      #        case #taskDeleteRecord:
+      #            return true;
+      #
+      #        case #taskF5:
+      #            element.refreshForm();
+      #            break;
+      #    }
+      #
+      #    return super(_taskId);
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #SysSecOrganizationsTmp
+          Table               #SysSecOrganizationsTmp
+          AllowCreate         #No
+          AllowDelete         #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #organizationId
+          #//BP Deviation documented
+          #public display OMOperatingUnitNumber organizationId(SysSecOrganizationsTmp _org)
+          #{
+          #    CompanyInfo company;
+          #    OMOperatingUnit operatingUnit;
+          #
+          #    select firstonly RecId, DataArea from company where company.RecId == _org.omInternalOrganization;
+          #    if (company)
+          #        return company.DataArea;
+          #
+          #    select firstonly RecId, omOperatingUnitNumber from operatingUnit where operatingUnit.RecId == _org.omInternalOrganization;
+          #    if (operatingUnit)
+          #        return operatingUnit.omOperatingUnitNumber;
+          #
+          #    return '';
+          #}
+        ENDSOURCE
+        SOURCE #internalOrganizationType
+          #//BP Deviation documented
+          #public display OMInternalOrganizationType internalOrganizationType(SysSecOrganizationsTmp _org)
+          #{
+          #    CompanyInfo company;
+          #    OMOperatingUnit operatingUnit;
+          #
+          #    select firstonly RecId from company where company.RecId == _org.omInternalOrganization;
+          #    if (company)
+          #        return OMInternalOrganizationType::LegalEntity;
+          #
+          #    select firstonly RecId, omOperatingUnitType from operatingUnit where operatingUnit.RecId == _org.omInternalOrganization;
+          #    if (operatingUnit)
+          #    {
+          #        return OMInternalOrganizationType::OperatingUnit;
+          #    }
+          #    return 0;
+          #}
+        ENDSOURCE
+        SOURCE #operatingUnitType
+          #//BP Deviation documented
+          #public display OMOperatingUnitType operatingUnitType(SysSecOrganizationsTmp _org)
+          #{
+          #    OMOperatingUnit operatingUnit;
+          #
+          #    select firstonly RecId, omOperatingUnitType from operatingUnit where operatingUnit.RecId == _org.omInternalOrganization;
+          #    if (operatingUnit)
+          #    {
+          #        return operatingUnit.omOperatingUnitType;
+          #    }
+          #
+          #    return OMOperatingUnitType::None;
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Caption             #@SDT138
+      SetCompany          #No
+      Mode                #Delete
+      ViewEditMode        #Edit
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL ACTIONPANE
+        PROPERTIES
+          Name                #ActionPane
+          ElementPosition     #1073741822
+          HierarchyParent     #Group
+          Style               #Strip
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL ACTIONPANETAB
+        PROPERTIES
+          Name                #ActionPaneTab
+          ElementPosition     #1431655764
+          HierarchyParent     #ActionPane
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #buttons
+          AutoDeclaration     #Yes
+          ElementPosition     #1431655764
+          HierarchyParent     #ActionPaneTab
+          FrameType           #None
+          Caption             #@SYS332622
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          HelpText            #@SYS332622
+          ElementPosition     #1610612733
+          HierarchyParent     #Group
+          MultiSelect         #No
+          ShowRowLabels       #No
+          DataSource          #SysSecOrganizationsTmp
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #launchHierarchyDesigner
+            #public void launchHierarchyDesigner()
+            #{
+            #    OMHierarchyType type;
+            #
+            #    if (SysSecOrganizationsTmp.omHierarchyType)
+            #    {
+            #        select * from type where type.RecId == SysSecOrganizationsTmp.omHierarchyType;
+            #        OMMultipleHierarchy::displayHierarchyDesigner([[type.Name, SysSecOrganizationsTmp.omInternalOrganization], 0]);
+            #    }
+            #}
+          ENDSOURCE
+          SOURCE #mouseDblClick
+            #public int mouseDblClick(int _x, int _y, int _button, boolean _ctrl, boolean _shift)
+            #{
+            #    this.launchHierarchyDesigner();
+            #    return true;
+            #}
+          ENDSOURCE
+          SOURCE #showContextMenu
+            #public int showContextMenu(int _menuHandle)
+            #{
+            #    int hWnd = this.hWnd();
+            #    int selection = 0;
+            #    int selRevoke, selViewHierarchy;
+            #    PopupMenu popupMenu = new PopupMenu(hWnd); // ignore _menuHandle
+            #
+            #    popupMenu.insertBreak();
+            #    selRevoke = popupMenu.insertItem(revoke.text(), false, !revoke.enabled());
+            #    selViewHierarchy = popupMenu.insertItem("@SYS316763", false,  !revoke.enabled());
+            #    popupMenu.insertBreak();
+            #
+            #    selection  = popupMenu.draw();
+            #
+            #    switch (selection)
+            #    {
+            #        case selRevoke:
+            #            revoke.clicked();
+            #            break;
+            #
+            #        case selViewHierarchy:
+            #        grid.launchHierarchyDesigner();
+            #            break;
+            #    }
+            #
+            #    return 0;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #Group
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1789569705
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #mainGroup
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #715827882
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #radioGroup
+          AutoDeclaration     #Yes
+          Width               #Column width
+          ElementPosition     #357913941
+          Caption             #@SYS332646
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL GROUP
+        PROPERTIES
+          Name                #YSplitter
+          AutoDeclaration     #Yes
+          Width               #Column width
+          Height              #5
+          ElementPosition     #1431655764
+          FrameType           #Raised 3D
+          BackgroundColor     #Window background
+          HideIfEmpty         #No
+          AlignChild          #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #mouseDown
+            #int mouseDown(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterY.mouseDown(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseMove
+            #int mouseMove(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterY.mouseMove(x,y,button,ctrl,shift);
+            #}
+          ENDSOURCE
+          SOURCE #mouseUp
+            #int mouseUp(int x, int y, int button, boolean ctrl, boolean shift)
+            #{
+            #    int ret;
+            #
+            #    ret = super(x, y, button, ctrl, shift);
+            #
+            #    return _formSplitterY.mouseUp(x, y, button, ctrl, shift);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL REFERENCEGROUP
+        PROPERTIES
+          Name                #OMHierarchyType
+          AllowEdit           #No
+          HelpText            #@SYS304850
+          ElementPosition     #1789569705
+          HierarchyParent     #Grid
+          DataSource          #SysSecOrganizationsTmp
+          ReferenceField      #OMHierarchyType
+          Label               #@SYS40878
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #showContextMenu
+            #public int showContextMenu(int _menuHandle)
+            #{
+            #    int ret;
+            #
+            #    ret = grid.showContextMenu(_menuHandle);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL REFERENCEGROUP
+        PROPERTIES
+          Name                #OMInternalOrganization
+          AllowEdit           #No
+          HelpText            #@SYS332637
+          ElementPosition     #1118481064
+          HierarchyParent     #Grid
+          DataSource          #SysSecOrganizationsTmp
+          ReferenceField      #OMInternalOrganization
+          Label               #@SYS191131
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #showContextMenu
+            #public int showContextMenu(int _menuHandle)
+            #{
+            #    int ret;
+            #
+            #    ret = grid.showContextMenu(_menuHandle);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #grant
+          AutoDeclaration     #Yes
+          Height              #Column height
+          HelpText            #@SYS332631
+          ElementPosition     #1288490187
+          HierarchyParent     #buttons
+          Text                #@SYS332632
+          Bold                #Semibold
+          Border              #3D
+          MultiSelect         #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    element.addOrganization(false);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #grantWithChildren
+          AutoDeclaration     #Yes
+          Height              #Column height
+          HelpText            #@SYS332629
+          ElementPosition     #858993458
+          HierarchyParent     #buttons
+          Text                #@SYS332630
+          Border              #3D
+          MultiSelect         #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    element.addOrganization(true);
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL BUTTON
+        PROPERTIES
+          Name                #revoke
+          AutoDeclaration     #Yes
+          Height              #Column height
+          HelpText            #@SYS332633
+          ElementPosition     #1717986916
+          HierarchyParent     #buttons
+          Text                #@SYS332634
+          Bold                #Semibold
+          Border              #3D
+          MultiSelect         #No
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #clicked
+            #void clicked()
+            #{
+            #    Map inMemOrgs;
+            #
+            #    if (SysSecOrganizationsTmp)
+            #    {
+            #        //Update GOC
+            #        if(infolog.globalCache().isSet(curUserId() + #AssignOMOwnerKey, #AssignOMKey))
+            #        {
+            #            inMemOrgs = infolog.globalCache().get(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+            #            if(inMemOrgs && inMemOrgs.exists(SysSecOrganizationsTmp.OMInternalOrganization))
+            #            {
+            #                inMemOrgs.remove(SysSecOrganizationsTmp.OMInternalOrganization);
+            #                infolog.globalCache().remove(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+            #                infolog.globalCache().set(curUserId() + #AssignOMOwnerKey, #AssignOMKey, inMemOrgs);
+            #            }
+            #        }
+            #
+            #        ttsbegin;
+            #        SysSecOrganizationsTmp.delete();
+            #        ttscommit;
+            #
+            #        SysSecOrganizationsTmp_ds.executeQuery();
+            #        element.enableButtons();
+            #    }
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #hierarchyCombo
+          AutoDeclaration     #Yes
+          Height              #Column height
+          ElementPosition     #1073741822
+          HierarchyParent     #mainGroup
+          Label               #@SYS135925
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #selectionChange
+            #public int selectionChange()
+            #{
+            #    int ret;
+            #    Name name = this.valueStr();
+            #    OMHierarchyType hierarchy;
+            #
+            #    ret = super();
+            #
+            #    if (name == allCompaniesHierarchyName)
+            #    {
+            #        hierarchyId = 0;
+            #    }
+            #    else
+            #    {
+            #        select firstonly RecId from hierarchy where hierarchy.Name == name;
+            #        hierarchyId = hierarchy.RecId;
+            #    }
+            #    element.fillTree();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #internalOrganizationType
+          AllowEdit           #No
+          ElementPosition     #536870910
+          HierarchyParent     #Grid
+          DataSource          #SysSecOrganizationsTmp
+          DataMethod          #internalOrganizationType
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #showContextMenu
+            #public int showContextMenu(int _menuHandle)
+            #{
+            #    int ret;
+            #
+            #    ret = grid.showContextMenu(_menuHandle);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #operatingUnitType
+          AllowEdit           #No
+          ElementPosition     #805306365
+          HierarchyParent     #Grid
+          DataSource          #SysSecOrganizationsTmp
+          DataMethod          #operatingUnitType
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #showContextMenu
+            #public int showContextMenu(int _menuHandle)
+            #{
+            #    int ret;
+            #
+            #    ret = grid.showContextMenu(_menuHandle);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL RADIOBUTTON
+        PROPERTIES
+          Name                #grantAccessRadioButton
+          AutoDeclaration     #Yes
+          ElementPosition     #1431655764
+          HierarchyParent     #radioGroup
+          BackgroundColor     #Dyn Background white
+          EnumType            #OrganizationAccess
+          FrameType           #None
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    boolean                 ret;
+            #    OrganizationAccess      selection = this.selection();
+            #
+            #    organizationTree.lockWindowUpdate(true);
+            #
+            #    ret = super();
+            #    if (ret)
+            #    {
+            #        if (selection == OrganizationAccess::All)
+            #        {
+            #            // delete exisiting organizations
+            #            infolog.globalCache().remove(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+            #            //Only in memory is deleted
+            #            delete_from SysSecOrganizationsTmp;
+            #            SysSecOrganizationsTmp_ds.executeQuery();
+            #        }
+            #
+            #        element.enableTreeGroup(selection == OrganizationAccess::Organization);
+            #    }
+            #
+            #    organizationTree.lockWindowUpdate(false);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+          SOURCE #setInitialValue
+            #public void setInitialValue()
+            #{
+            #    OrganizationAccess selection;
+            #    Map inMemOrg;
+            #
+            #    if(infolog.globalCache().isSet(curUserId() + #AssignOMOwnerKey, #AssignOMKey))
+            #    {
+            #        inMemOrg = infolog.globalCache().get(curUserId() + #AssignOMOwnerKey, #AssignOMKey);
+            #        selection = (inMemOrg.elements()) ? OrganizationAccess::Organization : OrganizationAccess::All;
+            #        grantAccessRadioButton.selection(selection);
+            #        grantAccessRadioButton.update();
+            #        element.enableTreeGroup(selection == OrganizationAccess::Organization);
+            #    }
+            #}
+          ENDSOURCE
+          SOURCE #validate
+            #public boolean validate()
+            #{
+            #    boolean                 ret;
+            #    OrganizationAccess      selection = this.selection();
+            #
+            #    ret = super();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #StaticText
+          VerticalSpacing     #0
+          ElementPosition     #1610612734
+          HierarchyParent     #mainGroup
+          Text                #@SDT180
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #organizationId
+          AllowEdit           #No
+          ElementPosition     #1431655764
+          HierarchyParent     #Grid
+          Label               #@SYS332638
+          DataSource          #SysSecOrganizationsTmp
+          DataMethod          #organizationId
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #showContextMenu
+            #public int showContextMenu(int _menuHandle)
+            #{
+            #    int ret;
+            #
+            #    ret = grid.showContextMenu(_menuHandle);
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TREE
+        PROPERTIES
+          Name                #organizationTree
+          Width               #Column width
+          Height              #150
+          HelpText            #@SYS134309
+          ConfigurationKey    #SysAdmin
+          ElementPosition     #1073741823
+          RowSelect           #Yes
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #endLabelEdit
+            #public void endLabelEdit(int _idx, str _text, anytype _data)
+            #{
+            #/*    FormTreeItem    formTreeItem = this.getItem(_idx);
+            #
+            #    // Data retrieved from SecurityRole table which
+            #    // is TPF protected.
+            #    // BP Deviation Documented
+            #    formTreeItem.text(_text);
+            #    this.setItem(formTreeItem);
+            #*/
+            #    super(_idx, _text, _data);
+            #
+            #}
+          ENDSOURCE
+          SOURCE #expanding
+            #public boolean expanding(int _idx, FormTreeExpand _action, anytype _data)
+            #{
+            #
+            #    FormTreeItem            formTreeItem = this.getItem(_idx);
+            #    OMHierarchyRelationship relationship;
+            #    OMInternalOrganization  organization;
+            #    boolean                 hasChildren;
+            #    RefRecId                parentId;
+            #
+            #    if ((!formTreeItem.stateExpandedOnce()) && (formTreeItem.children()))
+            #    {
+            #        parentId = formTreeItem.data();
+            #
+            #        while select ChildOrganization from relationship
+            #            where relationship.ParentOrganization == parentId && relationship.HierarchyType == hierarchyId
+            #            join Name from organization where organization.RecId == relationship.ChildOrganization
+            #        {
+            #            hasChildren = ((select firstonly omHierarchyRelationship
+            #                            where omHierarchyRelationship.ParentOrganization == relationship.ChildOrganization &&
+            #                                omHierarchyRelationship.HierarchyType == hierarchyId).RecId != 0);
+            #            SysFormTreeControl::addTreeItem(
+            #                organizationTree,
+            #                organization.Name,
+            #                _idx,
+            #                relationship.ChildOrganization,
+            #                element.getImage(relationship.ChildOrganization),
+            #                hasChildren);
+            #        }
+            #    }
+            #
+            #    return false;
+            #}
+            #
+          ENDSOURCE
+          SOURCE #keyDown
+            ##KEYPRESSED
+            #public boolean keyDown(int _vKey, boolean _ctrl, boolean _shift)
+            #{
+            #    boolean ret = false;
+            #
+            #    if ((_vKey == #F5) && !_ctrl && !_shift)
+            #    {
+            #        element.fillTree();
+            #        ret = true;
+            #    }
+            #
+            #    if (!ret)
+            #    {
+            #        ret = super(_vKey, _ctrl, _shift);
+            #    }
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+          SOURCE #replaceIcon
+            #public void replaceIcon(FormTreeItem _item, ImageRes _newIcon)
+            #{
+            #    _item.image(_newIcon);
+            #    _item.selectedImage(_newIcon);
+            #}
+          ENDSOURCE
+          SOURCE #selectionChanged
+            #public void selectionChanged(FormTreeItem _oldItem, FormTreeItem _newItem, FormTreeSelect _how)
+            #{
+            #    super(_oldItem, _newItem, _how);
+            #    element.enableButtons();
+            #}
+          ENDSOURCE
+          SOURCE #showContextMenu
+            #public int showContextMenu(int _menuHandle)
+            #{
+            #    int hWnd = this.hWnd();
+            #    int selection = 0;
+            #    int selGrantWithChildren, selGrant;
+            #    PopupMenu popupMenu = new PopupMenu(hWnd); // ignore _menuHandle
+            #
+            #    popupMenu.insertBreak();
+            #    selGrantWithChildren = popupMenu.insertItem(grantWithChildren.text(), false, !grantWithChildren.enabled());
+            #    selGrant = popupMenu.insertItem(grant.text(), false, !grant.enabled());
+            #    popupMenu.insertBreak();
+            #
+            #    selection  = popupMenu.draw();
+            #
+            #    switch (selection)
+            #    {
+            #        case selGrantWithChildren:
+            #            grantWithChildren.clicked();
+            #            break;
+            #        case selGrant:
+            #            grant.clicked();
+            #            break;
+            #    }
+            #
+            #    return 0;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+      TABLE #OmUserRoleOrganizationTemp
+        PROPERTIES
+          Table               #OmUserRoleOrganizationTemp
+          EffectiveAccess     #Read
+          ManagedBy           #Manual
+        ENDPROPERTIES
+        
+      ENDTABLE
+      
+  ENDTABLES
+  
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+  TABLE #OmUserRoleOrganizationTemp
+    PROPERTIES
+      Table               #OmUserRoleOrganizationTemp
+      EffectiveAccess     #Update
+      ManagedBy           #Manual
+    ENDPROPERTIES
+    
+  ENDTABLE
+  
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+  TABLE #OmUserRoleOrganizationTemp
+    PROPERTIES
+      Table               #OmUserRoleOrganizationTemp
+      EffectiveAccess     #Create
+      ManagedBy           #Manual
+    ENDPROPERTIES
+    
+  ENDTABLE
+  
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+  TABLE #OMUSERROLEORGANIZATION
+    PROPERTIES
+      Table               #OMUSERROLEORGANIZATION
+      EffectiveAccess     #Delete
+      ManagedBy           #Manual
+    ENDPROPERTIES
+    
+  ENDTABLE
+  
+TABLE #OmUserRoleOrganizationTemp
+  PROPERTIES
+    Table               #OmUserRoleOrganizationTemp
+    EffectiveAccess     #Delete
+    ManagedBy           #Manual
+  ENDPROPERTIES
+  
+ENDTABLE
+
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+END

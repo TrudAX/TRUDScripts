@@ -1,0 +1,301 @@
+class DEVMultiBatchTemplate2 extends RunBaseBatch
+{
+    FromDate               fromDate;
+    ToDate                 toDate;
+
+    QueryRun               queryRun;
+
+    DialogField            dlgFromDate;
+    DialogField            dlgToDate;
+
+    NotesLine                   batchIdentifier;
+    BatchHeader                 batchHeader;
+
+    Batchable       finalTask;
+
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        fromDate,
+        toDate,
+        batchIdentifier
+    #endmacro
+
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+
+        dlgFromDate                = dialog.addFieldValue(extendedtypestr(FromDate), fromDate);
+        dlgToDate                  = dialog.addFieldValue(extendedtypestr(ToDate), toDate);
+
+        return dialog;
+    }
+
+
+    public boolean getFromDialog()
+    {
+        ;
+
+        fromDate           = dlgFromDate.value();
+        toDate             = dlgToDate.value();
+
+        return super();
+    }
+
+
+    public void initParmDefault()
+    {
+        ;
+
+        this.initQuery();
+
+        super();
+    }
+
+
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(VendTable));
+        QueryBuildRange         qBR;
+        ;
+
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(VendTable, RecId));
+        qBR.status(RangeStatus::HIDDEN);
+        queryRun = new QueryRun(query);
+    }
+
+
+    public container pack()
+    {
+        ;
+
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+
+    public NotesLine parmBatchIdentifier(NotesLine _batchIdentifier = batchIdentifier)
+    {
+        batchIdentifier = _batchIdentifier;
+
+        return batchIdentifier;
+    }
+
+    public FromDate parmFromDate(FromDate _fromDate = fromDate)
+    {
+        ;
+
+        fromDate = _fromDate;
+
+        return fromDate;
+    }
+
+
+    public ToDate parmToDate(ToDate _toDate = toDate)
+    {
+        ;
+
+        toDate = _toDate;
+
+        return toDate;
+    }
+
+
+    void processTable(VendTable     _vendTable)
+    {
+        ;
+        info(strFmt('Processing %1 for %2. Dates %3 %4',
+                        _vendTable.AccountNum, batchIdentifier, fromDate, toDate));
+
+        sleep(5000);
+
+    }
+
+    protected void processThreadItem(boolean _isLast)
+    {
+        DEVMultiBatchTemplate2        childThread;
+        ;
+        if (! batchIdentifier)
+        {
+            return;
+        }
+
+
+        childThread = RunBase::makeObject(classIdGet(this));
+        childThread.batchInfo().resetBatchHeader();
+        childThread.batchInfo().parmGroupId(this.parmCurrentBatch().GroupId);
+        childThread.batchInfo().parmDataareaId(this.parmCurrentBatch().Company);
+        childThread.batchInfo().parmCaption(childThread.caption() + ' (Helper)');
+        childThread.unpack(this.pack());
+
+        childThread.parmBatchIdentifier(batchIdentifier);
+        if (_isLast)
+        {
+            finalTask = childThread;
+        }
+
+        if (this.isInBatch())
+        {
+            if (! batchHeader)
+            {
+                batchHeader = BatchHeader::construct(this.parmCurrentBatch().BatchJobId);
+            }
+            batchHeader.addRuntimeTask(childThread, this.parmCurrentBatch().ReciD);
+
+            if (! _isLast && finalTask)
+            {
+                batchHeader.addDependency(finalTask, childThread, BatchDependencyStatus::FinishedOrError);
+            }
+
+        }
+        else
+        {
+            if (! _isLast)
+            {
+                childThread.run();
+            }
+        }
+
+    }
+
+    public QueryRun queryRun()
+    {
+        ;
+
+        return queryRun;
+    }
+
+
+    public void run()
+    {
+        int                     processedCounter;
+        QueryBuildDataSource    qBDS;
+        VendTable             vendTable;
+
+        int numTask;
+
+        ;
+        if (batchIdentifier)//child task
+        {
+            if (batchIdentifier == 'TheLast')
+            {
+                info('Last task');
+            }
+            else
+            {
+                ttsBegin;
+
+                select vendTable
+                    where vendTable.AccountNum == batchIdentifier;
+
+                this.processTable(vendTable);
+
+                ttsCommit;
+            }
+
+        }
+        else
+        {
+            batchIdentifier = 'TheLast';
+            this.processThreadItem(true);
+
+            qBDS = queryRun.query().dataSourceTable(tableNum(VendTable));
+
+            this.progressInit(RunBase::getDescription(classIdGet(this)),
+                              SysQuery::countTotal(queryRun),
+                              #AviSearch);
+
+            while (queryRun.next())
+            {
+                vendTable = queryRun.get(tablenum(VendTable));
+                processedCounter++;
+                if (processedCounter > 1000)
+                {
+                    break;
+                }
+                batchIdentifier = strFmt('%1', vendTable.AccountNum);
+
+
+                this.processThreadItem(false);
+
+                progress.incCount();
+
+            }
+            if (finalTask)
+            {
+                if (this.isInBatch())
+                {
+                    batchHeader.save();
+                    info("batch saved");
+                }
+                else
+                {
+                    finalTask.run();
+                }
+            }
+
+        }
+        //info(strfmt("%1 record(s) processed", processedCounter));
+    }
+
+
+    public boolean showQueryValues()
+    {
+        ;
+
+        return true;
+    }
+
+
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+        ;
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList,queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+
+    public static DEVMultiBatchTemplate2 construct()
+    {
+        return new DEVMultiBatchTemplate2();
+    }
+
+    static ClassDescription description()
+    {
+        ;
+
+        return 'DEVMultiBatchTemplate2';
+    }
+
+    public static void main(Args _args)
+    {
+        DEVMultiBatchTemplate2    runObject = DEVMultiBatchTemplate2::construct();
+        ;
+
+        if (runObject.prompt())
+        {
+            runObject.run();
+        }
+    }
+
+}

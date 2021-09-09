@@ -1,0 +1,43 @@
+Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+DBE
+
+; Microsoft Dynamics AX Enumtype : DEVSysDSRefreshAction unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #DEVSysDSRefreshAction
+    PROPERTIES
+      Name                #DEVSysDSRefreshAction
+      UseEnumValue        #Yes
+      Origin              #{7002A47A-47E1-46F9-9338-56DA96F20983}
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #RereadRefresh
+      PROPERTIES
+        Name                #RereadRefresh
+        Label               #RereadRefresh
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #Research
+      PROPERTIES
+        Name                #Research
+        Label               #Research
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #ExecuteQuery
+      PROPERTIES
+        Name                #ExecuteQuery
+        Label               #ExecuteQuery
+        EnumValue           #2
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+END

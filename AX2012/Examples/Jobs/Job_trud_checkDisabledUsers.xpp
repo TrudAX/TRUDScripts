@@ -1,0 +1,35 @@
+static void trud_checkDisabledUsers(Args _args)
+{
+    xAxaptaUserManager axUsrMgr;
+    xAxaptaUserDetails axUsrDet;
+    UserInfo userInfo;
+    UserInfo userInfoUpdate;
+    str userID;
+    str domainName;
+    str userSid;
+    userAccountType accountType;
+
+
+    axUsrMgr = new xAxaptaUserManager();
+    while select userInfo where userInfo.enable == true
+    {
+        userID = userInfo.networkAlias;
+        domainName = userInfo.networkDomain;
+        accountType = userInfo.accountType;
+        try
+        {
+            axUsrDet = axUsrMgr.getSIDFromName(userID, domainName, accountType);
+        }
+        catch(Exception::Error)
+        {
+            ttsBegin;
+            select forUpdate userInfoUpdate
+                where userInfoUpdate.id == userInfo.id;
+
+            info(userInfo.id);
+            //userInfoUpdate.enable = false;
+            //userInfoUpdate.doUpdate();
+            ttsCommit;
+        }
+    }
+}
