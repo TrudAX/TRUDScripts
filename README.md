@@ -48,3 +48,7 @@ https://ax.docentric.com/import-export-container-data-fields-using-d365fo-data-m
 ## D365 F&SCM Custom services
 
 https://zaorfr.hashnode.dev/d365-fo-custom-services
+
+## Sign up for preview subscriptions
+
+https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/dev-tools/sign-up-preview-subscription
