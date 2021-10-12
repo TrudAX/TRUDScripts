@@ -1,0 +1,244 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventSumSummarize unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventSumSummarize
+    Id 56107
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventSumSummarize
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventSumSummarize extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    DataArea        dataArea;
+        #    InventSum           inventSum;
+        #    ;
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #            if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #            {
+        #                inventSum = null;
+        #                select count(RecId) from inventSum
+        #                    where inventSum.Closed    == false &&
+        #                          inventSum.ClosedQty == true;
+        #
+        #                info(strFmt("Company %1. Number of records: %2", curext(), inventSum.RecId));
+        #            }
+        #            else
+        #            {
+        #                inventSum = null;
+        #                select count(RecId) from inventSum
+        #                    where inventSum.Closed    == false &&
+        #                          inventSum.ClosedQty == true;
+        #                if (inventSum.RecId > 1)
+        #                {
+        #                    this.summarize();
+        #                }
+        #            }
+        #        }
+        #    }
+        #
+        #}
+      ENDSOURCE
+      SOURCE #findOrInsertInventSum
+        #protected InventSum findOrInsertInventSum(ItemId _itemId, InventDimId _inventDimId)
+        #{
+        #    InventSum   inventSumFinancial = InventSum::find(_itemId, _inventDimId, true);
+        #
+        #    if (!inventSumFinancial.RecId)
+        #    {
+        #        return this.insertClosedInventSum(_itemId, _inventDimId);
+        #    }
+        #
+        #    return inventSumFinancial;
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventSumSummarize';
+        #}
+      ENDSOURCE
+      SOURCE #hasOpenTransactions
+        #public boolean hasOpenTransactions(InventSum  _inventSum)
+        #{
+        #    return (select firstonly inventTrans
+        #            where inventTrans.InventDimId       == _inventSum.InventDimId
+        #              &&  inventTrans.ItemId            == _inventSum.ItemId
+        #              &&  inventTrans.StatusIssue       != StatusIssue::Sold
+        #              &&  inventTrans.StatusReceipt     != StatusReceipt::Purchased).RecId;
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #    _taskSettings.StepDeleteRecords = 100;
+        #    _taskSettings.StepSelectRecords = 100;
+        #}
+      ENDSOURCE
+      SOURCE #insertClosedInventSum
+        #protected InventSum insertClosedInventSum(ItemId _itemId, InventDimId _inventDimId)
+        #{
+        #    InventSum   newInventSum;
+        #
+        #    newInventSum.initValue();
+        #    newInventSum.ItemId         = _itemId;
+        #    newInventSum.InventDimId    = _inventDimId;
+        #
+        #    newInventSum.insert();
+        #
+        #    return newInventSum;
+        #}
+      ENDSOURCE
+      SOURCE #lookupFinancialInventDim
+        #protected InventDim lookupFinancialInventDim(ItemId    _itemId,
+        #                                             InventDim _origInventDim)
+        #{
+        #    InventDim   inventDimFinancial;
+        #
+        #    inventDimFinancial.copyDimFinancial(inventTable::find(_itemId).DimGroupId, _origInventDim);
+        #    return InventDim::findOrCreate(inventDimFinancial);
+        #}
+        #
+      ENDSOURCE
+      SOURCE #summarize
+        #public void summarize()
+        #{
+        #    InventSum               inventSum;
+        #    InventDim               inventDim;
+        #    QueryRun                queryRun;
+        #    Query                   query;
+        #    SysOperationProgress    progress;
+        #
+        #    int                     summarizedInTransactionScope = 0;
+        #    int                     summarizedTotalCounter = 0;
+        #    QueryBuildDatasource    qBDS;
+        #    QueryBuildRange         qBR;
+        #    TransDate               transDate;
+        #    ;
+        #    transDate = systemDateGet() - cleanupTaskSettings.CleanupDays;
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    query = new Query();
+        #
+        #    qBDS = query.addDataSource(tablenum(InventSum));
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, ClosedQty));
+        #    qBR.value(SysQuery::value(NoYes::Yes));
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, Closed));
+        #    qBR.value(SysQuery::value(NoYes::No));
+        #
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, LastUpdDatePhysical));
+        #    qBR.value(strFmt('..%1', transDate));
+        #
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, LastUpdDateExpected));
+        #    qBR.value(strFmt('..%1', transDate));
+        #
+        #    qBDS = qBDS.addDataSource(tablenum(InventDim));
+        #    qBDS.relations(true);
+        #
+        #    queryRun = new QueryRun(query);
+        #
+        #    while (queryRun.next())
+        #    {
+        #        inventSum = queryRun.get(tableNum(InventSum));
+        #        inventDim = queryRun.get(tableNum(InventDim));
+        #
+        #        if ((appl.ttsLevel()) == 0)
+        #        {
+        #            ttsbegin;
+        #        }
+        #
+        #        if (this.summarizeInventSum(inventSum, inventDim))
+        #        {
+        #            summarizedInTransactionScope++;
+        #        }
+        #
+        #        if (summarizedInTransactionScope >= cleanupTaskSettings.StepDeleteRecords && (appl.ttsLevel() ) == 1)
+        #        {
+        #            ttscommit;
+        #            this.logAddRecords(cleanupTaskSettings, summarizedInTransactionScope);
+        #            summarizedTotalCounter += summarizedInTransactionScope;
+        #
+        #            if (! this.checkContinueLoop(cleanupTaskSettings, summarizedInTransactionScope))
+        #            {
+        #                break;
+        #            }
+        #
+        #            summarizedInTransactionScope = 0;
+        #            ttsbegin;
+        #        }
+        #    }
+        #
+        #    if (appl.ttsLevel() == 1)
+        #    {
+        #        ttscommit;
+        #        summarizedTotalCounter += summarizedInTransactionScope;
+        #    }
+        #    info(strFmt("Company %1. Processed %2 lines", curext(), summarizedTotalCounter));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #summarizeInventSum
+        #protected boolean summarizeInventSum(InventSum _inventSum, InventDim _inventDim)
+        #{
+        #    InventDim     inventDimFinancial;
+        #    InventSum     inventSumFinancial;
+        #
+        #    // aggregate physical & financial value by financial dimensions for non-quantitative records
+        #    inventDimFinancial = this.lookupFinancialInventDim(_inventSum.ItemId, _inventDim);
+        #
+        #    if (InventDim::isInventDimEqual(inventDimFinancial, _inventDim) ||
+        #        !_inventSum.isAllQtyFieldsZero()                            ||
+        #         this.hasOpenTransactions(_inventSum))
+        #    {
+        #        return false;
+        #    }
+        #    _inventSum.selectForUpdate(true);
+        #    _inventSum.skipTTSCheck(true);
+        #    inventSumFinancial = this.findOrInsertInventSum(_inventSum.ItemId, inventDimFinancial.InventDimId);
+        #    this.transferInventSumValue(_inventSum, inventSumFinancial);
+        #
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #transferInventSumValue
+        #protected void transferInventSumValue(InventSum _inventSumFrom, InventSum _inventSumTo)
+        #{
+        #    _inventSumTo.PostedValue            += _inventSumFrom.PostedValue;
+        #    _inventSumTo.PhysicalValue          += _inventSumFrom.PhysicalValue;
+        #
+        #    _inventSumFrom.PostedValue            -= _inventSumFrom.PostedValue;
+        #    _inventSumFrom.PhysicalValue          -= _inventSumFrom.PhysicalValue;
+        #
+        #    _inventSumFrom.update();
+        #    _inventSumTo.update();
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: END
