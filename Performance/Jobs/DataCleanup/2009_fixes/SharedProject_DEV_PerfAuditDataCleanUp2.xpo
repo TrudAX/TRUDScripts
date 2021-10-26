@@ -1,0 +1,3809 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: DBT
+
+; Microsoft Dynamics AX Table : DEV_CleanupTaskSettings unloaded
+; --------------------------------------------------------------------------------
+  TABLEVERSION 1
+  
+  TABLE #DEV_CleanupTaskSettings
+    PROPERTIES
+      Name                #DEV_CleanupTaskSettings
+      Label               #Cleanup settings
+      TitleField1         #CleanupTaskName
+      TitleField2         #Description
+      CacheLookup         #NotInTTS
+      CreateRecIdIndex    #Yes
+      SaveDataPerCompany  #No
+      TableGroup          #Group
+      PrimaryIndex        #CleanupTaskNameIdx
+      ClusterIndex        #CleanupTaskNameIdx
+      ModifiedDateTime    #Yes
+      ModifiedBy          #Yes
+      CreatedDateTime     #Yes
+      CreatedBy           #Yes
+    ENDPROPERTIES
+    
+    FIELDS
+      FIELD #CleanupDays
+        INT
+        PROPERTIES
+          Name                #CleanupDays
+          Label               #Cleanup days
+          HelpText            #Number of days from the current date to keep the data
+          Mandatory           #Yes
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #Days
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #CleanupTaskName
+        STRING
+        PROPERTIES
+          Name                #CleanupTaskName
+          Mandatory           #Yes
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #DEV_CleanUpTaskName
+              #
+            ENDARRAY
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #Description
+        STRING
+        PROPERTIES
+          Name                #Description
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #Description
+              #
+            ENDARRAY
+          StringSize          #60
+        ENDPROPERTIES
+        
+      FIELD #Enabled
+        ENUM
+        PROPERTIES
+          Name                #Enabled
+          HelpText            #Run the task
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #NoYesId
+              #
+            ENDARRAY
+          EnumType            #NoYes
+        ENDPROPERTIES
+        
+      FIELD #LastBeginTime
+        DATETIME
+        PROPERTIES
+          Name                #LastBeginTime
+          Label               #Last start date/time
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #TransDateTime
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #LastEndTime
+        DATETIME
+        PROPERTIES
+          Name                #LastEndTime
+          Label               #Last end date/time
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #TransDateTime
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #LastUpdatedRecords
+        INT
+        PROPERTIES
+          Name                #LastUpdatedRecords
+          Label               #Deleted records
+          HelpText            #Last deleted records
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #PositiveNumber
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #StepDeleteRecords
+        INT
+        PROPERTIES
+          Name                #StepDeleteRecords
+          Label               #Delete records per step
+          HelpText            #Number of records to delete per step(often 1-10k)
+          Mandatory           #Yes
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #PositiveNumber
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #StepSelectRecords
+        INT
+        PROPERTIES
+          Name                #StepSelectRecords
+          Label               #Select records per step
+          HelpText            #Number of records to select per step(often 1m)
+          Mandatory           #Yes
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #PositiveNumber
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #StepLoopMaxCount
+        INT
+        PROPERTIES
+          Name                #StepLoopMaxCount
+          Label               #Max steps (0 - unlimited)
+          HelpText            #Max loop count for delete (0 - unlimited)
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #PositiveNumber
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #LastSelectRows
+        INT
+        PROPERTIES
+          Name                #LastSelectRows
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #PositiveNumber
+              #
+            ENDARRAY
+        ENDPROPERTIES
+        
+      FIELD #ClassName
+        STRING
+        PROPERTIES
+          Name                #ClassName
+          Label               #Class name
+          HelpText            #Class name that performs a cleanup
+          Mandatory           #Yes
+          AllowEditOnCreate   #No
+          AllowEdit           #No
+          Table               #DEV_CleanupTaskSettings
+          ExtendedDataType    
+            ARRAY 
+              #NotesLine
+              #
+            ENDARRAY
+          StringSize          #254
+        ENDPROPERTIES
+        
+    ENDFIELDS
+    GROUPS
+      GROUP #AutoReport
+        PROPERTIES
+          Name                #AutoReport
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #CleanupTaskName
+          #Description
+          #CleanupDays
+          #StepSelectRecords
+          #StepDeleteRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #AutoLookup
+        PROPERTIES
+          Name                #AutoLookup
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #CleanupTaskName
+          #Description
+          #CleanupDays
+          #StepSelectRecords
+          #StepDeleteRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #AdvancedSettings
+        PROPERTIES
+          Name                #AdvancedSettings
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #StepSelectRecords
+          #StepDeleteRecords
+          #StepLoopMaxCount
+          #ClassName
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #Overview
+        PROPERTIES
+          Name                #Overview
+          Label               #Overview
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #Enabled
+          #CleanupTaskName
+          #Description
+          #CleanupDays
+          #LastBeginTime
+          #LastEndTime
+          #durationMin
+          #LastUpdatedRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+      GROUP #StatusHistory
+        PROPERTIES
+          Name                #StatusHistory
+        ENDPROPERTIES
+        
+        GROUPFIELDS
+          #LastBeginTime
+          #LastEndTime
+          #LastUpdatedRecords
+        ENDGROUPFIELDS
+      ENDGROUP
+    ENDGROUPS
+    
+    INDICES
+      #CleanupTaskNameIdx
+      PROPERTIES
+        Name                #CleanupTaskNameIdx
+        AllowDuplicates     #No
+      ENDPROPERTIES
+      
+      INDEXFIELDS
+        #CleanupTaskName
+      ENDINDEXFIELDS
+      
+    ENDINDICES
+    REFERENCES
+    ENDREFERENCES
+    
+    DELETEACTIONS
+    ENDDELETEACTIONS
+    
+    METHODS
+      Version: 3
+      SOURCE #durationMin
+        #display RealBase durationMin()
+        #{
+        #    RealBase res;
+        #    ;
+        #    if (this.LastEndTime && this.LastBeginTime)
+        #    {
+        #        res = any2real(DateTimeUtil::getDifference(this.LastEndTime, this.LastBeginTime) / 60);
+        #    }
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #find
+        #public static DEV_CleanupTaskSettings find(DEV_CleanUpTaskName _cleanupTaskName,
+        #                                           boolean             _forUpdate = false)
+        #{
+        #    DEV_CleanupTaskSettings DEV_CleanupTaskSettings;
+        #
+        #    if (_cleanupTaskName)
+        #    {
+        #        DEV_CleanupTaskSettings.selectForUpdate(_forUpdate);
+        #
+        #        select firstonly DEV_CleanupTaskSettings
+        #            where DEV_CleanupTaskSettings.CleanupTaskName == _cleanupTaskName;
+        #    }
+        #
+        #    return DEV_CleanupTaskSettings;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDTABLE
+  
+
+***Element: UTS
+
+; Microsoft Dynamics AX String: DEV_CleanUpTaskName unloaded
+; --------------------------------------------------------------------------------
+  USERTYPEVERSION 6
+  
+  USERTYPE #DEV_CleanUpTaskName
+  STRING
+    PROPERTIES
+      Name                #DEV_CleanUpTaskName
+      Label               #CleanUp Task
+      HelpText            #CleanUp Task Name
+      Extends             #Name
+      StringSize          #60
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+    ENDTYPEELEMENTS
+    
+    TYPEREFERENCES
+      TYPEREFERENCETYPE DATASET
+      PROPERTIES
+        Table               #DEV_CleanupTaskSettings
+        RelatedField        #CleanupTaskName
+      ENDPROPERTIES
+      
+    ENDTYPEREFERENCES
+    
+  ENDUSERTYPE
+  
+
+***Element: DBE
+
+; Microsoft Dynamics AX Enumtype : DEV_CleanupRunMode unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #DEV_CleanupRunMode
+    PROPERTIES
+      Name                #DEV_CleanupRunMode
+      Label               #Cleanup run mode
+      Help                #Cleanup run mode to execute
+      UseEnumValue        #Yes
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #Run
+      PROPERTIES
+        Name                #Run
+        Label               #Run
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #Init
+      PROPERTIES
+        Name                #Init
+        Label               #Init
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #Estimate
+      PROPERTIES
+        Name                #Estimate
+        Label               #Estimate
+        EnumValue           #2
+      ENDPROPERTIES
+      
+      #DisplaySQL
+      PROPERTIES
+        Name                #DisplaySQL
+        Label               #DisplaySQL
+        EnumValue           #3
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_AifMessageLog unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_AifMessageLog
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_AifMessageLog
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_AifMessageLog extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #    sqlTableName = tableStr(AifMessageLog);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #    sEstimatedSQL += strFmt('WHERE %1 < %2 ', fieldstr(AifMessageLog, CreatedDateTime), sDateCondition);
+        #
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RecId, MessageId ');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #
+        #        //    --------------------------------------------------------------
+        #        sqlBuider.parmIsIgnoreCompany(true);
+        #        //AifDocumentLog
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(AifDocumentLog), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(AifDocumentLog, MessageId), 'MessageId']);
+        #
+        #        //AifCorrelation
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(AifCorrelation), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(AifCorrelation, MessageId), 'MessageId']);
+        #
+        #        //AifMessageLog
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(AifMessageLog), sqlBuider.tmpDeleteBuffer(),
+        #                                           [fieldstr(AifMessageLog, MessageId),     'MessageId']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+        #
+        #
+        #
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'AifMessageLog';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_PriceDiscAdmTable unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_PriceDiscAdmTable
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_PriceDiscAdmTable
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_PriceDiscAdmTable extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #deleteLogTable
+        #void deleteLogTable(TransDate  _deleteDate)
+        #{
+        #    PriceDiscAdmTable          priceDiscAdmTable;
+        #    ;
+        #    while select forupdate priceDiscAdmTable
+        #        where priceDiscAdmTable.PostedDate <= _deleteDate
+        #           && priceDiscAdmTable.PostedDate
+        #    {
+        #        ttsbegin;
+        #        PriceDiscAdmTable::deleteJournal(priceDiscAdmTable.JournalNum);
+        #        priceDiscAdmTable.skipTTSCheck(true);
+        #        priceDiscAdmTable.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    PriceDiscAdmTable        priceDiscAdmTable;
+        #    TransDate                transDate;
+        #    dataArea                 dataArea;
+        #    ;
+        #    transDate = systemDateGet() - cleanupTaskSettings.CleanupDays;
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #
+        #            priceDiscAdmTable = null;
+        #            select count(RecId) from priceDiscAdmTable
+        #                where priceDiscAdmTable.PostedDate <= transDate
+        #                   && priceDiscAdmTable.PostedDate ;
+        #            if (priceDiscAdmTable.RecId)
+        #            {
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #                {
+        #                    info(strFmt("priceDiscAdmTable Company %1. Number of records: %2", curext(), priceDiscAdmTable.RecId));
+        #                }
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #                {
+        #                    this.deleteLogTable(transDate);
+        #                }
+        #            }
+        #
+        #
+        #        }
+        #    }
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'PriceDiscAdmTable';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_PriceDiscTable unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_PriceDiscTable
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_PriceDiscTable
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_PriceDiscTable extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #deleteLogTable
+        #void deleteLogTable(TransDate  _deleteDate)
+        #{
+        #    PriceDiscTable           priceDiscTable;
+        #    ;
+        #    while select forupdate priceDiscTable
+        #        where priceDiscTable.ToDate <= _deleteDate
+        #           && priceDiscTable.ToDate
+        #    {
+        #        ttsbegin;
+        #        priceDiscTable.skipTTSCheck(true);
+        #        priceDiscTable.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    PriceDiscTable           priceDiscTable;
+        #    TransDate                transDate;
+        #    dataArea                 dataArea;
+        #    ;
+        #    transDate = systemDateGet() - cleanupTaskSettings.CleanupDays;
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #
+        #            priceDiscTable = null;
+        #            select count(RecId) from priceDiscTable
+        #                where priceDiscTable.ToDate <= transDate
+        #                   && priceDiscTable.ToDate ;
+        #            if (priceDiscTable.RecId)
+        #            {
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #                {
+        #                    info(strFmt("priceDiscTable Company %1. Number of records: %2", curext(), priceDiscTable.RecId));
+        #                }
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #                {
+        #                    this.deleteLogTable(transDate);
+        #                }
+        #            }
+        #
+        #
+        #        }
+        #    }
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'PriceDiscTable';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_ProdParmStartUp unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_ProdParmStartUp
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_ProdParmStartUp
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_ProdParmStartUp extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #deleteLogTable
+        #void deleteLogTable(TransDateTime  _deleteDate)
+        #{
+        #    ProdParmStartUp           prodParmStartUp;
+        #    ;
+        #    while select forupdate prodParmStartUp
+        #        where prodParmStartUp.ExecutedDateTime <= _deleteDate
+        #           && prodParmStartUp.ExecutedDateTime
+        #    {
+        #        ttsbegin;
+        #        prodParmStartUp.skipTTSCheck(true);
+        #        prodParmStartUp.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    ProdParmStartUp                 prodParmStartUp;
+        #    TransDateTime                   transDate;
+        #    dataArea                        dataArea;
+        #    ;
+        #    transDate = DateTimeUtil::newDateTime(systemDateGet() - cleanupTaskSettings.CleanupDays, 0);
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #
+        #            prodParmStartUp = null;
+        #            select count(RecId) from prodParmStartUp
+        #                where prodParmStartUp.ExecutedDateTime <= transDate
+        #                   && prodParmStartUp.ExecutedDateTime ;
+        #            if (prodParmStartUp.RecId)
+        #            {
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #                {
+        #                    info(strFmt("prodParmStartUp Company %1. Number of records: %2", curext(), prodParmStartUp.RecId));
+        #                }
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #                {
+        #                    this.deleteLogTable(transDate);
+        #                }
+        #            }
+        #
+        #
+        #        }
+        #    }
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'ProdParmStartUp';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SysOutgoingEmail unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SysOutgoingEmail
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SysOutgoingEmail
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SysOutgoingEmail extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #deleteLogTable
+        #void deleteLogTable(TransDateTime  _deleteDate)
+        #{
+        #    SysOutgoingEmailTable           sysOutgoingEmailTable;
+        #    ;
+        #    while select forupdate sysOutgoingEmailTable
+        #        where sysOutgoingEmailTable.createdDateTime <= _deleteDate
+        #           && sysOutgoingEmailTable.createdDateTime
+        #    {
+        #        ttsbegin;
+        #        sysOutgoingEmailTable.skipTTSCheck(true);
+        #        sysOutgoingEmailTable.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    SysOutgoingEmailTable           sysOutgoingEmailTable;
+        #    TransDateTime                   transDate;
+        #
+        #    ;
+        #    transDate = DateTimeUtil::newDateTime(systemDateGet() - cleanupTaskSettings.CleanupDays, 0);
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sysOutgoingEmailTable = null;
+        #    select count(RecId) from sysOutgoingEmailTable
+        #        where sysOutgoingEmailTable.createdDateTime <= transDate
+        #           && sysOutgoingEmailTable.createdDateTime ;
+        #    if (sysOutgoingEmailTable.RecId)
+        #    {
+        #        if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #        {
+        #            info(strFmt("sysOutgoingEmailTable Company %1. Number of records: %2", curext(), sysOutgoingEmailTable.RecId));
+        #        }
+        #        if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #        {
+        #            this.deleteLogTable(transDate);
+        #        }
+        #    }
+        #
+        #
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SysOutgoingEmailTable';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventReportDimHist unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventReportDimHist
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventReportDimHist
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventReportDimHist extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #
+        #    sqlTableName = tableStr(InventReportDimHistory);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sEstimatedSQL += strFmt(' WHERE EXISTS (SELECT DataAreaId FROM  %2 WHERE %1.DataAreaId = %2.DataAreaId AND %1.%3 = %2.%4   \n',
+        #        'MainTable'  , tablestr(InventTrans), fieldstr(InventReportDimHistory, InventTransId), fieldstr(InventTrans, InventTransId) );
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #    sEstimatedSQL += strFmt('AND %1 < %2 AND %1 > CONVERT(datetime, \'2000-01-01\', 120))', fieldstr(InventTrans, DateStatus), sDateCondition);
+        #
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RECID, DATAAREAID, TransRefId, InventTransId, TransactionLogType, InventDimId');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #        //    --------------------------------------------------------------
+        #        //sqlBuider.parmIsIgnoreCompany(true);
+        #        //SysDataBaseLog
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(InventReportDimHistory), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(InventReportDimHistory, TransRefId),          'TransRefId',
+        #                                                fieldstr(InventReportDimHistory, InventTransId),      'InventTransId',
+        #                                                fieldstr(InventReportDimHistory, TransactionLogType), 'TransactionLogType',
+        #                                                fieldstr(InventReportDimHistory, InventDimId),         'InventDimId']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventReportDimHistory';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SalesTableDelete unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SalesTableDelete
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SalesTableDelete
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SalesTableDelete extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #deleteLogTable
+        #void deleteLogTable(TransDateTime  _deleteDate)
+        #{
+        #    SalesTableDelete                salesTableDelete;
+        #    SalesLineDelete                 salesLineDelete;
+        #    ;
+        #    while select forupdate salesTableDelete
+        #        where salesTableDelete.createdDateTime <= _deleteDate
+        #    {
+        #        ttsbegin;
+        #        salesTableDelete.skipTTSCheck(true);
+        #        salesTableDelete.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #    while select forupdate salesLineDelete
+        #        where salesLineDelete.createdDateTime <= _deleteDate
+        #    {
+        #        ttsbegin;
+        #        salesLineDelete.skipTTSCheck(true);
+        #        salesLineDelete.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    SalesTableDelete                salesTableDelete;
+        #    SalesLineDelete                 salesLineDelete;
+        #    TransDateTime                   transDate;
+        #    dataArea                        dataArea;
+        #    ;
+        #    transDate = DateTimeUtil::newDateTime(systemDateGet() - cleanupTaskSettings.CleanupDays, 0);
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #
+        #            salesTableDelete = null;
+        #            select count(RecId) from salesTableDelete
+        #                where salesTableDelete.createdDateTime <= transDate
+        #                  ;
+        #            salesLineDelete = null;
+        #            select count(RecId) from salesLineDelete
+        #                where salesLineDelete.createdDateTime <= transDate
+        #                  ;
+        #            if (salesTableDelete.RecId || salesLineDelete.RecId)
+        #            {
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #                {
+        #                    info(strFmt("salesTableDelete Company %1. Number of records: %2", curext(), salesTableDelete.RecId));
+        #                    info(strFmt("salesLineDelete Company %1. Number of records: %2", curext(), salesLineDelete.RecId));
+        #                }
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #                {
+        #                    this.deleteLogTable(transDate);
+        #                }
+        #            }
+        #        }
+        #    }
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SalesTableDelete';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_PodInterface unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_PodInterface
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_PodInterface
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_PodInterface extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #deleteLogTable
+        #void deleteLogTable(TransDateTime  _deleteDate)
+        #{
+        #    podInterfaceArchive           podInterfaceArchive;
+        #    ;
+        #    while select forupdate podInterfaceArchive
+        #        where podInterfaceArchive.createdDateTime <= _deleteDate
+        #    {
+        #        ttsbegin;
+        #        podInterfaceArchive.skipTTSCheck(true);
+        #        podInterfaceArchive.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    podInterfaceArchive             podInterfaceArchive;
+        #    TransDateTime                   transDate;
+        #    dataArea                        dataArea;
+        #    ;
+        #    transDate = DateTimeUtil::newDateTime(systemDateGet() - cleanupTaskSettings.CleanupDays, 0);
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #
+        #            podInterfaceArchive = null;
+        #            select count(RecId) from podInterfaceArchive
+        #                where podInterfaceArchive.createdDateTime <= transDate
+        #                  ;
+        #            if (podInterfaceArchive.RecId)
+        #            {
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #                {
+        #                    info(strFmt("podInterfaceArchive Company %1. Number of records: %2", curext(), podInterfaceArchive.RecId));
+        #                }
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #                {
+        #                    this.deleteLogTable(transDate);
+        #                }
+        #            }
+        #        }
+        #    }
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'podInterfaceArchive';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventTransferParm unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventTransferParm
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventTransferParm
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventTransferParm extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #deleteLogTable
+        #void deleteLogTable(TransDateTime  _deleteDate)
+        #{
+        #    inventTransferParmTable           inventTransferParmTable;
+        #    ;
+        #    while select forupdate inventTransferParmTable
+        #        where inventTransferParmTable.ExecutedDateTime <= _deleteDate
+        #           && inventTransferParmTable.ExecutedDateTime
+        #           &&( inventTransferParmTable.JobStatus == ParmJobStatus::Executed ||
+        #              inventTransferParmTable.JobStatus == ParmJobStatus::ContainErrors  )
+        #    {
+        #        ttsbegin;
+        #        inventTransferParmTable.skipTTSCheck(true);
+        #        inventTransferParmTable.delete();
+        #        ttscommit;
+        #
+        #        if (! this.logSingleRecord(cleanupTaskSettings))
+        #        {
+        #            break;
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    InventTransferParmTable         inventTransferParmTable;
+        #    TransDateTime                   transDate;
+        #    dataArea                        dataArea;
+        #    ;
+        #    transDate = DateTimeUtil::newDateTime(systemDateGet() - cleanupTaskSettings.CleanupDays, 0);
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #
+        #            inventTransferParmTable = null;
+        #            select count(RecId) from inventTransferParmTable
+        #                where inventTransferParmTable.ExecutedDateTime <= transDate
+        #                   && inventTransferParmTable.ExecutedDateTime
+        #                   &&( inventTransferParmTable.JobStatus == ParmJobStatus::Executed ||
+        #                      inventTransferParmTable.JobStatus == ParmJobStatus::ContainErrors  ) ;
+        #            if (inventTransferParmTable.RecId)
+        #            {
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #                {
+        #                    info(strFmt("inventTransferParmTable Company %1. Number of records: %2", curext(), inventTransferParmTable.RecId));
+        #                }
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #                {
+        #                    this.deleteLogTable(transDate);
+        #                }
+        #            }
+        #
+        #
+        #        }
+        #    }
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventTransferParmTable';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventSumSummarize unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventSumSummarize
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventSumSummarize
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventSumSummarize extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    DataArea        dataArea;
+        #    InventSum           inventSum;
+        #    ;
+        #    while select dataArea
+        #        where dataArea.isVirtual == false
+        #    {
+        #        changeCompany(dataArea.id)
+        #        {
+        #            if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #            {
+        #                inventSum = null;
+        #                select count(RecId) from inventSum
+        #                    where inventSum.Closed    == false &&
+        #                          inventSum.ClosedQty == true;
+        #
+        #                info(strFmt("Company %1. Number of records: %2", curext(), inventSum.RecId));
+        #            }
+        #            else
+        #            {
+        #                if (cleanupRunMode == DEV_CleanupRunMode::Run)
+        #                {
+        #                    inventSum = null;
+        #                    select count(RecId) from inventSum
+        #                        where inventSum.Closed    == false &&
+        #                              inventSum.ClosedQty == true;
+        #                    if (inventSum.RecId > 1)
+        #                    {
+        #                        this.summarize();
+        #                    }
+        #                }
+        #            }
+        #        }
+        #    }
+        #
+        #}
+      ENDSOURCE
+      SOURCE #findOrInsertInventSum
+        #protected InventSum findOrInsertInventSum(ItemId _itemId, InventDimId _inventDimId)
+        #{
+        #    InventSum   inventSumFinancial = InventSum::find(_itemId, _inventDimId, true);
+        #
+        #    if (!inventSumFinancial.RecId)
+        #    {
+        #        return this.insertClosedInventSum(_itemId, _inventDimId);
+        #    }
+        #
+        #    return inventSumFinancial;
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventSumSummarize';
+        #}
+      ENDSOURCE
+      SOURCE #hasOpenTransactions
+        #public boolean hasOpenTransactions(InventSum  _inventSum)
+        #{
+        #    return (select firstonly inventTrans
+        #            where inventTrans.InventDimId       == _inventSum.InventDimId
+        #              &&  inventTrans.ItemId            == _inventSum.ItemId
+        #              &&  inventTrans.StatusIssue       != StatusIssue::Sold
+        #              &&  inventTrans.StatusReceipt     != StatusReceipt::Purchased).RecId;
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #    _taskSettings.StepDeleteRecords = 100;
+        #    _taskSettings.StepSelectRecords = 100;
+        #}
+      ENDSOURCE
+      SOURCE #insertClosedInventSum
+        #protected InventSum insertClosedInventSum(ItemId _itemId, InventDimId _inventDimId)
+        #{
+        #    InventSum   newInventSum;
+        #
+        #    newInventSum.initValue();
+        #    newInventSum.ItemId         = _itemId;
+        #    newInventSum.InventDimId    = _inventDimId;
+        #
+        #    newInventSum.insert();
+        #
+        #    return newInventSum;
+        #}
+      ENDSOURCE
+      SOURCE #lookupFinancialInventDim
+        #protected InventDim lookupFinancialInventDim(ItemId    _itemId,
+        #                                             InventDim _origInventDim)
+        #{
+        #    InventDim   inventDimFinancial;
+        #
+        #    inventDimFinancial.copyDimFinancial(inventTable::find(_itemId).DimGroupId, _origInventDim);
+        #    return InventDim::findOrCreate(inventDimFinancial);
+        #}
+        #
+      ENDSOURCE
+      SOURCE #summarize
+        #public void summarize()
+        #{
+        #    InventSum               inventSum;
+        #    InventDim               inventDim;
+        #    QueryRun                queryRun;
+        #    Query                   query;
+        #    SysOperationProgress    progress;
+        #
+        #    int                     summarizedInTransactionScope = 0;
+        #    int                     summarizedTotalCounter = 0;
+        #    QueryBuildDatasource    qBDS;
+        #    QueryBuildRange         qBR;
+        #    TransDate               transDate;
+        #    ;
+        #    transDate = systemDateGet() - cleanupTaskSettings.CleanupDays;
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    query = new Query();
+        #
+        #    qBDS = query.addDataSource(tablenum(InventSum));
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, ClosedQty));
+        #    qBR.value(SysQuery::value(NoYes::Yes));
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, Closed));
+        #    qBR.value(SysQuery::value(NoYes::No));
+        #
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, LastUpdDatePhysical));
+        #    qBR.value(strFmt('..%1', transDate));
+        #
+        #    qBR = SysQuery::findOrCreateRange(qBDS, fieldnum(InventSum, LastUpdDateExpected));
+        #    qBR.value(strFmt('..%1', transDate));
+        #
+        #    qBDS = qBDS.addDataSource(tablenum(InventDim));
+        #    qBDS.relations(true);
+        #
+        #    queryRun = new QueryRun(query);
+        #
+        #    while (queryRun.next())
+        #    {
+        #        inventSum = queryRun.get(tableNum(InventSum));
+        #        inventDim = queryRun.get(tableNum(InventDim));
+        #
+        #        if ((appl.ttsLevel()) == 0)
+        #        {
+        #            ttsbegin;
+        #        }
+        #
+        #        if (this.summarizeInventSum(inventSum, inventDim))
+        #        {
+        #            summarizedInTransactionScope++;
+        #        }
+        #
+        #        if (summarizedInTransactionScope >= cleanupTaskSettings.StepDeleteRecords && (appl.ttsLevel() ) == 1)
+        #        {
+        #            ttscommit;
+        #            this.logAddRecords(cleanupTaskSettings, summarizedInTransactionScope);
+        #            summarizedTotalCounter += summarizedInTransactionScope;
+        #
+        #            if (! this.checkContinueLoop(cleanupTaskSettings, summarizedInTransactionScope))
+        #            {
+        #                break;
+        #            }
+        #
+        #            summarizedInTransactionScope = 0;
+        #            ttsbegin;
+        #        }
+        #    }
+        #
+        #    if (appl.ttsLevel() == 1)
+        #    {
+        #        ttscommit;
+        #        summarizedTotalCounter += summarizedInTransactionScope;
+        #    }
+        #    info(strFmt("Company %1. Processed %2 lines", curext(), summarizedTotalCounter));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #
+        #}
+      ENDSOURCE
+      SOURCE #summarizeInventSum
+        #protected boolean summarizeInventSum(InventSum _inventSum, InventDim _inventDim)
+        #{
+        #    InventDim     inventDimFinancial;
+        #    InventSum     inventSumFinancial;
+        #
+        #    // aggregate physical & financial value by financial dimensions for non-quantitative records
+        #    inventDimFinancial = this.lookupFinancialInventDim(_inventSum.ItemId, _inventDim);
+        #
+        #    if (InventDim::isInventDimEqual(inventDimFinancial, _inventDim) ||
+        #        !_inventSum.isAllQtyFieldsZero()                            ||
+        #         this.hasOpenTransactions(_inventSum))
+        #    {
+        #        return false;
+        #    }
+        #    _inventSum.selectForUpdate(true);
+        #    _inventSum.skipTTSCheck(true);
+        #    inventSumFinancial = this.findOrInsertInventSum(_inventSum.ItemId, inventDimFinancial.InventDimId);
+        #    this.transferInventSumValue(_inventSum, inventSumFinancial);
+        #
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #transferInventSumValue
+        #protected void transferInventSumValue(InventSum _inventSumFrom, InventSum _inventSumTo)
+        #{
+        #    _inventSumTo.PostedValue            += _inventSumFrom.PostedValue;
+        #    _inventSumTo.PhysicalValue          += _inventSumFrom.PhysicalValue;
+        #
+        #    _inventSumFrom.PostedValue            -= _inventSumFrom.PostedValue;
+        #    _inventSumFrom.PhysicalValue          -= _inventSumFrom.PhysicalValue;
+        #
+        #    _inventSumFrom.update();
+        #    _inventSumTo.update();
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SalesParmQuotation unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SalesParmQuotation
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SalesParmQuotation
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SalesParmQuotation extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    str             sMainTableFieldList;
+        #
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #
+        #    ;
+        #    sqlTableName = tableStr(SalesQuotationParmTable);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1 AS MainTable          \n',   sqlTableName);          //TABLE HERE
+        #    sEstimatedSQL += strFmt('where  ');
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #
+        #    sEstimatedSQL += strFmt('%1 < %2 ', fieldstr(SalesQuotationParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sMainTableFieldList = 'RECID, ParmId, TableRefId, DataAreaId';
+        #    sqlBuider.setMainTableSelectFieldList(sMainTableFieldList);
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #        //    --------------------------------------------------------------
+        #        //SalesQuotationParmUpdate
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmUpdate), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesQuotationParmUpdate, ParmId), 'ParmId'],
+        #                                               'MainTable.LATESELECTION = 0');
+        #
+        #        //SalesQuotationParmSubTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmSubTable), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesQuotationParmSubTable, ParmId),    'ParmId',
+        #                                                fieldstr(SalesQuotationParmSubTable, TableRefId),'TableRefId']);
+        #
+        #        //SalesQuotationParmLine
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesQuotationParmLine, ParmId),    'ParmId',
+        #                                                fieldstr(SalesQuotationParmLine, TableRefId),'TableRefId']);
+        #
+        #        //SalesParmTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesQuotationParmTable), sqlBuider.tmpDeleteBuffer(),
+        #                                         [fieldstr(SalesQuotationParmTable, ParmId),     'ParmId',
+        #                                          fieldstr(SalesQuotationParmTable, TableRefId), 'TableRefId']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SalesParmQuotation';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 186;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SalesParmTables unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SalesParmTables
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SalesParmTables
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SalesParmTables extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    str             sMainTableFieldList;
+        #
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #
+        #    ;
+        #    sqlTableName = tableStr(SalesParmTable);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1 AS MainTable          \n',   sqlTableName);          //TABLE HERE
+        #    sEstimatedSQL += strFmt('where (([%1] = %2) OR ([%1] = %3) OR ( ' +
+        #                    '([%1] = %4) AND EXISTS (SELECT t.SalesId FROM %5 t where t.SalesId = MainTable.SalesId and t.DataAreaId = MainTable.DataAreaId and t.%6 = %7) )) ',
+        #                            fieldstr(SalesParmTable, ParmJobStatus),
+        #                            any2int(ParmJobStatus::Executed),
+        #                            any2int(ParmJobStatus::ContainErrors),
+        #                            any2int(ParmJobStatus::Waiting),        //4
+        #                            tableStr(SalesTable),
+        #                            fieldstr(SalesTable, SalesStatus),     //6
+        #                            any2int(SalesStatus::Invoiced)
+        #                            );
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #
+        #    sEstimatedSQL += strFmt('AND %1 < %2 ', fieldstr(SalesParmTable, CreatedDateTime), sDateCondition);
+        #    //sEstimatedSQL += strFmt(' AND NOT EXISTS(SELECT t.ParmId FROM %1 t where t.ParmId = MainTable.ParmId and t.DataAreaId = MainTable.DataAreaId and t.%2 >= %3) ',
+        #    //            sqlTableName, fieldstr(SalesParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sMainTableFieldList = 'RECID, ParmId, TableRefId, DataAreaId';
+        #    sqlBuider.setMainTableSelectFieldList(sMainTableFieldList);
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #        //    --------------------------------------------------------------
+        #        //SalesParmUpdate
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmUpdate), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesParmUpdate, ParmId), 'ParmId'],
+        #                                               'MainTable.LATESELECTION = 0');
+        #
+        #        //SalesParmSubTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmSubTable), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SalesParmSubTable, ParmId),    'ParmId',
+        #                                                fieldstr(SalesParmSubTable, TableRefId),'TableRefId']);
+        #
+        #        //SalesParmLine - select
+        #        sSQL += strFmt('select MainTable.RECID, MainTable.DataAreaId into #tmpSalesParmLine \n');
+        #        sSQL += sqlBuider.buildTmpExistsJoinCompany(tableStr(SalesParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                             [fieldstr(SalesParmLine, ParmId),     'ParmId',
+        #                                              fieldstr(SalesParmLine, TableRefId), 'TableRefId']);
+        #
+        #        //salesParmSubLine
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmSubLine), '#tmpSalesParmLine',
+        #                                             [fieldstr(SalesParmSubLine, LineRefRecId),   'RECID']);
+        #
+        #        sSQL += 'DROP TABLE #tmpSalesParmLine;  \n';
+        #
+        #        //SalesParmLine - delete
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                                     [fieldstr(SalesParmLine, ParmId),     'ParmId',
+        #                                                      fieldstr(SalesParmLine, TableRefId), 'TableRefId']);
+        #
+        #        //SalesParmTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SalesParmTable), sqlBuider.tmpDeleteBuffer(),
+        #                                         [fieldstr(SalesParmTable, ParmId),     'ParmId',
+        #                                          fieldstr(SalesParmTable, TableRefId), 'TableRefId']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SalesParmTables';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_InventSumClosed unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_InventSumClosed
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_InventSumClosed
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_InventSumClosed extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    str             sMainTableFieldList;
+        #
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #
+        #    sqlTableName = tableStr(InventSum);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1 AS MainTable          \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #
+        #    sEstimatedSQL += strFmt('where ([%1] = 1) AND (%3 < %2) AND (%4 < %2)',
+        #                            fieldstr(InventSum, Closed),
+        #                            sDateCondition,
+        #                            fieldstr(InventSum, LastUpdDatePhysical),
+        #                            fieldstr(InventSum, LastUpdDateExpected)
+        #                            );
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sMainTableFieldList = 'RECID, ItemId, InventDimId, DataAreaId';
+        #    sqlBuider.setMainTableSelectFieldList(sMainTableFieldList);
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #        //    --------------------------------------------------------------
+        #        //InventSum
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(InventSum), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(InventSum, ItemId),      'ItemId',
+        #                                                fieldstr(InventSum, InventDimId), 'InventDimId']);
+        #
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'InventSumClosed';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_BatchHistory unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_BatchHistory
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_BatchHistory
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_BatchHistory extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #
+        #    sqlTableName = tableStr(BatchHistory);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #    sEstimatedSQL += strFmt('WHERE %1 < %2 ', fieldstr(BatchHistory, StartDateTime), sDateCondition);
+        #
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RECID, BatchJobHistoryId ');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #
+        #        //    --------------------------------------------------------------
+        #        sqlBuider.parmIsIgnoreCompany(true);
+        #        //BatchConstraintsHistory
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(BatchConstraintsHistory), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(BatchConstraintsHistory, BatchId), 'RECID']);
+        #
+        #        //BatchJobHistory
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(BatchJobHistory), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(BatchJobHistory, RecId), 'BatchJobHistoryId']);
+        #
+        #        //BatchHistory
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(BatchHistory), sqlBuider.tmpDeleteBuffer(),
+        #                                           [fieldstr(BatchHistory, RecId),     'RECID']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'BatchHistory';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_SysDatabaseLog unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_SysDatabaseLog
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_SysDatabaseLog
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_SysDatabaseLog extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #
+        #    sqlTableName = tableStr(SysDataBaseLog);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #    sEstimatedSQL += strFmt('WHERE %1 < %2 ', fieldstr(SysDataBaseLog, CreatedDateTime), sDateCondition);
+        #
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RECID, DATAAREAID ');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #        //    --------------------------------------------------------------
+        #        //sqlBuider.parmIsIgnoreCompany(true);
+        #        //SysDataBaseLog
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(SysDataBaseLog), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(SysDataBaseLog, RecId), 'RECID']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'SysDatabaseLog';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 400;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTask_PurchParmTable unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTask_PurchParmTable
+    PROPERTIES
+      Name                #DEV_CleanupDataTask_PurchParmTable
+      Extends             #DEV_CleanupDataTaskBase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTask_PurchParmTable extends DEV_CleanupDataTaskBase
+        #{
+        #}
+      ENDSOURCE
+      SOURCE #execute
+        #void execute()
+        #{
+        #    str             sSQL;
+        #    str             sEstimatedSQL;
+        #    str             sqlTableName;
+        #    int             lastRowsProcessed;
+        #    int             estimatedRecords;
+        #    str             sDateCondition;
+        #    DEV_CleanupDataSQLBuider        sqlBuider;
+        #    ;
+        #    sqlTableName = tableStr(PurchParmTable);
+        #    sEstimatedSQL = strFmt('FROM [dbo].%1  AS MainTable   \n',   sqlTableName);          //TABLE HERE
+        #    sEstimatedSQL += strFmt('where (([%1] = %2) OR ([%1] = %3) OR ( ' +
+        #                    '([%1] = %4) AND EXISTS (SELECT t.PurchId FROM %5 t where t.PurchId = MainTable.PurchId and t.DataAreaId = MainTable.DataAreaId and t.%6 = %7) )) ',
+        #                            fieldstr(PurchParmTable, ParmJobStatus),
+        #                            any2int(ParmJobStatus::Executed),
+        #                            any2int(ParmJobStatus::ContainErrors),
+        #                            any2int(ParmJobStatus::Waiting),        //4
+        #                            tableStr(PurchTable),
+        #                            fieldstr(PurchTable, PurchStatus),     //6
+        #                            any2int(PurchStatus::Invoiced)
+        #                            );
+        #    sDateCondition = strFmt('(GETDATE() - %1) ',int2str(cleanupTaskSettings.CleanupDays));
+        #
+        #    sEstimatedSQL += strFmt('AND %1 < %2 ', fieldstr(PurchParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    sEstimatedSQL += strFmt(' AND NOT EXISTS(SELECT t.ParmId FROM %1 t where t.ParmId = MainTable.ParmId and t.DataAreaId = MainTable.DataAreaId and t.%2 >= %3) ',
+        #                sqlTableName, fieldstr(PurchParmTable, CreatedDateTime), sDateCondition);
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        sSQL = 'SELECT COUNT(*) ';
+        #        sSQL +=  sEstimatedSQL;
+        #        info(sSQL);
+        #        estimatedRecords = this.sqlExecuteQuery(sSQL);
+        #        info(strFmt('Number of records: %1', estimatedRecords));
+        #
+        #        return;
+        #    }
+        #
+        #    this.logBegin(cleanupTaskSettings);
+        #
+        #    sqlBuider = DEV_CleanupDataSQLBuider::construct(cleanupTaskSettings);
+        #
+        #    sSQL = sqlBuider.buildBeginDropTmpTables();
+        #    this.sqlExecuteUpdate(sSQL);
+        #
+        #    sqlBuider.setMainTableSelectFieldList('RECID, ParmId, TableRefId, DataAreaId');
+        #
+        #
+        #    do
+        #    {
+        #        sSQL = sqlBuider.buildSelectBufferSelectInto(sEstimatedSQL);
+        #
+        #
+        #        //create delete buffer
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoStart();
+        #
+        #
+        #        //    --------------------------------------------------------------
+        #        //PurchParmUpdate
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmUpdate), sqlBuider.tmpDeleteBuffer(),
+        #                                               [fieldstr(PurchParmUpdate, ParmId), 'ParmId'],
+        #                                               'MainTable.LATESELECTION = 0');
+        #
+        #        //PurchParmSubTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmSubTable), sqlBuider.tmpDeleteBuffer(),
+        #                                             [fieldstr(PurchParmSubTable, ParmId),     'ParmId',
+        #                                              fieldstr(PurchParmSubTable, TableRefId), 'TableRefId']);
+        #
+        #        //PurchParmLine - select
+        #        sSQL += strFmt('select MainTable.RECID, MainTable.DataAreaId into #tmpPurchParmLine \n');
+        #        sSQL += sqlBuider.buildTmpExistsJoinCompany(tableStr(PurchParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                             [fieldstr(PurchParmLine, ParmId),     'ParmId',
+        #                                              fieldstr(PurchParmLine, TableRefId), 'TableRefId']);
+        #
+        #        //PurchParmSubLine
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmSubLine), '#tmpPurchParmLine',
+        #                                             [fieldstr(PurchParmSubLine, LineRefRecId),   'RECID']);
+        #
+        #        //PurchParmLine_Asset
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmLine_Asset), '#tmpPurchParmLine',
+        #                                             [fieldstr(PurchParmLine_Asset, PurchParmLineRecId),   'RECID']);
+        #
+        #        sSQL += 'DROP TABLE #tmpPurchParmLine;  \n';
+        #
+        #        //PurchParmLine - delete
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmLine), sqlBuider.tmpDeleteBuffer(),
+        #                                                     [fieldstr(PurchParmLine, ParmId),     'ParmId',
+        #                                                      fieldstr(PurchParmLine, TableRefId), 'TableRefId']);
+        #        //PurchParmTable
+        #        sSQL += sqlBuider.buildTmpDeleteCompany(tableStr(PurchParmTable), sqlBuider.tmpDeleteBuffer(),
+        #                                           [fieldstr(PurchParmTable, RecId),     'RECID']);
+        #
+        #        // ---------------------
+        #        sSQL += sqlBuider.buildDeleteBufferSelectIntoEnd();
+        #
+        #        this.sqlExecuteUpdate(sSQL);
+        #
+        #        lastRowsProcessed = this.getLastProcessedRecords(cleanupTaskSettings);
+        #        this.logAddRecords(cleanupTaskSettings, lastRowsProcessed);
+        #
+        #    } while(this.checkContinueLoop(cleanupTaskSettings, lastRowsProcessed));
+        #
+        #    this.logEnd(cleanupTaskSettings);
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    return 'PurchParmTables';
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    super(_taskSettings);
+        #    _taskSettings.CleanupDays = 93;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataSQLBuider unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataSQLBuider
+    PROPERTIES
+      Name                #DEV_CleanupDataSQLBuider
+      Extends             #
+      RunOn               #Called from
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #buildBeginDropTmpTables
+        #str buildBeginDropTmpTables()
+        #{
+        #    str             sSQL;
+        #
+        #    sSQL =  'IF OBJECT_ID(\'tempdb..#tmpSelectBuffer\') IS NOT NULL DROP TABLE #tmpSelectBuffer; \n ';
+        #    sSQL += 'IF OBJECT_ID(\'tempdb..#tmpDeleteBuffer\') IS NOT NULL DROP TABLE #tmpDeleteBuffer; \n ';
+        #
+        #
+        #
+        #    return sSQL;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #buildDeleteBufferSelectIntoEnd
+        #str buildDeleteBufferSelectIntoEnd()
+        #{
+        #    str             sSQL;
+        #    ;
+        #    sSQL += 'delete from #tmpSelectBuffer from #tmpSelectBuffer as dt inner join #tmpDeleteBuffer as dl on dl.RECID =dt.RECID; \n';
+        #
+        #    sSQL += 'END  \n';
+        #    sSQL += 'DROP TABLE #tmpSelectBuffer;  \n';
+        #    sSQL += 'DROP TABLE #tmpDeleteBuffer;  \n';
+        #    //sSQL += 'DROP TABLE #tmpRes; \n';
+        #
+        #
+        #    return sSQL;
+        #}
+      ENDSOURCE
+      SOURCE #buildDeleteBufferSelectIntoStart
+        #str buildDeleteBufferSelectIntoStart()
+        #{
+        #    str             sSQL;
+        #    //int     i1;
+        #    ;
+        #    sSQL += strFmt('select top 1 %1 into #tmpDeleteBuffer FROM #tmpSelectBuffer; \n', sMainTableFieldList);
+        #
+        #    sSQL += 'set @step= 0; \n';
+        #    sSQL += strFmt('WHILE (@step < %1) BEGIN \n',  int2str(any2int(roundUp(cleanupTaskSettings.StepSelectRecords / cleanupTaskSettings.StepDeleteRecords, 1))));
+        #
+        #    sSQL += '    SET @step = @step + 1 \n';
+        #
+        #    //for(i1 = 1; i1<= 100; i1++)
+        #    //{
+        #    sSQL +=        '    TRUNCATE TABLE #tmpDeleteBuffer; \n';
+        #    sSQL += strFmt('    INSERT INTO #tmpDeleteBuffer(%2) SELECT TOP %1 %2 FROM  #tmpSelectBuffer; \n', cleanupTaskSettings.StepDeleteRecords, sMainTableFieldList);
+        #    sSQL += '    IF (@@ROWCOUNT = 0) break; \n';
+        #    //}
+        #    return sSQL;
+        #}
+      ENDSOURCE
+      SOURCE #buildSelectBufferSelectInto
+        #str buildSelectBufferSelectInto(str _estimatedWhereSQL)
+        #{
+        #    str             sSQL;
+        #    sSQL = '';
+        #    sSQL += ' \n declare @lastSelectRows int; \n';
+        #    sSQL += 'declare @step           int; \n';
+        #    sSQL += this.buildBeginDropTmpTables();
+        #    sSQL += strFmt(' select top %1 %2 into #tmpSelectBuffer \n', int2str(cleanupTaskSettings.StepSelectRecords), sMainTableFieldList);
+        #    sSQL += _estimatedWhereSQL;
+        #
+        #    sSQL += '\n SET @lastSelectRows = @@ROWCOUNT; \n';
+        #    sSQL += strFmt('UPDATE %1 SET %2 = @lastSelectRows WHERE %3=N\'%4\';  \n ',
+        #           tablestr(DEV_CleanupTaskSettings),
+        #           fieldstr(DEV_CleanupTaskSettings, LastSelectRows),
+        #           fieldstr(DEV_CleanupTaskSettings, CleanupTaskName),
+        #           cleanupTaskSettings.CleanupTaskName);
+        #
+        #    sSQL += 'CREATE NONCLUSTERED INDEX [##_RECID] ON #tmpSelectBuffer (RECID ASC); \n';
+        #
+        #
+        #    return sSQL;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #buildTmpDeleteCompany
+        #str buildTmpDeleteCompany(str _mainTable, str _tmpTable, container _linkedFields, str _additionCondition = '' )
+        #{
+        #    str res;
+        #    ;
+        #    res += strFmt('    delete FROM [dbo].%1 ', _mainTable);
+        #
+        #    res += this.buildTmpSelectCompany(_mainTable, _tmpTable, _linkedFields, _additionCondition);
+        #
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #buildTmpExistsJoinCompany
+        #str buildTmpExistsJoinCompany(str _mainTable, str _tmpTable, container _linkedFields )
+        #{
+        #    str res;
+        #    int i;
+        #    ;
+        #    res += strFmt(' FROM [dbo].%1  AS MainTable \n', _mainTable);
+        #
+        #    res += strFmt('    WHERE EXISTS (SELECT \'x\' FROM %1 AS tmpT WHERE  ', _tmpTable);
+        #    for (i = 1; i <= conlen(_linkedFields) ; i+=2 )
+        #    {
+        #        res += strFmt('MainTable.%1 = tmpT.%2 AND ', conpeek(_linkedFields, i), conpeek(_linkedFields, i + 1));
+        #    }
+        #    res += strFmt('MainTable.DataAreaId = tmpT.DataAreaId );  \n');
+        #
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #buildTmpSelectCompany
+        #str buildTmpSelectCompany(str _mainTable, str _tmpTable, container _linkedFields, str _additionCondition = '' )
+        #{
+        #    str res;
+        #    int i;
+        #    ;
+        #    res += strFmt(' FROM [dbo].%1  AS MainTable \n', _mainTable);
+        #    res += strFmt('    INNER JOIN %1 AS tmpT ON ', _tmpTable);
+        #    for (i = 1; i <= conlen(_linkedFields); i+=2 )
+        #    {
+        #        res += strFmt('MainTable.%1 = tmpT.%2 AND ', conpeek(_linkedFields, i), conpeek(_linkedFields, i + 1));
+        #    }
+        #    if (! isIgnoreCompany)
+        #    {
+        #        res += strFmt('MainTable.DataAreaId = tmpT.DataAreaId ');
+        #    }
+        #    else
+        #    {
+        #        res += ' 1=1 ';
+        #    }
+        #    if (_additionCondition)
+        #    {
+        #        res += strFmt(' \n WHERE %1 ', _additionCondition);
+        #    }
+        #    res += ' ; \n';
+        #
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataSQLBuider
+        #{
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #
+        #    str             sMainTableFieldList;
+        #
+        #    boolean         isIgnoreCompany;
+        #}
+      ENDSOURCE
+      SOURCE #parmCleanupTaskSettings
+        #public DEV_CleanupTaskSettings parmCleanupTaskSettings(DEV_CleanupTaskSettings _cleanupTaskSettings = cleanupTaskSettings)
+        #{
+        #    ;
+        #    cleanupTaskSettings = _cleanupTaskSettings;
+        #
+        #    return cleanupTaskSettings;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmIsIgnoreCompany
+        #public NoYesId parmIsIgnoreCompany(NoYesId _isIgnoreCompany = isIgnoreCompany)
+        #{
+        #    isIgnoreCompany = _isIgnoreCompany;
+        #
+        #    return isIgnoreCompany;
+        #}
+      ENDSOURCE
+      SOURCE #setMainTableSelectFieldList
+        #void setMainTableSelectFieldList(str  _sMainTableFieldList)
+        #{
+        #    sMainTableFieldList = _sMainTableFieldList;
+        #}
+      ENDSOURCE
+      SOURCE #tmpDeleteBuffer
+        #str tmpDeleteBuffer()
+        #{
+        #    return '#tmpDeleteBuffer';
+        #}
+      ENDSOURCE
+      SOURCE #construct
+        #public static DEV_CleanupDataSQLBuider construct(DEV_CleanupTaskSettings   _cleanupTaskSettings)
+        #{
+        #    DEV_CleanupDataSQLBuider    res;
+        #
+        #    res = new DEV_CleanupDataSQLBuider();
+        #    res.parmCleanupTaskSettings(_cleanupTaskSettings);
+        #
+        #    return res;
+        #}
+        #
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTaskProcessor unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTaskProcessor
+    PROPERTIES
+      Name                #DEV_CleanupDataTaskProcessor
+      Extends             #RunBaseBatch
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #allowSaveLast
+        #public boolean allowSaveLast()
+        #{
+        #    boolean ret;
+        #
+        #    ret = super();
+        #
+        #    if (cleanUpTaskNameExternal)
+        #    {
+        #        ret = false;
+        #    }
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTaskProcessor extends RunBaseBatch
+        #{
+        #    Integer                 dummy;
+        #    DEV_CleanUpTaskName     cleanUpTaskNameExternal;
+        #
+        #    QueryRun                queryRun;
+        #
+        #    DEV_CleanupRunMode  cleanupRunMode;
+        #
+        #    #define.CurrentVersion(1)
+        #    #localmacro.CurrentList
+        #        dummy
+        #    #endmacro
+        #}
+        #
+      ENDSOURCE
+      SOURCE #dialog
+        #public Object dialog()
+        #{
+        #    DialogRunbase       dialog = super();
+        #    ;
+        #    if (cleanUpTaskNameExternal)
+        #    {
+        #        dialog.addText(strFmt("Execute %1", cleanUpTaskNameExternal));
+        #    }
+        #    //dlgDummy                   = dialog.addFieldValue(extendedtypestr(Integer), dummy);
+        #
+        #    return dialog;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #executeTask
+        #void executeTask(DEV_CleanupDataTaskBase  _cleanupDataTaskBase, DEV_CleanupTaskSettings  _cleanupTaskSettings)
+        #{
+        #    ;
+        #    _cleanupDataTaskBase.parmCleanupRunMode(cleanupRunMode);
+        #    _cleanupDataTaskBase.parmCleanupTaskSettings(_cleanupTaskSettings);
+        #
+        #    if (_cleanupTaskSettings.Enabled ||
+        #       (cleanupRunMode == DEV_CleanupRunMode::Estimate || cleanupRunMode == DEV_CleanupRunMode::DisplaySQL) )
+        #    {
+        #        _cleanupDataTaskBase.execute();
+        #     }
+        #}
+      ENDSOURCE
+      SOURCE #getFromDialog
+        #public boolean getFromDialog()
+        #{
+        #    ;
+        #
+        #    //dummy              = dlgDummy.value();
+        #
+        #    return super();
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initParmDefault
+        #public void initParmDefault()
+        #{
+        #    ;
+        #
+        #    this.initQuery();
+        #
+        #    super();
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initQuery
+        #public void initQuery()
+        #{
+        #    Query                   query = new Query();
+        #    QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEV_CleanupTaskSettings));
+        #    QueryBuildRange         qBR;
+        #    ;
+        #
+        #    qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEV_CleanupTaskSettings, CleanupTaskName));
+        #    queryRun = new QueryRun(query);
+        #}
+        #
+      ENDSOURCE
+      SOURCE #initSettingsForTask
+        #DEV_CleanupTaskSettings initSettingsForTask(DEV_CleanupDataTaskBase  _cleanupDataTaskBase)
+        #{
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #    DEV_CleanUpTaskName         cleanUpTaskName;
+        #    ;
+        #    cleanUpTaskName = _cleanupDataTaskBase.getTaskName();
+        #    if (! cleanUpTaskName)
+        #    {
+        #        throw error("Task name is not specified for %1 class", classid2name(classidget(this)));
+        #    }
+        #
+        #    cleanupTaskSettings = DEV_CleanupTaskSettings::find(cleanUpTaskName);
+        #    if (! cleanupTaskSettings.RecId)
+        #    {
+        #        cleanupTaskSettings.CleanupTaskName = cleanUpTaskName;
+        #        _cleanupDataTaskBase.initDefaultParameters(cleanupTaskSettings);
+        #
+        #        if (! cleanupTaskSettings.validateWrite())
+        #        {
+        #            throw error(strFmt("Failed to init task '%1'", cleanUpTaskName));
+        #        }
+        #        cleanupTaskSettings.insert();
+        #    }
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Init)
+        #    {
+        #        cleanupTaskSettings.Enabled = false;
+        #    }
+        #
+        #    return cleanupTaskSettings;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #new
+        #public void new()
+        #{
+        #    super();
+        #    this.initQuery();
+        #}
+      ENDSOURCE
+      SOURCE #pack
+        #public container pack()
+        #{
+        #    ;
+        #
+        #    return [#CurrentVersion, #CurrentList, queryRun.pack()];
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmCleanupRunMode
+        #public DEV_CleanupRunMode parmCleanupRunMode(DEV_CleanupRunMode _cleanupRunMode = cleanupRunMode)
+        #{
+        #    ;
+        #    cleanupRunMode = _cleanupRunMode;
+        #
+        #    return cleanupRunMode;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #queryRun
+        #public QueryRun queryRun()
+        #{
+        #    ;
+        #
+        #    return queryRun;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #run
+        #public void run()
+        #{
+        #    QueryBuildDataSource        qBDS;
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #    DEV_CleanupDataTaskBase     cleanupDataTaskBase;
+        #    DictClass                   dc;
+        #    ;
+        #    DEV_CleanupDataTaskProcessor::initTasksSettings();
+        #
+        #    qBDS = queryRun.query().dataSourceTable(tableNum(DEV_CleanupTaskSettings));
+        #
+        #    if (cleanUpTaskNameExternal)
+        #    {
+        #        qbds.clearRanges();
+        #        qbds.addRange(fieldnum(DEV_CleanupTaskSettings, CleanupTaskName)).value(queryValue(cleanUpTaskNameExternal));
+        #    }
+        #
+        #    while (queryRun.next())
+        #    {
+        #        cleanupTaskSettings = queryRun.get(tablenum(DEV_CleanupTaskSettings));
+        #        if (classname2id(cleanupTaskSettings.ClassName))
+        #        {
+        #            dc = new DictClass(classname2id(cleanupTaskSettings.ClassName));
+        #            cleanupDataTaskBase = dc.makeObject();
+        #            this.executeTask(cleanupDataTaskBase, cleanupTaskSettings);
+        #        }
+        #
+        #    }
+        #
+        #}
+        #
+      ENDSOURCE
+      SOURCE #setCleanupTaskSettingsExternal
+        #public void setCleanupTaskSettingsExternal(DEV_CleanupTaskSettings _cleanupTaskSettingsExternal )
+        #{
+        #    ;
+        #    cleanUpTaskNameExternal = _cleanupTaskSettingsExternal.CleanupTaskName;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #showQueryValues
+        #public boolean showQueryValues()
+        #{
+        #    ;
+        #
+        #    return cleanUpTaskNameExternal ? false : true;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #unpack
+        #public boolean unpack(container _packedClass)
+        #{
+        #    Version    version = RunBase::getVersion(_packedClass);
+        #    container  queryCon;
+        #    ;
+        #
+        #    switch (version)
+        #    {
+        #        case #CurrentVersion:
+        #            [version,#CurrentList,queryCon] = _packedClass;
+        #            if (SysQuery::isPackedOk(queryCon))
+        #            {
+        #                queryRun = new QueryRun(queryCon);
+        #            }
+        #            else
+        #            {
+        #                this.initQuery();
+        #            }
+        #            break;
+        #        default:
+        #            return false;
+        #    }
+        #
+        #    return true;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #construct
+        #public static DEV_CleanupDataTaskProcessor construct()
+        #{
+        #    return new DEV_CleanupDataTaskProcessor();
+        #}
+      ENDSOURCE
+      SOURCE #description
+        #static ClassDescription description()
+        #{
+        #    ;
+        #
+        #    return "Cleanup historic data";
+        #}
+      ENDSOURCE
+      SOURCE #initTasksSettings
+        #public server static void initTasksSettings()
+        #{
+        #    DEV_CleanupTaskSettings         cleanupTaskSettings;
+        #    DEV_CleanupDataTaskBase         cleanupDataTaskBase;
+        #    DictClass                       dc;
+        #    DEV_CleanupDataTaskProcessor    cleanupDataTaskProcessor = new DEV_CleanupDataTaskProcessor();
+        #    ;
+        #    ttsbegin;
+        #    while select forupdate cleanupTaskSettings
+        #    {
+        #        if (classname2id(cleanupTaskSettings.ClassName))
+        #        {
+        #            dc = new DictClass(classname2id(cleanupTaskSettings.ClassName));
+        #            cleanupDataTaskBase = dc.makeObject();
+        #        }
+        #        else
+        #        {
+        #            cleanupTaskSettings.delete();
+        #        }
+        #    }
+        #    ttscommit;
+        #
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_SalesParmTables());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_PurchParmTable());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_InventSumClosed());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_InventSumSummarize());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_SysDatabaseLog());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_BatchHistory());
+        #
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_InventReportDimHist());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_InventTransferParm());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_PodInterface());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_SalesTableDelete());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_AifMessageLog());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_ProdParmStartUp());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_SysOutgoingEmail());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_PriceDiscTable());
+        #    cleanupDataTaskProcessor.initSettingsForTask(new DEV_CleanupDataTask_PriceDiscAdmTable());
+        #}
+        #
+      ENDSOURCE
+      SOURCE #main
+        #public static void main(Args _args)
+        #{
+        #    DEV_CleanupDataTaskProcessor   runObject = DEV_CleanupDataTaskProcessor::construct();
+        #    DEV_CleanupTaskSettings        cleanupTaskSettingsExt;
+        #    FormDataSource                 fds;
+        #    ;
+        #
+        #    if (_args && _args.record() && _args.record().TableId == tablenum(DEV_CleanupTaskSettings))
+        #    {
+        #        cleanupTaskSettingsExt = _args.record();
+        #        runObject.setCleanupTaskSettingsExternal(cleanupTaskSettingsExt);
+        #
+        #        //runObject.parmIsDisableUnpackQuery(true);
+        #    }
+        #    if (runObject.prompt())
+        #    {
+        #        runObject.run();
+        #    }
+        #    if (cleanupTaskSettingsExt.dataSource())
+        #    {
+        #        fds = cleanupTaskSettingsExt.dataSource();
+        #        fds.research(true);
+        #    }
+        #}
+        #
+      ENDSOURCE
+      SOURCE #runDisplaySQL
+        #server static void runDisplaySQL(DEV_CleanupTaskSettings _cleanupTaskSettingsExternal)
+        #{
+        #    DEV_CleanupDataTaskProcessor         runObject = DEV_CleanupDataTaskProcessor::construct();
+        #    ;
+        #    runObject.setCleanupTaskSettingsExternal(_cleanupTaskSettingsExternal);
+        #    runObject.parmCleanupRunMode(DEV_CleanupRunMode::DisplaySQL);
+        #    runObject.run();
+        #}
+      ENDSOURCE
+      SOURCE #runEstimate
+        #server static void runEstimate(DEV_CleanupTaskSettings _cleanupTaskSettingsExternal)
+        #{
+        #    DEV_CleanupDataTaskProcessor         runObject = DEV_CleanupDataTaskProcessor::construct();
+        #    ;
+        #    runObject.setCleanupTaskSettingsExternal(_cleanupTaskSettingsExternal);
+        #    runObject.parmCleanupRunMode(DEV_CleanupRunMode::Estimate);
+        #    runObject.run();
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: DEV_CleanupDataTaskBase unloaded
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #DEV_CleanupDataTaskBase
+    PROPERTIES
+      Name                #DEV_CleanupDataTaskBase
+      Extends             #
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #checkContinueLoop
+        #boolean checkContinueLoop(DEV_CleanupTaskSettings     _cleanupTaskSettings, int _recCount)
+        #{
+        #    boolean res;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return false;
+        #    }
+        #    res = (_recCount && _recCount >= _cleanupTaskSettings.StepSelectRecords);
+        #
+        #    curLoopNumber++;
+        #
+        #    if (_cleanupTaskSettings.StepLoopMaxCount && curLoopNumber >= _cleanupTaskSettings.StepLoopMaxCount )
+        #    {
+        #        res = false;
+        #    }
+        #
+        #
+        #    return res;
+        #
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #class DEV_CleanupDataTaskBase
+        #{
+        #    DEV_CleanupRunMode          cleanupRunMode;
+        #    DEV_CleanupTaskSettings     cleanupTaskSettings;
+        #
+        #
+        #    Connection      connection;
+        #    int             curLoopNumber;
+        #
+        #    int             curRecCounter;
+        #
+        #}
+        #
+      ENDSOURCE
+      SOURCE #execute
+        #public void execute()
+        #{
+        #    ;
+        #}
+      ENDSOURCE
+      SOURCE #getLastProcessedRecords
+        #int getLastProcessedRecords(DEV_CleanupTaskSettings     _cleanupTaskSettings)
+        #{
+        #    ;
+        #    _cleanupTaskSettings.reread();
+        #
+        #    return _cleanupTaskSettings.LastSelectRows;
+        #}
+      ENDSOURCE
+      SOURCE #getTaskName
+        #public DEV_CleanUpTaskName getTaskName()
+        #{
+        #    ;
+        #    throw error(Error::missingOverload(funcname()));
+        #}
+      ENDSOURCE
+      SOURCE #initDefaultParameters
+        #public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+        #{
+        #    ;
+        #    _taskSettings.CleanupDays       = 93;
+        #    _taskSettings.StepDeleteRecords = 5000;
+        #    _taskSettings.StepSelectRecords = 100000;
+        #    _taskSettings.Enabled           = true;
+        #
+        #    _taskSettings.ClassName = classId2name(classIdget(this));
+        #}
+      ENDSOURCE
+      SOURCE #logAddRecords
+        #void logAddRecords(DEV_CleanupTaskSettings     _cleanupTaskSettings, int _recCount)
+        #{
+        #    DEV_CleanupTaskSettings  cleanupTaskSettingsUpd;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return;
+        #    }
+        #
+        #    ttsBegin;
+        #
+        #    cleanupTaskSettingsUpd = DEV_CleanupTaskSettings::find(_cleanupTaskSettings.CleanupTaskName, true);
+        #
+        #    cleanupTaskSettingsUpd.LastUpdatedRecords += _recCount;
+        #    cleanupTaskSettingsUpd.update();
+        #
+        #    ttsCommit;
+        #}
+      ENDSOURCE
+      SOURCE #logBegin
+        #void logBegin(DEV_CleanupTaskSettings     _cleanupTaskSettings)
+        #{
+        #    DEV_CleanupTaskSettings  cleanupTaskSettingsUpd;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return;
+        #    }
+        #    ttsBegin;
+        #
+        #    cleanupTaskSettingsUpd = DEV_CleanupTaskSettings::find(_cleanupTaskSettings.CleanupTaskName, true);
+        #
+        #    cleanupTaskSettingsUpd.LastBeginTime      = DateTimeUtil::getSystemDateTime();
+        #    cleanupTaskSettingsUpd.LastEndTime        = utcDateTimeNull();
+        #    cleanupTaskSettingsUpd.LastUpdatedRecords = 0;
+        #    cleanupTaskSettingsUpd.update();
+        #
+        #    ttsCommit;
+        #
+        #    curLoopNumber = 0;
+        #}
+      ENDSOURCE
+      SOURCE #logEnd
+        #void logEnd(DEV_CleanupTaskSettings     _cleanupTaskSettings, int _recCount = 0)
+        #{
+        #    DEV_CleanupTaskSettings  cleanupTaskSettingsUpd;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return;
+        #    }
+        #    if (! _recCount)
+        #    {
+        #        _recCount = curRecCounter;
+        #    }
+        #
+        #    connection = null;
+        #
+        #    ttsBegin;
+        #
+        #    cleanupTaskSettingsUpd = DEV_CleanupTaskSettings::find(_cleanupTaskSettings.CleanupTaskName, true);
+        #
+        #    cleanupTaskSettingsUpd.LastEndTime        = DateTimeUtil::getSystemDateTime();
+        #    cleanupTaskSettingsUpd.LastUpdatedRecords += _recCount;
+        #    cleanupTaskSettingsUpd.update();
+        #
+        #    ttsCommit;
+        #}
+      ENDSOURCE
+      SOURCE #logSingleRecord
+        #boolean logSingleRecord(DEV_CleanupTaskSettings     _cleanupTaskSettings)
+        #{
+        #    DEV_CleanupTaskSettings  cleanupTaskSettingsUpd;
+        #    boolean                  res = true;
+        #    ;
+        #    if (cleanupRunMode != DEV_CleanupRunMode::Run)
+        #    {
+        #        return false;
+        #    }
+        #    curRecCounter++;
+        #    if (curRecCounter >= _cleanupTaskSettings.StepSelectRecords)
+        #    {
+        #
+        #        ttsBegin;
+        #
+        #        cleanupTaskSettingsUpd = DEV_CleanupTaskSettings::find(_cleanupTaskSettings.CleanupTaskName, true);
+        #
+        #        cleanupTaskSettingsUpd.LastUpdatedRecords += curRecCounter;
+        #        cleanupTaskSettingsUpd.update();
+        #
+        #        ttsCommit;
+        #
+        #        res = this.checkContinueLoop(_cleanupTaskSettings, curRecCounter);
+        #
+        #        curRecCounter = 0;
+        #    }
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #parmCleanupRunMode
+        #public DEV_CleanupRunMode parmCleanupRunMode(DEV_CleanupRunMode _cleanupRunMode = cleanupRunMode)
+        #{
+        #    ;
+        #    cleanupRunMode = _cleanupRunMode;
+        #
+        #    return cleanupRunMode;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmCleanupTaskSettings
+        #public DEV_CleanupTaskSettings parmCleanupTaskSettings(DEV_CleanupTaskSettings _cleanupTaskSettings = cleanupTaskSettings)
+        #{
+        #    ;
+        #    cleanupTaskSettings = _cleanupTaskSettings;
+        #
+        #    return cleanupTaskSettings;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #sqlExecuteQuery
+        #int sqlExecuteQuery(str  _sqlStr)
+        #{
+        #    int  res;
+        #    ResultSet       rs;
+        #    SqlStatementExecutePermission       perm;
+        #    Statement           statement;
+        #
+        #    ;
+        #
+        #    if (cleanupRunMode == DEV_CleanupRunMode::DisplaySQL)
+        #    {
+        #        info(_sqlStr);
+        #        return 0;
+        #    }
+        #
+        #    // create connection object
+        #    if (! connection)
+        #    {
+        #        connection = new Connection();
+        #
+        #    }
+        #    // create statement
+        #    if (! statement)
+        #    {
+        #        statement = connection.createStatement();
+        #    }
+        #    // assert SQL statement execute permission
+        #    perm = new SqlStatementExecutePermission(_sqlStr);
+        #    perm.assert();
+        #
+        #    //info(_sqlStr);
+        #
+        #    //BP Deviation documented
+        #    rs = statement.executeQuery(_sqlStr);
+        #    if (rs.next())
+        #    {
+        #        res = rs.getInt(1);
+        #    }
+        #    statement.close();
+        #    statement = null;
+        #
+        #    // limit the scope of the assert call
+        #    CodeAccessPermission::revertAssert();
+        #
+        #    return res;
+        #}
+      ENDSOURCE
+      SOURCE #sqlExecuteUpdate
+        #void sqlExecuteUpdate(str  _sqlStr)
+        #{
+        #    Statement           statement;
+        #    ;
+        #    if (cleanupRunMode == DEV_CleanupRunMode::Init || cleanupRunMode == DEV_CleanupRunMode::Estimate)
+        #    {
+        #        throw error(error::wrongUseOfFunction(funcName()));
+        #    }
+        #    if (cleanupRunMode == DEV_CleanupRunMode::DisplaySQL)
+        #    {
+        #        info(_sqlStr);
+        #        return;
+        #    }
+        #
+        #    // create connection object
+        #    if (! connection)
+        #    {
+        #        connection = new Connection();
+        #    }
+        #    // create statement
+        #    statement = connection.createStatement();
+        #
+        #    // assert SQL statement execute permission
+        #    new SqlStatementExecutePermission(_sqlStr).assert();
+        #
+        #    //BP Deviation documented
+        #    statement.executeUpdate(_sqlStr);
+        #
+        #    statement.close();
+        #    statement = null;
+        #
+        #    // limit the scope of the assert call
+        #    CodeAccessPermission::revertAssert();
+        #}
+      ENDSOURCE
+      SOURCE #test
+        #server static void test()
+        #{
+        #    DEV_CleanupDataTaskBase        processor = new DEV_CleanupDataTaskBase();
+        #    str     sSQL;
+        #    ;
+        #    sSQL = 'IF OBJECT_ID(\'tempdb..#tmpRes\')          IS NOT NULL DROP TABLE #tmpRes; \n';
+        #    sSQL += 'CREATE TABLE #tmpRes (RECID   BIGINT) \n';
+        #    processor.sqlExecuteUpdate(sSQL);
+        #    sSQL = '';
+        #    processor.sqlExecuteUpdate(sSQL);
+        #
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 5
+
+FORM #DEV_CleanupTaskSettings
+  PROPERTIES
+    Name                #DEV_CleanupTaskSettings
+  ENDPROPERTIES
+  
+  METHODS
+    Version: 3
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    super();
+      #
+      #    DEV_CleanupDataTaskProcessor::initTasksSettings();
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #DEV_CleanupTaskSettings
+          Table               #DEV_CleanupTaskSettings
+          AllowCreate         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  JOINS
+  ENDJOINS
+  
+  DESIGN
+    PROPERTIES
+      Width               #Column width
+      Height              #Column height
+      TitleDatasource     #DEV_CleanupTaskSettings
+      SaveSize            #Yes
+      SetCompany          #No
+      DataSource          #DEV_CleanupTaskSettings
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL TAB
+        PROPERTIES
+          Name                #Tab
+          Width               #Column width
+          Height              #Column height
+          DataSource          #DEV_CleanupTaskSettings
+        ENDPROPERTIES
+        
+        CONTAINER
+          CONTROL TABPAGE
+            PROPERTIES
+              Name                #TabPageOverview
+              Width               #Column width
+              Height              #Column height
+              Caption             #@SYS9039
+            ENDPROPERTIES
+            
+            CONTAINER
+              CONTROL GRID
+                PROPERTIES
+                  Name                #Grid
+                  Width               #Column width
+                  Height              #Column height
+                  DataSource          #DEV_CleanupTaskSettings
+                ENDPROPERTIES
+                
+                  CONTAINER
+                    CONTROL GROUP
+                      PROPERTIES
+                        Name                #Overview
+                        BackgroundColor     #Window background
+                        DataSource          #DEV_CleanupTaskSettings
+                        DataGroup           #Overview
+                      ENDPROPERTIES
+                      
+                        CONTAINER
+                          CONTROL CHECKBOX
+                            PROPERTIES
+                              Name                #Overview_Enabled
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataField           #Enabled
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                          CONTROL STRINGEDIT
+                            PROPERTIES
+                              Name                #Overview_CleanupTaskName
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataField           #CleanupTaskName
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                          CONTROL STRINGEDIT
+                            PROPERTIES
+                              Name                #Overview_Description
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataField           #Description
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                          CONTROL INTEDIT
+                            PROPERTIES
+                              Name                #Overview_CleanupDays
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataField           #CleanupDays
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                          CONTROL UTCDATETIMEEDIT
+                            PROPERTIES
+                              Name                #Overview_LastBeginTime
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataField           #LastBeginTime
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                          CONTROL UTCDATETIMEEDIT
+                            PROPERTIES
+                              Name                #Overview_LastEndTime
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataField           #LastEndTime
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                          CONTROL REALEDIT
+                            PROPERTIES
+                              Name                #Overview_M_durationMin
+                              AllowEdit           #No
+                              HelpText            #Last execution duration(Min)
+                              Label               #Last duration(Min)
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataMethod          #durationMin
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                          CONTROL INTEDIT
+                            PROPERTIES
+                              Name                #Overview_LastUpdatedRecords
+                              DataSource          #DEV_CleanupTaskSettings
+                              DataField           #LastUpdatedRecords
+                            ENDPROPERTIES
+                            
+                          ENDCONTROL 
+                          
+                        ENDCONTAINER
+                        
+                    ENDCONTROL 
+                    
+                  ENDCONTAINER
+                  
+              ENDCONTROL 
+              
+            ENDCONTAINER
+            
+          ENDCONTROL 
+          
+          CONTROL TABPAGE
+            PROPERTIES
+              Name                #TabPageGenral
+              Width               #Column width
+              Height              #Column height
+              Caption             #@SYS2952
+              Columns             #2
+              ArrangeGuide        
+                ARRAY INDEX Columns 
+                  #0
+                  #0
+                ENDARRAY
+            ENDPROPERTIES
+            
+            CONTAINER
+              CONTROL GROUP
+                PROPERTIES
+                  Name                #StatusHistory
+                  DataSource          #DEV_CleanupTaskSettings
+                  DataGroup           #StatusHistory
+                  AutoDataGroup       #Yes
+                ENDPROPERTIES
+                
+                  CONTAINER
+                  ENDCONTAINER
+                  
+              ENDCONTROL 
+              
+              CONTROL GROUP
+                PROPERTIES
+                  Name                #AdvancedSettings
+                  DataSource          #DEV_CleanupTaskSettings
+                  DataGroup           #AdvancedSettings
+                  AutoDataGroup       #Yes
+                ENDPROPERTIES
+                
+                  CONTAINER
+                  ENDCONTAINER
+                  
+              ENDCONTROL 
+              
+            ENDCONTAINER
+            
+          ENDCONTROL 
+          
+        ENDCONTAINER
+        
+      ENDCONTROL 
+      
+      CONTROL BUTTONGROUP
+        PROPERTIES
+          Name                #ButtonGroup
+        ENDPROPERTIES
+        
+        CONTAINER
+          CONTROL BUTTON
+            PROPERTIES
+              Name                #EstimateButton
+              HelpText            #Estimate number of records
+              Text                #Estimate
+            ENDPROPERTIES
+            
+            METHODS
+              Version: 3
+              SOURCE #clicked
+                #void clicked()
+                #{
+                #    ;
+                #    DEV_CleanupDataTaskProcessor::runEstimate(DEV_CleanupTaskSettings);
+                #
+                #}
+              ENDSOURCE
+            ENDMETHODS
+          ENDCONTROL 
+          
+          CONTROL BUTTON
+            PROPERTIES
+              Name                #DisplaySQLButton
+              HelpText            #Display task SQL
+              Text                #Display SQL
+            ENDPROPERTIES
+            
+            METHODS
+              Version: 3
+              SOURCE #clicked
+                #void clicked()
+                #{
+                #    ;
+                #    DEV_CleanupDataTaskProcessor::runDisplaySQL(DEV_CleanupTaskSettings);
+                #
+                #}
+              ENDSOURCE
+            ENDMETHODS
+          ENDCONTROL 
+          
+          CONTROL MENUITEMBUTTON
+            PROPERTIES
+              Name                #DEV_CleanupDataTask
+              Text                #Execute selected
+              MenuItemType        #Action
+              MenuItemName        #DEV_CleanupDataTaskProcessor
+            ENDPROPERTIES
+            
+          ENDCONTROL 
+          
+        ENDCONTAINER
+        
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+ENDFORM
+
+
+***Element: FTM
+
+; Microsoft Dynamics AX MENUITEM : DEV_CleanupTaskSettings unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEV_CleanupTaskSettings
+    Type: 1
+    PROPERTIES
+      Name                #DEV_CleanupTaskSettings
+      Label               #Cleanup settings
+      HelpText            #Cleanup settings table
+      Object              #DEV_CleanupTaskSettings
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+***Element: FTM
+
+; Microsoft Dynamics AX MENUITEM : DEV_CleanupDataTaskProcessor unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #DEV_CleanupDataTaskProcessor
+    Type: 3
+    PROPERTIES
+      Name                #DEV_CleanupDataTaskProcessor
+      Label               #Cleanup historic data
+      HelpText            #Perform Cleanup historic data
+      ObjectType          #Class
+      Object              #DEV_CleanupDataTaskProcessor
+      RunOn               #Server
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : DEV_PerfAuditDataCleanUp2 unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #DEV_PerfAuditDataCleanUp2
+   SHARED
+  PROPERTIES
+    Name                #DEV_PerfAuditDataCleanUp2
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #Data_Dictionary
+      PROPERTIES
+        Name                #Data_Dictionary
+        ProjectGroupType    #DataDictionary
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      GROUP #Tables
+        PROPERTIES
+          Name                #Tables
+          ProjectGroupType    #Tables
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 44
+          UTILOBJECTID 50122
+          NODETYPE 204
+          NAME #DEV_CleanupTaskSettings
+        ENDNODE
+        ENDGROUP
+        
+      GROUP #Extended_Data_Types
+        PROPERTIES
+          Name                #Extended_Data_Types
+          ProjectGroupType    #ExtendedDataTypes
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 41
+          UTILOBJECTID 50108
+          NODETYPE 234
+          NAME #DEV_CleanUpTaskName
+        ENDNODE
+        ENDGROUP
+        
+      GROUP #BaseEnums
+        PROPERTIES
+          Name                #BaseEnums
+          ProjectGroupType    #BaseEnums
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 40
+          UTILOBJECTID 50029
+          NODETYPE 209
+          NAME #DEV_CleanupRunMode
+        ENDNODE
+        ENDGROUP
+        
+      ENDGROUP
+      
+    GROUP #Classes
+      PROPERTIES
+        Name                #Classes
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56113
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_AifMessageLog
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56117
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_PriceDiscAdmTable
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56116
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_PriceDiscTable
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56114
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_ProdParmStartUp
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56115
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_SysOutgoingEmail
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56108
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_InventReportDimHist
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56112
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_SalesTableDelete
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56111
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_PodInterface
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56110
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_InventTransferParm
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56107
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_InventSumSummarize
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 56106
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_SalesParmQuotation
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50879
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_SalesParmTables
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50877
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_InventSumClosed
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50875
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_BatchHistory
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50880
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_SysDatabaseLog
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50878
+        NODETYPE 329
+        NAME #DEV_CleanupDataTask_PurchParmTable
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50874
+        NODETYPE 329
+        NAME #DEV_CleanupDataSQLBuider
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50882
+        NODETYPE 329
+        NAME #DEV_CleanupDataTaskProcessor
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 50881
+        NODETYPE 329
+        NAME #DEV_CleanupDataTaskBase
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Forms
+      PROPERTIES
+        Name                #Forms
+        ProjectGroupType    #Forms
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 11
+        UTILOBJECTID 0
+        NODETYPE 201
+        NAME #DEV_CleanupTaskSettings
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Menu_Items
+      PROPERTIES
+        Name                #Menu_Items
+        ProjectGroupType    #MenuItems
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      GROUP #Display
+        PROPERTIES
+          Name                #Display
+          ProjectGroupType    #Display
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 1
+          UTILOBJECTID 0
+          NODETYPE 296
+          NAME #DEV_CleanupTaskSettings
+        ENDNODE
+        ENDGROUP
+        
+      GROUP #Action
+        PROPERTIES
+          Name                #Action
+          ProjectGroupType    #Action
+          GroupMask           #
+          PreventEditProperties #No
+        ENDPROPERTIES
+        
+        BEGINNODE
+          FILETYPE 0
+          UTILTYPE 3
+          UTILOBJECTID 0
+          NODETYPE 296
+          NAME #DEV_CleanupDataTaskProcessor
+        ENDNODE
+        ENDGROUP
+        
+      ENDGROUP
+      
+    GROUP #Menus
+      PROPERTIES
+        Name                #Menus
+        ProjectGroupType    #Menus
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END
