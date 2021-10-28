@@ -52,3 +52,7 @@ https://zaorfr.hashnode.dev/d365-fo-custom-services
 ## Sign up for preview subscriptions
 
 https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/dev-tools/sign-up-preview-subscription
+
+## Dynamics 365 Implementation Guide                 
+
+https://community.dynamics.com/365/dynamics-365-fasttrack/p/dynamics365implementationguide
