@@ -59,4 +59,8 @@ https://community.dynamics.com/365/dynamics-365-fasttrack/p/dynamics365implement
 
 ## ON-Premises links
 
-[On-premises certificate rotation] (https://community.dynamics.com/ax/b/axinthefield/posts/on-premises-certificate-rotation)
+[On-premises certificate rotation](https://community.dynamics.com/ax/b/axinthefield/posts/on-premises-certificate-rotation)
+
+[Installation changes for On-Premises environments platform 41 and later](https://community.dynamics.com/ax/b/axinthefield/posts/installation-changes-for-on-premises-environments-platform-41-and-later)
+
+[Path to One Version: In-Place Upgrade from within the VHD](https://community.dynamics.com/ax/b/axinthefield/posts/path-to-one-version-in-place-upgrade)
