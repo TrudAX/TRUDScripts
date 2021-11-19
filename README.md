@@ -56,3 +56,7 @@ https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/dev-tools/si
 ## Dynamics 365 Implementation Guide                 
 
 https://community.dynamics.com/365/dynamics-365-fasttrack/p/dynamics365implementationguide
+
+## ON-Premises links
+
+[On-premises certificate rotation] (https://community.dynamics.com/ax/b/axinthefield/posts/on-premises-certificate-rotation)
