@@ -11,7 +11,22 @@ static void dev_deleteCompanyByList(Args _args)
 
     TextBuffer      tb = new TextBuffer();
 
-    container      companyDeleteCon = ['aa1', 'aa2'];
+    container      companyDeleteCon = [
+    'EAU',
+'ENZ',
+'SWZ'];
+
+    container      largeTablesCon = [
+'INVENTSETTLEMENT',
+'INVENTREPORTDIMHISTORY',
+'INVENTTRANSPOSTING',
+'INVENTTRANS',
+'CUSTINVOICETRANS',
+'INVENTPICKINGLISTTRANS',
+'TAXTRANS',
+'SALESLINE'
+];
+
     str            companyDeleteList;
 
     int             i;
@@ -22,7 +37,7 @@ static void dev_deleteCompanyByList(Args _args)
         DictTable       dt;
         boolean         tst;
         TableId         currentTableId;
-
+        str             tableName;
         ;
 
         tst = dictTable.isMap();
@@ -36,13 +51,34 @@ static void dev_deleteCompanyByList(Args _args)
              )
 
         {
-            for (i = 1; i <= conlen(companyDeleteCon); i++)
+            if (confind(largeTablesCon, dictTable.name()))
             {
-                sSQL = strFmt("DELETE FROM %1 WHERE DataAreaId = '%2' ; ",
-                                dictTable.name(DbBackend::Sql),
-                                conpeek(companyDeleteCon, i));
-                sSQLGlobal += sSQL + '\n';
+                sSQLGlobal += 'GO' + '\n';
 
+                sSQLGlobal += 'declare @rowCount int;' + '\n';
+                sSQLGlobal += 'declare @curStep int;' + '\n';
+                sSQLGlobal += 'SET @rowCount = -1;' + '\n';
+                sSQLGlobal += 'SET @curStep = 0;' + '\n';
+
+                sSQLGlobal += 'while(@rowCount <> 0 AND @curStep < 100000) begin ' + '\n';
+                sSQLGlobal += strFmt('WITH Comments_ToBeDeleted AS ( SELECT TOP 10000 * from %1 where dataareaid IN %2 ) ',
+                    dictTable.name(DbBackend::Sql), companyDeleteList) + '\n';
+                sSQLGlobal += 'DELETE FROM Comments_ToBeDeleted ' + '\n';
+                sSQLGlobal += 'set @rowCount = @@rowCount; ' + '\n';
+                sSQLGlobal += 'set @curStep = @curStep + 1;' + '\n';
+                sSQLGlobal += 'end \n GO' + '\n';
+
+            }
+            else
+            {
+                for (i = 1; i <= conlen(companyDeleteCon); i++)
+                {
+                    sSQL = strFmt("DELETE FROM %1 WHERE DataAreaId = '%2' ",
+                                    dictTable.name(DbBackend::Sql),
+                                    conpeek(companyDeleteCon, i));
+                    sSQLGlobal += sSQL + '\n  GO \n';
+
+                }
             }
         }
         return true;
@@ -54,7 +90,7 @@ static void dev_deleteCompanyByList(Args _args)
         companyDeleteList += strFmt("%1'%2'", i == 1 ? '' : ',', conpeek(companyDeleteCon, i));
     }
     companyDeleteList += ')';
-    
+
     progress.setCaption("Deleting from company");
     progress.setTotal(7400);
         //dictTableMacro = new DictTable(tablename2id('InventTable'));
@@ -73,13 +109,13 @@ static void dev_deleteCompanyByList(Args _args)
 
     sSQL = strFmt("DELETE FROM VIRTUALDATAAREALIST WHERE ID<>'dat' and ID in %1; ", companyDeleteList);
     sSQLGlobal += sSQL + '\n';
-    
-    sSQL = strFmt("UPDATE USERINFO SET COMPANY = 'FHL' WHERE COMPANY IN %1; ", companyDeleteList);
+
+    sSQL = strFmt("UPDATE USERINFO SET COMPANY = 'vda' WHERE COMPANY IN %1; ", companyDeleteList);
     sSQLGlobal += sSQL + '\n';
 
     sSQL = strFmt("DELETE FROM DATAAREA WHERE DATAAREA.ID<>'dat' and DATAAREA.ID in %1; ", companyDeleteList);
     sSQLGlobal += sSQL + '\n';
-    
+
     BOX::info('Press OK to copy SQL text to clipboard. Stop AOS before running SQL command');
 
     tb.setText(sSQLGlobal);
