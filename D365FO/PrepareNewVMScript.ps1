@@ -1,6 +1,6 @@
 Set-MpPreference -DisableRealtimeMonitoring $true 
  #region Install tools
-Install-Module -Name d365fo.tools
+Install-Module -Name d365fo.tools -AllowClobber
 Add-D365WindowsDefenderRules
 Invoke-D365InstallAzCopy
 Invoke-D365InstallSqlPackage
