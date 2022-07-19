@@ -69,6 +69,9 @@ foreach ($model in Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -Excl
 
 #----------------------------------------------------------------------------------
 #RESTORE TIER2 TO TIER1
+#Invoke-D365InstallAzCopy
+#Invoke-D365InstallSqlPackage
+
 $fileDB = "UAT_" + (Get-Date -Format "yyyy_MM_dd")
 $filePath = "J:\MSSQL_BACKUP\" + $fileDB
 $filePath
