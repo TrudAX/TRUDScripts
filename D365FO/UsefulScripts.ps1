@@ -97,7 +97,7 @@ Stop-D365Environment -All
 
 Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile ("J:\MSSQL_BACKUP\AxDBOld" + (Get-Date -Format "yyyyMMdd") + ".bak")  -CopyOnly -CompressionOption On -Initialize -NoRewind 
 #invoke-sqlcmd -ServerInstance "."  -Query "alter database AxDB set single_user with rollback immediate; Drop database AxDB;"
-invoke-sqlcmd -ServerInstance "."  -Query "alter database AxDB_original set single_user with rollback immediate; Drop database AxDB_original;"
+invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;"
 
 Switch-D365ActiveDatabase -NewDatabaseName $fileDB
 Invoke-D365DBSync -ShowOriginalProgress
