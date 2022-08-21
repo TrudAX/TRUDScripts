@@ -166,3 +166,8 @@ write-host 'RuntimeHostType set "IIS" in DynamicsDevConfig.xml' -ForegroundColor
 }#end if test-path xml file
 else {write-host 'AOSService drive not found! Could not set RuntimeHostType to "IIS"' -ForegroundColor red}
 #endregion
+
+#region VHDSetup
+#Run Generate Self-Signed Certificates script with application 00000015-0000-0000-c000-000000000000
+#To delete certificates copy C:\DynamicsTools\CleanVHD folder from clean VHD and run the script again (Admin provisioning tool afterwards).
+#endregion
