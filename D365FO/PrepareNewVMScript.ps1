@@ -45,7 +45,7 @@ Else {
         "notepadplusplus.install"
         "sysinternals"
 		#"powerbi"
-		"git.install"
+		#"git.install"
 		#"github-desktop"
 	    #"postman"  # or insomnia-rest-api-client
         #"fiddler"
