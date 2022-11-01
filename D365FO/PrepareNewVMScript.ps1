@@ -171,3 +171,7 @@ else {write-host 'AOSService drive not found! Could not set RuntimeHostType to "
 #Run Generate Self-Signed Certificates script with application 00000015-0000-0000-c000-000000000000
 #To delete certificates copy C:\DynamicsTools\CleanVHD folder from clean VHD and run the script again (Admin provisioning tool afterwards).
 #endregion
+
+#region usefull tools
+#https://marketplace.visualstudio.com/items?itemName=ViktarKarpach.DebugAttachManager
+#endregion
