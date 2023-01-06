@@ -120,4 +120,17 @@ Invoke-D365SDPInstall -Path C:\AAA\Finance_10_28 -Command RunAll -Verbose
 #Invoke-D365SDPInstall -Path C:\AAA\Finance_10_28 -Command ReRunStep -Step 25 -Verbose
 #---------------------------------
 
+#SQL SNAPSHOT CREATE AND RESTORE
+#---------------------------------
+--Create snapshot
+CREATE DATABASE AxDB_MyReserveCase ON  
+( NAME = UAT2022_1124, FILENAME =   
+'J:\MSSQL_BACKUP\AxDB_MyReserveCase.ss' )  
+AS SNAPSHOT OF AxDB;  
+ 
+--Restore from snapshot
+ALTER DATABASE AxDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+RESTORE DATABASE AxDB from   
+DATABASE_SNAPSHOT = 'AxDB_MyReserveCase';  
+ALTER DATABASE AxDB SET MULTI_USER;
 
