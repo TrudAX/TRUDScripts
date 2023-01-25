@@ -50,6 +50,10 @@ Start-D365Environment -OnlyStartTypeAutomatic -ShowOriginalProgress
 CREATE USER [axdbadmin] FOR LOGIN [axdbadmin2] WITH DEFAULT_SCHEMA=[dbo]
 ALTER DATABASE [GOLDEN] SET AUTO_CLOSE OFF WITH NO_WAIT
 
+$RelocateData = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("AXDBBuild_Data", "F:\MSSQL_DATA\AxDB_20230125.mdf")
+$RelocateLog = New-Object Microsoft.SqlServer.Management.Smo.RelocateFile("AXDBBuild_Log", "G:\MSSQL_LOGS\AxDB_20230125.ldf")
+Restore-SqlDatabase -ServerInstance "." -Database "AxDB_20230125" -BackupFile "I:\MSSQL_BACKUP\AxDB_20230125.bak" -RelocateFile @($RelocateData,$RelocateLog)
+
 Get-D365Url
 
 #TRANSFER TO TIER2
