@@ -138,3 +138,15 @@ RESTORE DATABASE AxDB from
 DATABASE_SNAPSHOT = 'AxDB_MyReserveCase';  
 ALTER DATABASE AxDB SET MULTI_USER;
 
+#----------------------------------------
+#RESTORE REPLY URL
+# Using tenant admin account under this tenant login to via AzureAD PowerShell cmdlet. 
+Install-Module AzureAD
+Connect-AzureAD 
+# Get Service Principal details 
+$SP = Get-AzureADServicePrincipal -Filter "AppId eq '00000015-0000-0000-c000-000000000000'" ##REPLACE AAD REALM VALUE WITH VALUE IN AOS SERVICE UNDER WEB CONFIG
+#Add Reply URLs 
+$SP.ReplyUrls.Add("https://xxxc099devaos.axcloud.dynamics.com") #REPLACE ENV URL WITH ENV URL UNDER INFRA URL IN AOS SERVICE
+$SP.ReplyUrls.Add("https://xxxc099devaos.axcloud.dynamics.com/oauth") ##DO NOT REMOVE THE /OAUTH JUST REPLACE THE ENV URL
+#Set/Update Reply URL 
+Set-AzureADServicePrincipal -ObjectId $SP.ObjectId -ReplyUrls $SP.ReplyUrls
