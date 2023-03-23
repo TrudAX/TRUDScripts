@@ -64,9 +64,10 @@ New-D365Bacpac -ExportModeTier1 -BackupDirectory C:\AAA\PackagesBackpack\ -NewDa
 
 #DEPLOY REPORTS
 #------------------------
-Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -ExcludeBinaryModels | Invoke-D365ProcessModule -ExecuteSync -ExecuteDeployReports
+Enable-D365Exception
 Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -ExcludeBinaryModels | Invoke-D365ModuleCompile | Get-D365CompilerResult -OutputAsObjects
-foreach ($model in Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -ExcludeBinaryModels)
+Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -ExcludeBinaryModels | Invoke-D365ProcessModule -ExecuteSync -ExecuteDeployReports
+foreach ($model in Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -ExcludeBinaryModels)  #-Name "AAA"
 {
     Invoke-D365ProcessModule -Module $model.Module  -ExecuteDeployReports 
 }
