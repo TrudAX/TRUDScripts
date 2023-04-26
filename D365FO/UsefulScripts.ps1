@@ -26,15 +26,15 @@ Import-D365Bacpac -BacpacFile "J:\LCS\TST20210827.bacpac" -ImportModeTier1 -NewD
 #BACKUP TIER1
 #--------------------------------
 #Install-Module -Name SqlServer -AllowClobber
-Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -CompressionOption On -BackupFile "J:\MSSQL_BACKUP\testDB.bak"
+Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -CompressionOption On -BackupFile "I:\MSSQL_BACKUP\testDB.bak"
 
 #or with var
-$filePath = "J:\MSSQL_BACKUP\AxDB_" + (Get-Date -Format "yyyyMMdd") + ".bak"
+$filePath = "I:\MSSQL_BACKUP\AxDB_" + (Get-Date -Format "yyyyMMdd") + ".bak"
 $filePath
 Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile $filePath  -CopyOnly -CompressionOption On -Initialize -NoRewind 
 Invoke-D365AzureStorageUpload -AccountId "sharedwe" -AccessToken "6RiYMomVkAUrYXd63fMNzQ==" -Container  "trudtemp" -Filepath $filePath -DeleteOnUpload
 
-Invoke-D365AzureStorageDownload -AccountId "sharedwe" -AccessToken "iYMomVkAUrYXd63fMNzQ==" -Container  "trudtemp" -Path "J:\MSSQL_BACKUP"  -FileName "AxDB_20210925.bak"
+Invoke-D365AzureStorageDownload -AccountId "sharedwe" -AccessToken "iYMomVkAUrYXd63fMNzQ==" -Container  "trudtemp" -Path "I:\MSSQL_BACKUP"  -FileName "AxDB_20210925.bak"
 #--------------------------------
 
 #RESTORE TIER1 DB on TIER1
@@ -78,7 +78,7 @@ foreach ($model in Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -Excl
 #Invoke-D365InstallSqlPackage
 
 $fileDB = "UAT_" + (Get-Date -Format "yyyy_MM_dd")
-$filePath = "J:\MSSQL_BACKUP\" + $fileDB
+$filePath = "I:\MSSQL_BACKUP\" + $fileDB
 $filePath
 
 $filePathpac = $filePath +  ".bacpac"
@@ -91,6 +91,7 @@ Invoke-D365AzCopyTransfer -SourceUri "SAS link from LCS Here" -DestinationUri $f
 $StartTime = get-date 
 WRITE-HOST $StartTime
 WRITE-HOST "Execute to speed up: ALTER DATABASE [$($fileDB)] SET DELAYED_DURABILITY = FORCED WITH NO_WAIT"
+WRITE-HOST "ALTER DATABASE [$($fileDB)] SET RECOVERY SIMPLE WITH NO_WAIT"
 Import-D365Bacpac  -BacpacFile $filePathpac -ImportModeTier1 -NewDatabaseName $fileDB 
 $RunTime = New-TimeSpan -Start $StartTime -End (get-date) 
 WRITE-HOST "Execution time was $($RunTime.Hours) hours, $($RunTime.Minutes) minutes, $($RunTime.Seconds) seconds" 
@@ -100,13 +101,14 @@ Invoke-Sqlcmd -ServerInstance "." -Database "master" -Query ("ALTER DATABASE [" 
 
 Stop-D365Environment -All
 
-Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile ("J:\MSSQL_BACKUP\AxDBOld" + (Get-Date -Format "yyyyMMdd") + ".bak")  -CopyOnly -CompressionOption On -Initialize -NoRewind 
+Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile ("I:\MSSQL_BACKUP\AxDBOld" + (Get-Date -Format "yyyyMMdd") + ".bak")  -CopyOnly -CompressionOption On -Initialize -NoRewind 
 #invoke-sqlcmd -ServerInstance "."  -Query "alter database AxDB set single_user with rollback immediate; Drop database AxDB;"
 invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;"
 
 Switch-D365ActiveDatabase -NewDatabaseName $fileDB
 Invoke-D365DBSync -ShowOriginalProgress
 Start-D365Environment -OnlyStartTypeAutomatic -ShowOriginalProgress
+Invoke-D365DataFlush -Class SysFlushData
 #-------------------------------------------------------------------------------------
 
 #IMPORT USERS
