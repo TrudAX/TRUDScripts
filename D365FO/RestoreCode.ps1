@@ -4,7 +4,7 @@ Enable-D365Exception
 $StartTime = get-date 
 if ( $OnlyCustom -eq 1 )
 {
-    Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -ExcludeBinaryModels -Name CTM | Invoke-D365ModuleCompile | Get-D365CompilerResult -OutputAsObjects
+    Invoke-D365ModuleFullCompile -Module CTM 
 
     #Invoke-D365DBSync -ShowOriginalProgress
     #Invoke-D365DbSyncModule -Module "CTM"
@@ -20,7 +20,10 @@ else
 {
     #ALL
     $modules = Get-D365Module -ExcludeBinaryModules -InDependencyOrder | Get-D365Model -ExcludeMicrosoftModels -CustomizableOnly | Select-Object -Property Module -Unique
-    $modules | Invoke-D365ModuleCompile | Get-D365CompilerResult -OutputAsObjects
+    foreach ($model in $modules)
+    {
+        Invoke-D365ProcessModule -Module $model.Module  -ExecuteCompile 
+    }
     Invoke-D365DBSync -ShowOriginalProgress
     foreach ($model in $modules)
     {
