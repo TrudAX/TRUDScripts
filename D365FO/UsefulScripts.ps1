@@ -29,10 +29,13 @@ Import-D365Bacpac -BacpacFile "J:\LCS\TST20210827.bacpac" -ImportModeTier1 -NewD
 Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -CompressionOption On -BackupFile "I:\MSSQL_BACKUP\testDB.bak"
 
 #or with var
-$filePath = "I:\MSSQL_BACKUP\AxDB_" + (Get-Date -Format "yyyyMMdd") + ".bak"
+$fileDB   =  "AxDB_" + (Get-Date -Format "yyyy_MM_dd") 
+$fileName = $fileDB + ".bak"
+$filePath = "I:\MSSQL_BACKUP\"  + $fileName
 $filePath
-Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile $filePath  -CopyOnly -CompressionOption On -Initialize -NoRewind 
-Invoke-D365AzureStorageUpload -AccountId "sharedwe" -AccessToken "6RiYMomVkAUrYXd63fMNzQ==" -Container  "trudtemp" -Filepath $filePath -DeleteOnUpload
+Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -CompressionOption On -BackupFile $filePath
+Invoke-D365AzureStorageUpload -AccountId "denisshare" -AccessToken "fKlyrQ==" -Container  "databaseap" -Filepath $filePath -DeleteOnUpload
+Write-Host "Invoke-D365AzureStorageDownload -AccountId `"denisshare`" -AccessToken `"Q==`" -Container  `"databaseap`" -Path `"I:\MSSQL_BACKUP`"  -FileName `"$fileName`""
 
 Invoke-D365AzureStorageDownload -AccountId "sharedwe" -AccessToken "iYMomVkAUrYXd63fMNzQ==" -Container  "trudtemp" -Path "I:\MSSQL_BACKUP"  -FileName "AxDB_20210925.bak"
 #--------------------------------
