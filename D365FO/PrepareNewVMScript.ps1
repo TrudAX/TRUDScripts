@@ -1,3 +1,4 @@
+#Use D8v5 15x32GB HDDs for the new VM config
 Set-MpPreference -DisableRealtimeMonitoring $true 
  #region Install tools
 Install-Module -Name d365fo.tools -AllowClobber
