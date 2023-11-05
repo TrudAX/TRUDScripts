@@ -1,6 +1,7 @@
 #Use D8v5 15x32GB HDDs for the new VM config
 Set-MpPreference -DisableRealtimeMonitoring $true 
  #region Install tools
+Install-Module -Name SqlServer -AllowClobber
 Install-Module -Name d365fo.tools -AllowClobber
 Add-D365WindowsDefenderRules
 Invoke-D365InstallAzCopy
@@ -109,7 +110,17 @@ truncate table sysserversessions "
     Execute-Sql -server "." -database "AxDB" -command $sql
 #endregion	
 
-
+#region ChangeSQLServer
+Import-Module SqlServer
+# Create a Server object for the default instance
+$SqlServer = New-Object Microsoft.SqlServer.Management.Smo.Server "."
+# Set the maximum server memory to 5000 MB
+$SqlServer.Configuration.MaxServerMemory.ConfigValue = 5000
+# Set the "Compress Backup" option to true
+$SqlServer.Configuration.DefaultBackupCompression.ConfigValue = 1
+# Save the changes
+$SqlServer.Configuration.Alter()
+#endregion
 
 #Disable Automatic Windows Updates
 Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AUOptions -Value 1
@@ -167,6 +178,8 @@ write-host 'RuntimeHostType set "IIS" in DynamicsDevConfig.xml' -ForegroundColor
 }#end if test-path xml file
 else {write-host 'AOSService drive not found! Could not set RuntimeHostType to "IIS"' -ForegroundColor red}
 #endregion
+
+
 
 #region VHDSetup
 #Run Generate Self-Signed Certificates script with application 00000015-0000-0000-c000-000000000000
