@@ -912,7 +912,8 @@ BEGIN
         IF (@@ROWCOUNT = 0) break;
 
         --------------------------------------------------------------
-        delete FROM [dbo].ZINFOLOGHISTORY from [dbo].ZINFOLOGHISTORY  AS hs  --TABLE HERE
+        delete hs
+        FROM [dbo].ZINFOLOGHISTORY hs  --TABLE HERE
         INNER JOIN #temp_hash AS JN ON hs.RECID = JN.RECID
         ----------------------------
 
