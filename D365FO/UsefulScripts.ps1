@@ -156,3 +156,9 @@ $SP.ReplyUrls.Add("https://xxxc099devaos.axcloud.dynamics.com") #REPLACE ENV URL
 $SP.ReplyUrls.Add("https://xxxc099devaos.axcloud.dynamics.com/oauth") ##DO NOT REMOVE THE /OAUTH JUST REPLACE THE ENV URL
 #Set/Update Reply URL 
 Set-AzureADServicePrincipal -ObjectId $SP.ObjectId -ReplyUrls $SP.ReplyUrls
+
+#------------------------------------
+#DELETE WORKSPACE
+cd C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer
+tf workspaces /owner:* /computer:devb5add42
+tf workspace /delete /collection:https://dev.azure.com/allclient "devb5add-1;Denis"
