@@ -104,9 +104,9 @@ Invoke-Sqlcmd -ServerInstance "." -Database "master" -Query ("ALTER DATABASE [" 
 
 Stop-D365Environment -All
 
-Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile ("I:\MSSQL_BACKUP\AxDBOld" + (Get-Date -Format "yyyyMMdd") + ".bak")  -CopyOnly -CompressionOption On -Initialize -NoRewind 
+Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile ("I:\MSSQL_BACKUP\AxDBOld" + (Get-Date -Format "yyyyMMdd") + ".bak")  -CopyOnly -CompressionOption On -Initialize -NoRewind  -TrustServerCertificate
 #invoke-sqlcmd -ServerInstance "."  -Query "alter database AxDB set single_user with rollback immediate; Drop database AxDB;"
-invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;"
+invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;"  -TrustServerCertificate
 
 Switch-D365ActiveDatabase -NewDatabaseName $fileDB
 Invoke-D365DBSync -ShowOriginalProgress
@@ -162,3 +162,4 @@ Set-AzureADServicePrincipal -ObjectId $SP.ObjectId -ReplyUrls $SP.ReplyUrls
 cd C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer
 tf workspaces /owner:* /computer:devb5add42
 tf workspace /delete /collection:https://dev.azure.com/allclient "devb5add-1;Denis"
+#https://stackoverflow.com/questions/28298771/how-to-remove-tfs-workspace-mapping-for-another-user
