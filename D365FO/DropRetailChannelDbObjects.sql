@@ -283,3 +283,19 @@ GO
 
 IF OBJECT_ID('__RETAIL_PENDING_DEPLOYMENT') IS NOT NULL DROP VIEW __RETAIL_PENDING_DEPLOYMENT;
 GO
+
+/*
+If this doesn't work and you get an error on step 57
+>Locate the file path K:\DeployablePackages\(LAST GUID)45326fea-fbfe-4f09-95a5-1aaef38f33f3\RetailServer\Scripts\7.2\Core\UpdateRetailChannelDatabase.ps1
+>Once you have the full path to the above file UpdateRetailChannelDatabase.ps1, open it in any editor. At the very end of the script you should see:
+throw ($global:error[0] | format-list * -f | Out-String)
+}
+finally
+{
+Encrypt-WithAxConfigEncryptorUtility -AosWebsiteName $AosWebsiteName -webConfigPath $webConfigPath
+}
+>Comment out the line which starts with “throw” so it looks like:
+# throw ($global:error[0] | format-list * -f | Out-String)
+>Save the file and resume the deployment
+*/
+
