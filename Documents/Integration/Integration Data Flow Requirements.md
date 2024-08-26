@@ -1,6 +1,7 @@
 # Integration solution specification
 
-Adapted version for D365FO/AX2012
+Adapted version for D365FO/AX2012  (Microsoft version - https://learn.microsoft.com/en-us/dynamics365/guidance/implementation-guide/integrate-other-solutions-choose-pattern)
+
 
 ## Defining the Integration Solution Topology
 
