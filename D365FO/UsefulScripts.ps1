@@ -44,7 +44,8 @@ Invoke-D365AzureStorageDownload -AccountId "sharedwe" -AccessToken "iYMomVkAUrYX
 #----------------------------
 Stop-D365Environment -All
 Restore-SqlDatabase -ServerInstance "." -Database "testDB" -BackupFile "c:\sql\testDB.bak"
-Switch-D365ActiveDatabase -NewDatabaseName "GOLDEN"
+invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;" -TrustServerCertificate
+Switch-D365ActiveDatabase -NewDatabaseName "testDB"
 Invoke-D365DBSync -ShowOriginalProgress
 Start-D365Environment -OnlyStartTypeAutomatic -ShowOriginalProgress
 #----------------------------
