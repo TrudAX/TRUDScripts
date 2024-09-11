@@ -189,5 +189,5 @@ else {write-host 'AOSService drive not found! Could not set RuntimeHostType to "
 #endregion
 
 #region usefull tools
-#https://marketplace.visualstudio.com/items?itemName=ViktarKarpach.DebugAttachManager
+#https://marketplace.visualstudio.com/items?itemName=ViktarKarpach.DebugAttachManager2022
 #endregion
