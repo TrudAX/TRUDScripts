@@ -127,7 +127,7 @@ https://dev01f5f85473588b3ae9devaos.axcloud.dynamics.com/?mi=SysClassRunner&prt=
 
 #INSTALL SOFTWARE PACKAGE
 #---------------------------------
-Invoke-D365SDPInstall -Path C:\AAA\Finance_10_28 -Command RunAll -Verbose
+Invoke-D365SDPInstall -Path C:\AAA\Finance_10_28 -Command RunAll -Verbose -RunbookId 'Update411'
 #Invoke-D365SDPInstall -Path C:\AAA\Finance_10_28 -Command ReRunStep -Step 25 -Verbose
 #---------------------------------
 
