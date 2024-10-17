@@ -110,7 +110,7 @@ Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile ("I:\MSSQL_B
 invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;"  -TrustServerCertificate
 
 Switch-D365ActiveDatabase -NewDatabaseName $fileDB
-Invoke-Sqlcmd -Database AxDB - -ServerInstance "." -Query "UPDATE SystemParameters SET ODataBuildMetadataCacheOnAosStartup = 0" -TrustServerCertificate
+Invoke-Sqlcmd -Database AxDB -ServerInstance "." -Query "UPDATE SystemParameters SET ODataBuildMetadataCacheOnAosStartup = 0" -TrustServerCertificate
 Invoke-D365DBSync -ShowOriginalProgress
 Start-D365Environment -OnlyStartTypeAutomatic -ShowOriginalProgress
 Invoke-D365DataFlush -Class SysFlushData
