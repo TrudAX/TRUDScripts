@@ -79,7 +79,7 @@ foreach ($model in Get-D365Model -CustomizableOnly -ExcludeMicrosoftModels -Excl
 #----------------------------------------------------------------------------------
 #RESTORE TIER2 TO TIER1
 #Invoke-D365InstallAzCopy
-#Invoke-D365InstallSqlPackage
+#Invoke-D365InstallSqlPackage -url "https://go.microsoft.com/fwlink/?linkid=2261576"
 
 $fileDB = "UAT_" + (Get-Date -Format "yyyy_MM_dd")
 $filePath = "I:\MSSQL_BACKUP\" + $fileDB
@@ -110,6 +110,7 @@ Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -BackupFile ("I:\MSSQL_B
 invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;"  -TrustServerCertificate
 
 Switch-D365ActiveDatabase -NewDatabaseName $fileDB
+Invoke-Sqlcmd -Database AxDB - -ServerInstance "." -Query "UPDATE SystemParameters SET ODataBuildMetadataCacheOnAosStartup = 0" -TrustServerCertificate
 Invoke-D365DBSync -ShowOriginalProgress
 Start-D365Environment -OnlyStartTypeAutomatic -ShowOriginalProgress
 Invoke-D365DataFlush -Class SysFlushData
