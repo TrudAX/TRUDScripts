@@ -100,8 +100,8 @@ Import-D365Bacpac  -BacpacFile $filePathpac -ImportModeTier1 -NewDatabaseName $f
 $RunTime = New-TimeSpan -Start $StartTime -End (get-date) 
 WRITE-HOST "Execution time was $($RunTime.Hours) hours, $($RunTime.Minutes) minutes, $($RunTime.Seconds) seconds" 
 
-Invoke-Sqlcmd -ServerInstance "." -Database $fileDB -Query "update userinfo set enable= 1"  -Verbose
-Invoke-Sqlcmd -ServerInstance "." -Database "master" -Query ("ALTER DATABASE [" + $fileDB+ "] SET RECOVERY SIMPLE WITH NO_WAIT")  -Verbose
+Invoke-Sqlcmd -ServerInstance "." -Database $fileDB -Query "update userinfo set enable= 1"  -Verbose -TrustServerCertificate
+Invoke-Sqlcmd -ServerInstance "." -Database "master" -Query ("ALTER DATABASE [" + $fileDB+ "] SET RECOVERY SIMPLE WITH NO_WAIT")  -Verbose -TrustServerCertificate
 
 Stop-D365Environment -All
 
