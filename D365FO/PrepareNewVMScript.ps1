@@ -182,8 +182,9 @@ else {write-host 'AOSService drive not found! Could not set RuntimeHostType to "
 
 
 #region VHDSetup
-#Run Generate Self-Signed Certificates script with application 00000015-0000-0000-c000-000000000000
+#NOT WORKING ANYMORE Run Generate Self-Signed Certificates script with application 00000015-0000-0000-c000-000000000000
 #To delete certificates copy C:\DynamicsTools\CleanVHD folder from clean VHD and run the script again (Admin provisioning tool afterwards).
+#Open a PowerShell window in folder C:\DynamicsTools\CleanVHD  Run .\Clean-Vhd.ps1 Run .\Build-Vhd.ps1
 #https://ax.docentric.com/configure-sharepoint-online-integration-in-d365fo-onebox/
 #slmgr.vbs –rearm 
 #endregion
