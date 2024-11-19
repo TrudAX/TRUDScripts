@@ -92,6 +92,8 @@ $filePathpac
 Enable-D365Exception
 Invoke-D365AzCopyTransfer -SourceUri "SAS link from LCS Here" -DestinationUri $filePathpac
 
+Clear-D365TableDataFromBacpac -Path $filePathpac -TableName "WHSWORKUSERSESSIONLOG","DOCUHISTORY","EVENTINBOXDATA" -ClearFromSource
+
 $StartTime = get-date 
 WRITE-HOST $StartTime
 WRITE-HOST "Execute to speed up: ALTER DATABASE [$($fileDB)] SET DELAYED_DURABILITY = FORCED WITH NO_WAIT"
