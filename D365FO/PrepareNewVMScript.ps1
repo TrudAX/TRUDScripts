@@ -135,6 +135,8 @@ Write-Host "Setting Management Reporter to manual startup to reduce churn and Ev
 Get-D365Environment -FinancialReporter | Set-Service -StartupType Manual
 Stop-Service -Name MR2012ProcessService -Force
 Set-Service -Name MR2012ProcessService -StartupType Disabled
+Set-Service -Name DynamicsAxBatch -StartupType Manual
+Stop-Service -Name DynamicsAxBatch
 Write-Host "Setting Windows Defender rules to speed up compilation time"
 Add-D365WindowsDefenderRules -Silent
 
