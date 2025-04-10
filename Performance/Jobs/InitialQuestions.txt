@@ -14,3 +14,5 @@ Access to DEV VM with the current application code
 Contact persons(functional and technical), how to contact
 How to test operations(copy of production DB)
 How tickets are managed
+How to update application code(Who can transfer to PROD)
+
