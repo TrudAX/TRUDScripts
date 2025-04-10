@@ -13,3 +13,4 @@ Admin access to all servers(D365FO, LCS, Azure DevOps )
 Access to DEV VM with the current application code
 Contact persons(functional and technical), how to contact
 How to test operations(copy of production DB)
+How tickets are managed
