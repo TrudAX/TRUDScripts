@@ -163,7 +163,7 @@ Set-AzureADServicePrincipal -ObjectId $SP.ObjectId -ReplyUrls $SP.ReplyUrls
 
 #------------------------------------
 #DELETE WORKSPACE
-cd C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer
+cd "C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer"
 tf workspaces /owner:* /computer:devb5add42
 tf workspace /delete /collection:https://dev.azure.com/allclient "devb5add-1;Denis"
 #https://stackoverflow.com/questions/28298771/how-to-remove-tfs-workspace-mapping-for-another-user
