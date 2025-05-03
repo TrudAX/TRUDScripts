@@ -6,6 +6,7 @@ Install-Module -Name d365fo.tools -AllowClobber
 Add-D365WindowsDefenderRules
 Invoke-D365InstallAzCopy
 Invoke-D365InstallSqlPackage -url "https://go.microsoft.com/fwlink/?linkid=2261576"
+#Copy C:\Program Files\Microsoft SQL Server\170\DAC\bin to C:\Temp\d365fo.tools\SqlPackage
 #endregion
 
 #region Install additional apps using Chocolatey
