@@ -1,4 +1,5 @@
 #Use D8v5 15x32GB HDDs for the new VM config
+#Enable IIS preload - https://www.linkedin.com/pulse/enable-iis-preload-speed-up-restart-after-x-compile-denis-trunin-86j5c/
 Set-MpPreference -DisableRealtimeMonitoring $true 
  #region Install tools
 Install-Module -Name SqlServer -AllowClobber
