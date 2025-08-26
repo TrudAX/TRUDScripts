@@ -37,15 +37,18 @@ Backup-SqlDatabase -ServerInstance "." -Database "AxDB" -CompressionOption On -B
 Invoke-D365AzureStorageUpload -AccountId "denisshare" -AccessToken "fKlyrQ==" -Container  "databaseap" -Filepath $filePath -DeleteOnUpload
 Write-Host "Invoke-D365AzureStorageDownload -AccountId `"denisshare`" -AccessToken `"Q==`" -Container  `"databaseap`" -Path `"I:\MSSQL_BACKUP`"  -FileName `"$fileName`""
 
-Invoke-D365AzureStorageDownload -AccountId "sharedwe" -AccessToken "iYMomVkAUrYXd63fMNzQ==" -Container  "trudtemp" -Path "I:\MSSQL_BACKUP"  -FileName "AxDB_20210925.bak"
-#--------------------------------
-
 #RESTORE TIER1 DB on TIER1
 #----------------------------
+$backupFileName = "AxDB_20210925.bak"
+$backupPath = "I:\MSSQL_BACKUP"
+$databaseName = [System.IO.Path]::GetFileNameWithoutExtension($backupFileName)
+
+Invoke-D365AzureStorageDownload -AccountId "sharedwe" -AccessToken "iYMomVkAUrYXd63fMNzQ==" -Container "trudtemp" -Path $backupPath -FileName $backupFileName
 Stop-D365Environment -All
-Restore-SqlDatabase -ServerInstance "." -Database "testDB" -BackupFile "c:\sql\testDB.bak"
-invoke-sqlcmd -ServerInstance "."  -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;" -TrustServerCertificate
-Switch-D365ActiveDatabase -NewDatabaseName "testDB"
+Restore-SqlDatabase -ServerInstance "." -Database $databaseName -BackupFile "$backupPath\$backupFileName"
+invoke-sqlcmd -ServerInstance "." -Query "IF DB_ID('AxDB_original') IS NOT NULL BEGIN ALTER DATABASE AxDB_original set single_user with rollback immediate; DROP DATABASE AxDB_original; END;" -TrustServerCertificate
+Switch-D365ActiveDatabase -NewDatabaseName $databaseName
+Invoke-Sqlcmd -Database AxDB -ServerInstance "." -Query "UPDATE SystemParameters SET ODataBuildMetadataCacheOnAosStartup = 0" -TrustServerCertificate
 Invoke-D365DBSync -ShowOriginalProgress
 Start-D365Environment -OnlyStartTypeAutomatic -ShowOriginalProgress
 #----------------------------
