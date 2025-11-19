@@ -530,6 +530,34 @@ FROM   sys.dm_tran_database_transactions a
          ON b.session_id = c.session_id
          order by [Database Name], [Record count]
 ```
+just active queries
+
+```sql
+SELECT
+    r.session_id,
+    r.status,
+    r.start_time,
+    r.total_elapsed_time,
+    DB_NAME(r.database_id) AS database_name,
+    r.command,
+    r.wait_type,
+    r.wait_time,
+    r.logical_reads,
+    r.cpu_time,
+    s.login_name,
+    s.host_name,
+    s.program_name,
+    t.text AS sql_text,
+    qp.query_plan
+FROM sys.dm_exec_requests r
+JOIN sys.dm_exec_sessions s
+    ON r.session_id = s.session_id
+OUTER APPLY sys.dm_exec_sql_text(r.sql_handle) t
+OUTER APPLY sys.dm_exec_query_plan(r.plan_handle) qp
+WHERE r.session_id <> @@SPID       -- exclude current session
+and r.total_elapsed_time > 3000  --3 seconds
+ORDER BY r.total_elapsed_time DESC;
+```
 
 ## Get Top SQL
 
