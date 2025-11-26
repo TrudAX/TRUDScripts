@@ -243,27 +243,31 @@ AdminAccountEditNotSupported=Modifications to 'Admin' account fields Email, Prov
  # 4. combining results of 1. and 2.
 
 When you execute p.1 you will get the following list:
-AxMenu
-MenuItemName
-ShowParentModule
-MenuItemType (it can be either Action, Display, Output)
+
+- AxMenu
+- MenuItemName
+- ShowParentModule
+- MenuItemType (it can be either Action, Display, Output)
 
 When you execute p.2
-MenuItemName
-MenuItemType
-Label
-Object
-ObjectType
+
+- MenuItemName
+- MenuItemType
+- Label
+- Object
+- ObjectType
+
 if MenuItemName + MenuItemType are the same use the first values
 
 add to every record from 1 the info from 2 using MenuItemName + MenuItemType link. if MenuItemName + MenuItemType are the same in the second list, use the first values
 
-and procude the following csv file:
-AxMenu
-MenuItemName
-ShowParentModule
-MenuItemType
-Object
-ObjectType
-Label
-LabelText (the logic in defined in  p."3. Getting the label text")
+and produce the following csv file:
+
+- AxMenu
+- MenuItemName
+- ShowParentModule
+- MenuItemType
+- Object
+- ObjectType
+- Label
+- LabelText (the logic in defined in  p."3. Getting the label text")
