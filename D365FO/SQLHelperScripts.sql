@@ -1,3 +1,30 @@
+-----------------------------------------------------------------------
+-- Resolve enumvalue in a single SELECT
+-----------------------------------------------------------------------
+DECLARE @XppEnumLiteral NVARCHAR(200) = 'METSalesOrderProcessingStatus::OptimisationCompleted';
+DECLARE @EnumValue      INT;
+
+SELECT @EnumValue = ev.enumvalue
+FROM   ENUMVALUETABLE ev
+JOIN   ENUMIDTABLE   ei ON ei.ID = ev.enumid
+WHERE  ei.NAME = LEFT(@XppEnumLiteral, CHARINDEX('::', @XppEnumLiteral) - 1)
+  AND  ev.NAME = SUBSTRING(
+                        @XppEnumLiteral,
+                        CHARINDEX('::', @XppEnumLiteral) + 2,
+                        LEN(@XppEnumLiteral)
+                  );
+IF @EnumValue IS NULL
+BEGIN
+    THROW 51000, 
+          'ERROR: Enum literal "' + @XppEnumLiteral + '" could not be resolved in ENUMIDTABLE/ENUMVALUETABLE.', 
+          1;
+END
+PRINT 'Resolved EnumValue = ' + CAST(@EnumValue AS NVARCHAR(20));
+
+-----------------------------------------------------------------------
+-- Find All Fields With No DataEntities Via CrossRef
+-----------------------------------------------------------------------
+
 SELECT
     -- Extract the text between the first and second slash for the TableName
     SUBSTRING(Path, CHARINDEX('/', Path) + 1, CHARINDEX('/', Path, CHARINDEX('/', Path) + 1) - CHARINDEX('/', Path) - 1) AS TableName,
