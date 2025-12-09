@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------
 -- Resolve enumvalue in a single SELECT
 -----------------------------------------------------------------------
-DECLARE @XppEnumLiteral NVARCHAR(200) = 'METSalesOrderProcessingStatus::OptimisationCompleted';
+DECLARE @XppEnumLiteral NVARCHAR(200) = 'SalesOrderProcessingStatus::OptimisationCompleted';
 DECLARE @EnumValue      INT;
 DECLARE @ErrorMessage   NVARCHAR(4000);
 
@@ -26,6 +26,18 @@ END;
 
 PRINT 'Resolved EnumValue = ' + CAST(@EnumValue AS NVARCHAR(20));
 
+
+-- Target enum name
+DECLARE @EnumName NVARCHAR(200) = 'SalesOrderProcessingStatus';
+
+-- Return all elements for this enum
+SELECT
+      ev.NAME          AS EnumElementName,
+      ev.ENUMVALUE     AS EnumValue
+FROM   ENUMVALUETABLE ev
+JOIN   ENUMIDTABLE   ei ON ei.ID = ev.ENUMID
+WHERE  ei.NAME = @EnumName
+ORDER BY ev.ENUMVALUE;
 
 -----------------------------------------------------------------------
 -- Find All Fields With No DataEntities Via CrossRef
