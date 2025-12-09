@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------
 DECLARE @XppEnumLiteral NVARCHAR(200) = 'METSalesOrderProcessingStatus::OptimisationCompleted';
 DECLARE @EnumValue      INT;
+DECLARE @ErrorMessage   NVARCHAR(4000);
 
 SELECT @EnumValue = ev.enumvalue
 FROM   ENUMVALUETABLE ev
@@ -13,13 +14,18 @@ WHERE  ei.NAME = LEFT(@XppEnumLiteral, CHARINDEX('::', @XppEnumLiteral) - 1)
                         CHARINDEX('::', @XppEnumLiteral) + 2,
                         LEN(@XppEnumLiteral)
                   );
+
 IF @EnumValue IS NULL
 BEGIN
-    THROW 51000, 
-          'ERROR: Enum literal "' + @XppEnumLiteral + '" could not be resolved in ENUMIDTABLE/ENUMVALUETABLE.', 
-          1;
-END
+    SET @ErrorMessage = 'ERROR: Enum literal "' 
+                        + @XppEnumLiteral 
+                        + '" could not be resolved in ENUMIDTABLE/ENUMVALUETABLE.';
+
+    THROW 51000, @ErrorMessage, 1;
+END;
+
 PRINT 'Resolved EnumValue = ' + CAST(@EnumValue AS NVARCHAR(20));
+
 
 -----------------------------------------------------------------------
 -- Find All Fields With No DataEntities Via CrossRef
