@@ -195,4 +195,5 @@ else {write-host 'AOSService drive not found! Could not set RuntimeHostType to "
 
 #region usefull tools
 #https://marketplace.visualstudio.com/items?itemName=ViktarKarpach.DebugAttachManager2022
+#WinDirStat - for folder size map
 #endregion
