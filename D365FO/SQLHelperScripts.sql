@@ -50,7 +50,7 @@ WITH SlashPositions AS (
         CHARINDEX('/', N.Path, CHARINDEX('/', N.Path) + 1)                AS Slash2
     FROM [dbo].[Names] N
     WHERE N.ProviderId = 2   -- corrected from 1; Table/TableField rows use ProviderId 2
-      AND N.ModuleId IN (SELECT Id FROM [dbo].[Modules] WHERE Module = 'Metcash')
+      AND N.ModuleId IN (SELECT Id FROM [dbo].[Modules] WHERE Module = 'YOUMODULENAME')
       AND (N.Path LIKE 'Table/%TableField%' OR N.Path LIKE 'TableExtension/%TableField%')
       AND N.Path NOT LIKE 'Table/%TableFieldGroup%'
       AND N.Path NOT LIKE '%?%'
