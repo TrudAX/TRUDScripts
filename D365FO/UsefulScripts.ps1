@@ -150,6 +150,19 @@ ALTER DATABASE AxDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 RESTORE DATABASE AxDB from   
 DATABASE_SNAPSHOT = 'AxDB_MyReserveCase';  
 ALTER DATABASE AxDB SET MULTI_USER;
+#---------------------------------
+
+#SQL STOP ALL BATCHES
+#---------------------------------
+UPDATE BATCH set STATUS = 0 
+where STATUS = 1 -- waiting
+OR STATUS = 2 -- executing
+OR STATUS = 5 --Ready
+
+UPDATE BATCHJOB set STATUS = 0 
+where STATUS = 1 -- waiting
+OR STATUS = 2 -- executing
+OR STATUS = 5 --Ready
 
 #----------------------------------------
 #RESTORE REPLY URL
