@@ -451,24 +451,19 @@ SELECT
     c.session_id,
     s.host_name,
     s.program_name,
-
     c.cursor_id,
     c.properties,
     c.creation_time,
-
     c.fetch_buffer_size,
     c.fetch_status,
     c.dormant_duration,
-
     c.worker_time AS CurrentCursorWorkerTime,
     c.reads       AS CurrentCursorReads,
     c.writes      AS CurrentCursorWrites,
-
     pc.execution_count      AS SQLExecutionCount,
     pc.total_logical_reads  AS SQLTotalLogicalReads,
     pc.total_worker_time    AS SQLTotalWorkerTime,
     pc.last_execution_time,
-
     SUBSTRING(
         t.text,
         (c.statement_start_offset / 2) + 1,
@@ -482,14 +477,10 @@ SELECT
             ) / 2
         ) + 1
     ) AS CursorSQL
-
 FROM sys.dm_exec_cursors(0) c
-
 JOIN sys.dm_exec_sessions s
     ON s.session_id = c.session_id
-
 CROSS APPLY sys.dm_exec_sql_text(c.sql_handle) t
-
 OUTER APPLY
 (
     SELECT
@@ -502,10 +493,8 @@ OUTER APPLY
       AND qs.statement_start_offset = c.statement_start_offset
       AND qs.statement_end_offset   = c.statement_end_offset
 ) pc
-
 WHERE c.session_id <> @@SPID
   AND c.properties LIKE 'API%'
-
 ORDER BY pc.execution_count DESC;
 ```
 
