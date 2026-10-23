@@ -1,0 +1,103 @@
+;WITH BlockingPairs AS (
+      SELECT r.session_id AS BlockedSpid, r.blocking_session_id AS BlockingSpid,
+             r.wait_type, r.wait_time, r.wait_resource,
+             res.ResourceType, res.WaitTable,
+             CASE WHEN res.WaitTable = 'BATCH' THEN '*** SYSTEM-LEVEL: the BATCH scheduler table itself is blocked ***' END AS SystemWarning
+      FROM sys.dm_exec_requests r
+      -- fix 3: resolve wait_resource ('KEY: db:hobt (hash)' / 'OBJECT: db:objid:...') to a table name
+      -- Azure SQL optimized locking: 'XACT: db:x:y KEY: db:hobt (hash)' -> parse from the embedded 'KEY: ' part
+      CROSS APPLY (SELECT CASE WHEN CHARINDEX('KEY: ', r.wait_resource) > 1
+                               THEN SUBSTRING(r.wait_resource, CHARINDEX('KEY: ', r.wait_resource), 512) ELSE r.wait_resource END AS wr) w
+      CROSS APPLY (SELECT CHARINDEX(':', w.wr) AS c1) p1
+      CROSS APPLY (SELECT CASE WHEN p1.c1 > 0 THEN LEFT(w.wr, p1.c1 - 1) END AS rt,
+                          CASE WHEN p1.c1 > 0 THEN LTRIM(SUBSTRING(w.wr, p1.c1 + 1, 512)) ELSE '' END AS afterType) p2
+      CROSS APPLY (SELECT CHARINDEX(':', p2.afterType) AS c2) p3
+      CROSS APPLY (SELECT CASE WHEN p3.c2 > 0 THEN SUBSTRING(p2.afterType, p3.c2 + 1, 512) ELSE '' END AS afterDb) p4
+      CROSS APPLY (SELECT TRY_CAST(LEFT(p4.afterDb, PATINDEX('%[^0-9]%', p4.afterDb + ' ') - 1) AS bigint) AS resId) p5
+      CROSS APPLY (SELECT p2.rt AS ResourceType,
+                          CASE p2.rt
+                              WHEN 'KEY'    THEN (SELECT TOP 1 OBJECT_NAME(pt.object_id) FROM sys.partitions pt WHERE pt.hobt_id = p5.resId)
+                              WHEN 'OBJECT' THEN OBJECT_NAME(CAST(p5.resId AS int))
+                          END AS WaitTable) res
+      -- fix 2: removed the OR EXISTS branch (its BlockingSpid = 0 rows were always dropped by the final JOIN)
+      WHERE r.blocking_session_id > 0
+  ),
+  SessionDetail AS (
+      SELECT
+          s.session_id,
+          axUser.value AS AxUser,
+          axSessionId.value AS AxSessionId,
+          CASE WHEN b.RECID IS NOT NULL THEN 'Batch' ELSE 'Non-batch' END AS SessionKind,  -- based on an actual BATCH match, NOT ClientType (proven unreliable live)
+          b.BatchJobId, bj.CAPTION AS BatchJobName, b.RECID AS BatchTaskId, b.CAPTION AS BatchTaskName,
+          CASE b.STATUS
+              WHEN 0 THEN 'Hold' WHEN 1 THEN 'Waiting' WHEN 2 THEN 'Executing'
+              WHEN 3 THEN 'Error' WHEN 4 THEN 'Finished' WHEN 5 THEN 'Ready'
+              WHEN 6 THEN 'NotRun' WHEN 7 THEN 'Cancelling' WHEN 8 THEN 'Canceled'
+              WHEN 9 THEN 'Scheduled' ELSE 'Unknown(' + CAST(b.STATUS AS varchar(10)) + ')'
+          END AS BatchStatusLabel,
+          CASE WHEN b.STARTDATETIME > '1901-01-01' THEN DATEDIFF_BIG(SECOND, b.STARTDATETIME, GETUTCDATE()) END AS BatchTaskDurationSec,
+          b.retryCount, b.retriesOnFailure,
+          DATEDIFF(SECOND, s.login_time, GETDATE()) AS SessionDurationSec,
+          s.cpu_time AS CpuTimeMs, s.logical_reads AS LogicalReads, s.reads AS PhysicalReads, s.writes AS Writes,
+          (SELECT COUNT(*) FROM sys.dm_tran_session_transactions st WHERE st.session_id = s.session_id) AS OpenTransactions,
+          sqltext.text AS MostRecentSql,
+          -- fix 4: flag escalated table locks (OBJECT held in S or X, not IS/IX)
+          CASE WHEN EXISTS (SELECT 1 FROM sys.dm_tran_locks le
+                            WHERE le.request_session_id = s.session_id AND le.request_status = 'GRANT'
+                              AND le.resource_type = 'OBJECT' AND le.request_mode IN ('S', 'X'))
+               THEN 'ESCALATED TABLE LOCK - ' ELSE '' END + ISNULL(locks.LockSummary, '') AS LockSummary
+      FROM sys.dm_exec_sessions s
+      -- context_info: '[<ts> | <ts> ++ ]{AxUser} {AxSessionId} CLIENT ...' -> 1st/2nd word after '++ ' (or from the start).
+      -- Not anchored on 'CLIENT': tier 2 batch AOS truncates it (seen live: '... sankava 10275509 CLIEN').
+      CROSS APPLY (SELECT LTRIM(REPLACE(CONVERT(varchar(128), s.context_info) COLLATE Latin1_General_BIN, CHAR(0), '')) AS ctx) rawctx
+      CROSS APPLY (SELECT CHARINDEX('++ ', rawctx.ctx) AS pos) pp
+      CROSS APPLY (SELECT LTRIM(CASE WHEN pp.pos > 0 THEN SUBSTRING(rawctx.ctx, pp.pos + 3, 128) ELSE rawctx.ctx END) AS rest) r1
+      CROSS APPLY (SELECT CASE WHEN CHARINDEX(' ', r1.rest) > 0 THEN LEFT(r1.rest, CHARINDEX(' ', r1.rest) - 1) ELSE NULLIF(r1.rest, '') END AS value,
+                          CASE WHEN CHARINDEX(' ', r1.rest) > 0 THEN LTRIM(SUBSTRING(r1.rest, CHARINDEX(' ', r1.rest) + 1, 128)) ELSE '' END AS after1) axUser
+      CROSS APPLY (SELECT CASE WHEN CHARINDEX(' ', axUser.after1) > 0 THEN LEFT(axUser.after1, CHARINDEX(' ', axUser.after1) - 1)
+                               ELSE NULLIF(axUser.after1, '') END AS value) axSessionId
+      LEFT JOIN SysClientSessions ccs ON ccs.SessionId = TRY_CAST(axSessionId.value AS INT)
+      LEFT JOIN SysServerSessions sss ON sss.ServerId = ccs.ServerId
+      LEFT JOIN BATCH b ON b.SessionIdx = ccs.SessionId
+                        AND b.SessionLoginDateTime = ccs.LoginDateTime
+                        AND b.STATUS = 2
+                        AND RIGHT(b.ServerId, LEN(b.ServerId) - CHARINDEX(':', b.ServerId))
+                          = RIGHT(sss.AOSId, LEN(sss.AOSId) - CHARINDEX(':', sss.AOSId))
+      LEFT JOIN BATCHJOB bj ON bj.RECID = b.BatchJobId
+      OUTER APPLY (SELECT c.most_recent_sql_handle AS h FROM sys.dm_exec_connections c WHERE c.session_id = s.session_id) conn
+      OUTER APPLY sys.dm_exec_sql_text(conn.h) sqltext
+      OUTER APPLY (
+          SELECT STUFF((
+              SELECT ', ' + l.resource_type + ':' + l.request_mode + ' x' + CAST(COUNT(*) AS varchar(10))
+              FROM sys.dm_tran_locks l
+              WHERE l.request_session_id = s.session_id AND l.request_status = 'GRANT'
+              GROUP BY l.resource_type, l.request_mode
+              ORDER BY l.resource_type, l.request_mode
+              FOR XML PATH('')), 1, 2, '') AS LockSummary
+      ) locks
+      WHERE s.session_id IN (SELECT BlockedSpid FROM BlockingPairs UNION SELECT BlockingSpid FROM BlockingPairs)
+  )
+  SELECT
+      bp.BlockedSpid, blocked.AxUser AS Blocked_AxUser, blocked.SessionKind AS Blocked_Kind,
+      blocked.BatchJobName AS Blocked_BatchJob, blocked.BatchJobId AS Blocked_BatchJobId,         -- fix 1
+      blocked.BatchTaskName AS Blocked_BatchTask, blocked.BatchTaskId AS Blocked_BatchTaskId,     -- fix 1
+      blocked.BatchStatusLabel AS Blocked_Status, blocked.BatchTaskDurationSec AS Blocked_Duration,
+      blocked.retryCount AS Blocked_Retry, blocked.retriesOnFailure AS Blocked_RetriesOnFailure,  -- fix 5
+      blocked.MostRecentSql AS Blocked_SQL,
+      blocked.SessionDurationSec AS Blocked_SessionDuration, blocked.CpuTimeMs AS Blocked_CPU,
+      blocked.LogicalReads AS Blocked_LogicalReads, blocked.PhysicalReads AS Blocked_PhysicalReads, blocked.Writes AS Blocked_Writes,  -- fix 5
+      blocked.OpenTransactions AS Blocked_OpenTran, blocked.LockSummary AS Blocked_Locks,
+      bp.wait_time, bp.wait_type, bp.wait_resource,
+      bp.ResourceType, bp.WaitTable, bp.SystemWarning,                                            -- fix 3
+      bp.BlockingSpid, blocking.AxUser AS Blocking_AxUser, blocking.SessionKind AS Blocking_Kind,
+      blocking.BatchJobName AS Blocking_BatchJob, blocking.BatchJobId AS Blocking_BatchJobId,
+      blocking.BatchTaskName AS Blocking_BatchTask, blocking.BatchTaskId AS Blocking_BatchTaskId,
+      blocking.BatchStatusLabel AS Blocking_Status, blocking.BatchTaskDurationSec AS Blocking_Duration,
+      blocking.retryCount AS Blocking_Retry, blocking.retriesOnFailure AS Blocking_RetriesOnFailure,  -- fix 5
+      blocking.MostRecentSql AS Blocking_SQL,
+      blocking.SessionDurationSec AS Blocking_SessionDuration, blocking.CpuTimeMs AS Blocking_CPU,
+      blocking.LogicalReads AS Blocking_LogicalReads, blocking.PhysicalReads AS Blocking_PhysicalReads, blocking.Writes AS Blocking_Writes,  -- fix 5
+      blocking.OpenTransactions AS Blocking_OpenTran, blocking.LockSummary AS Blocking_Locks
+  FROM BlockingPairs bp
+  JOIN SessionDetail blocked  ON blocked.session_id  = bp.BlockedSpid
+  JOIN SessionDetail blocking ON blocking.session_id = bp.BlockingSpid;
